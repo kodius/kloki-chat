@@ -4,7 +4,7 @@
 // This should match the value in ios/Podfile.
 IPHONEOS_DEPLOYMENT_TARGET=15.0
 
-DEVELOPMENT_TEAM=66KHCWMEYB
+DEVELOPMENT_TEAM=N53842DU2C
 
 // This should match the `iosAppGroupIdentifier` variable in
 // lib/model/store.dart.
