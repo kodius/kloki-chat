@@ -257,6 +257,6 @@ flutter:
 patrol:
   app_name: Zulip
   android:
-    package_name: com.zulipmobile
+    package_name: com.kodius.konvo
   ios:
-    bundle_id: org.zulip.Zulip
+    bundle_id: com.kodius.konvo
