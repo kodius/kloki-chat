@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'kloki.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -258,6 +259,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     this.message,
     this.messageWithLinkMarkup,
     this.onTapMessageLink,
+    this.icon = Icons.forum_outlined,
   }) : assert(
          (header != null)
          ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
@@ -269,14 +271,18 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   final String? messageWithLinkMarkup;
   final VoidCallback? onTapMessageLink;
 
+  /// The icon in the Kloki illustration above the words.
+  final IconData icon;
+
   TextStyle _headerStyle(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
     return TextStyle(
-      color: designVariables.labelSearchPrompt,
-      fontSize: 22,
-      height: 1.30,
-    ).merge(weightVariableTextStyle(context, wght: 600));
+      color: designVariables.title,
+      fontFamily: kKlokiHeadingFontFamily,
+      fontSize: 20,
+      height: 1.25,
+    ).merge(weightVariableTextStyle(context, wght: 700));
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -297,9 +303,10 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     return TextStyle(
-      color: designVariables.labelSearchPrompt,
-      fontSize: 17,
-      height: 23 / 17,
+      color: designVariables.loginOrDividerText,
+      fontFamily: kKlokiHeadingFontFamily,
+      fontSize: 15,
+      height: 1.5,
     ).merge(weightVariableTextStyle(context, wght: 500));
   }
 
@@ -326,19 +333,27 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     final message = _buildMessage(context);
 
     return SafeArea(
-      minimum: EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Padding(
-        padding: EdgeInsets.only(top: 48),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Column(
-            spacing: 16,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // TODO leading and trailing elements, like in Figma (given as SVGs):
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
-              header,
-              ?message,
-            ]))));
+      minimum: EdgeInsets.fromLTRB(32, 0, 32, 16),
+      // Centered in the page; scrollable, for large text
+      // or a short space beside the keyboard.
+      child: LayoutBuilder(builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                KlokiIllustration(icon: icon),
+                const SizedBox(height: 28),
+                header,
+                if (message != null) ...[
+                  const SizedBox(height: 8),
+                  message,
+                ],
+                // Lift the content a little above the true center.
+                const SizedBox(height: 48),
+              ])))))));
   }
 }

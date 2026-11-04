@@ -169,6 +169,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     if (channelTopics.isEmpty) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       return PageBodyEmptyContentPlaceholder(
+        icon: ZulipIcons.topics,
         header: zulipLocalizations.topicListEmptyPlaceholderHeader);
     }
 

@@ -194,6 +194,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
     if (items.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
+        icon: ZulipIcons.check_check,
         // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
         message: zulipLocalizations.inboxEmptyPlaceholderMessage);

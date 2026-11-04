@@ -56,6 +56,7 @@ class AllChannelsPageBody extends StatelessWidget {
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
+        icon: ZulipIcons.hash_sign,
         header: zulipLocalizations.allChannelsEmptyPlaceholderHeader);
     }
 
