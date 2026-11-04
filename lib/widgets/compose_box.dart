@@ -603,7 +603,7 @@ class _ContentInput extends StatelessWidget {
         child: InsetShadowBox(
           top: _verticalPadding, bottom: _verticalPadding,
           // The color of the rounded field the input sits in.
-          color: designVariables.mainBackground,
+          color: designVariables.bgSearchInput,
           child: Padding(
             // This padding ensures that the user can always scroll long
             // content entirely out of the top or bottom shadow if desired.
@@ -1415,23 +1415,37 @@ class _SendButtonState extends State<_SendButton> {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final iconColor = Colors.white;
+    final ready = !_hasValidationErrors;
 
+    // The button comes alive (fills and pops) once there's something to send,
+    // and gives a little press on tap.
     return SizedBox.square(
       dimension: 44,
-      child: IconButton(
-        style: IconButton.styleFrom(
-          backgroundColor: _hasValidationErrors
-            ? designVariables.fabBg.withValues(alpha: 0.35)
-            : designVariables.fabBg,
-          shape: const CircleBorder()),
-        tooltip: zulipLocalizations.composeBoxSendTooltip,
-        icon: Icon(ZulipIcons.send,
-          // We set [Icon.color] instead of [IconButton.color] because the
-          // latter implicitly uses colors derived from it to override the
-          // ambient [ButtonStyle.overlayColor], where we set the color for
-          // the highlight state to match the Figma design.
-          color: iconColor),
-        onPressed: _send));
+      child: AnimatedScaleOnPress(
+        scaleEnd: 0.85,
+        duration: const Duration(milliseconds: 100),
+        child: AnimatedScale(
+          scale: ready ? 1 : 0.88,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutBack,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: ready
+                ? designVariables.fabBg
+                : designVariables.fabBg.withValues(alpha: 0.35)),
+            child: IconButton(
+              style: IconButton.styleFrom(shape: const CircleBorder()),
+              tooltip: zulipLocalizations.composeBoxSendTooltip,
+              icon: Icon(ZulipIcons.send,
+                // We set [Icon.color] instead of [IconButton.color] because the
+                // latter implicitly uses colors derived from it to override the
+                // ambient [ButtonStyle.overlayColor], where we set the color for
+                // the highlight state to match the Figma design.
+                color: iconColor),
+              onPressed: _send)))));
   }
 }
 
@@ -1553,7 +1567,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             Expanded(child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: designVariables.mainBackground,
+                color: designVariables.bgSearchInput,
                 borderRadius: BorderRadius.circular(22)),
               child: buildContentInput())),
             if (sendButton != null) ...[
