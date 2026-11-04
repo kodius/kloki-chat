@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -183,7 +184,12 @@ class MessageListPage extends StatefulWidget {
     super.key,
     required this.initNarrow,
     this.initAnchorMessageId,
+    this.embedded = false,
   });
+
+  /// Whether this page is the body of another page, such as a home tab,
+  /// which gives the app bar; if so, it has none of its own.
+  final bool embedded;
 
   /// The maximum width for the messages
   /// and for the content of the compose box and its banner.
@@ -329,6 +335,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   late Narrow narrow;
 
+  /// The height of the compose box, which floats over the bottom of the list.
+  double _composeBoxHeight = 0;
+
   @override
   void refresh([Anchor? anchor]) {
     // TODO If anchor isn't passed, check if there's some onscreen message
@@ -393,7 +402,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     }
 
     Widget result = Scaffold(
-      appBar: _MessageListAppBar.build(context, narrow: narrow),
+      appBar: widget.embedded ? null : _MessageListAppBar.build(context, narrow: narrow),
       // The chat is white edge to edge.
       backgroundColor: DesignVariables.of(context).bgMessageRegular,
       // TODO question for Vlad: for a stream view, should we set the Scaffold's
@@ -404,32 +413,32 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
         builder: (BuildContext context) {
-          return Column(
-          // Children are expected to take the full horizontal space
-          // and handle the horizontal device insets.
-          // The bottom inset should be handled by the last child only.
-          children: [
-            MediaQuery.removePadding(
-              // Scaffold knows about the app bar, and so has run this
-              // BuildContext, which is under `body`, through
-              // MediaQuery.removePadding with `removeTop: true`.
-              context: context,
+          final messageList = MessageList(
+            key: _messageListKey,
+            narrow: narrow,
+            initAnchor: initAnchor,
+            onNarrowChanged: _narrowChanged,
+            markReadOnScroll: markReadOnScroll,
+          );
+          if (!ComposeBox.hasComposeBox(narrow)) return messageList;
 
-              // The compose box, when present, pads the bottom inset.
-              // TODO(#311) If we have a bottom nav, it will pad the bottom
-              //   inset, and this should always be true.
-              removeBottom: ComposeBox.hasComposeBox(narrow),
-
-              child: Expanded(
-                child: MessageList(
-                  key: _messageListKey,
-                  narrow: narrow,
-                  initAnchor: initAnchor,
-                  onNarrowChanged: _narrowChanged,
-                  markReadOnScroll: markReadOnScroll,
-                ))),
-            if (ComposeBox.hasComposeBox(narrow))
-              ComposeBox(key: _composeBoxKey, narrow: narrow)
+          // The compose box floats, frosted, over the bottom of the list,
+          // which scrolls on under it; the list pads its end by the box's height.
+          final mediaQuery = MediaQuery.of(context);
+          return Stack(children: [
+            Positioned.fill(
+              child: MediaQuery(
+                data: mediaQuery.copyWith(
+                  padding: mediaQuery.padding.copyWith(bottom: _composeBoxHeight)),
+                child: messageList)),
+            Positioned(left: 0, right: 0, bottom: 0,
+              child: _ReportHeight(
+                onHeight: (height) {
+                  if (height != _composeBoxHeight) {
+                    setState(() => _composeBoxHeight = height);
+                  }
+                },
+                child: ComposeBox(key: _composeBoxKey, narrow: narrow))),
           ]);
         }));
 
@@ -1223,9 +1232,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           return _buildItem(data, isLastInFeed: itemIndex == totalItems - 1);
         }));
 
-    if (!ComposeBox.hasComposeBox(widget.narrow)) {
-      // TODO(#311) If we have a bottom nav, it will pad the bottom inset,
-      //   and this can be removed; also remove mention in MessageList dartdoc
+    {
+      // The bottom inset is the device's, or the floating compose box's height.
       bottomSliver = SliverSafeArea(key: bottomSliver.key, sliver: bottomSliver);
       topSliver = MediaQuery.removePadding(context: context,
         // In the top sliver, forget the bottom inset;
@@ -1856,6 +1864,38 @@ class MessageItem extends StatelessWidget {
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: child);
+  }
+}
+
+/// Reports [child]'s height to [onHeight] after each layout that changes it.
+class _ReportHeight extends SingleChildRenderObjectWidget {
+  const _ReportHeight({required this.onHeight, required super.child});
+
+  final void Function(double height) onHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+    _RenderReportHeight(onHeight);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderReportHeight renderObject) {
+    renderObject.onHeight = onHeight;
+  }
+}
+
+class _RenderReportHeight extends RenderProxyBox {
+  _RenderReportHeight(this.onHeight);
+
+  void Function(double height) onHeight;
+  double? _lastHeight;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final height = size.height;
+    if (height == _lastHeight) return;
+    _lastHeight = height;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onHeight(height));
   }
 }
 

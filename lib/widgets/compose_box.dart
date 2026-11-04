@@ -1495,14 +1495,16 @@ class _ComposeBoxContainer extends StatelessWidget {
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
-    return Container(width: double.infinity,
-      decoration: BoxDecoration(
-        boxShadow: ComposeBoxTheme.of(context).boxShadow,
-      ),
-      child: Material(
-        color: designVariables.composeBoxBg,
-        child: Column(
-          children: children)));
+    // Frosted, like the bottom nav: messages scrolling under show through softly.
+    // No shadow; the frost alone sets it apart.
+    return SizedBox(width: double.infinity,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Material(
+            color: designVariables.composeBoxBg.withValues(alpha: 0.55),
+            child: Column(
+              children: children)))));
   }
 }
 
