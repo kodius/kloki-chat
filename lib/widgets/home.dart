@@ -120,12 +120,23 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
+    final designVariables = DesignVariables.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      // A large Kloki page title, part of the page rather than a bar.
+      appBar: ZulipAppBar(
+        titleSpacing: 20,
+        centerTitle: false,
+        toolbarHeight: 64,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
-          child: Text(_currentTabTitle)),
+          child: Text(_currentTabTitle,
+            style: TextStyle(
+              fontFamily: kKlokiHeadingFontFamily,
+              fontSize: 28,
+              height: 1.2,
+              color: designVariables.title,
+            ).merge(weightVariableTextStyle(context, wght: 800)))),
         actions: _currentTabAppBarActions),
       body: Column(
         children: [
@@ -314,36 +325,45 @@ class _NavigationBarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final color = selected ? designVariables.iconSelected : designVariables.icon;
+    final tone = designVariables.fabBg;
+    final color = selected
+      ? tone
+      : designVariables.foreground.withValues(alpha: 0.55);
 
     Widget result = AnimatedScaleOnPress(
-      scaleEnd: 0.875,
+      scaleEnd: 0.9,
       duration: const Duration(milliseconds: 100),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          // TODO(#417): Disable splash effects for all buttons globally.
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: designVariables.navigationButtonBg,
-          onTap: onPressed,
-          child: Padding(
-            // (Added 3px horizontal padding not present in Figma, to make the
-            // text wrap before getting too close to the button's edge, which is
-            // visible on tap-down.)
-            padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
-            child: Column(
-              spacing: 3,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 24, color: color),
-                Flexible(
-                  child: Text(
-                    label,
-                    style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
-                    textAlign: TextAlign.center,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
-              ])))));
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(3, 8, 3, 4),
+          child: Column(
+            spacing: 4,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // The Kloki nav marks the current tab with a tinted pill.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                width: 56,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: selected ? tone.withValues(alpha: 0.12) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15)),
+                child: Icon(icon, size: 22, color: color)),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: kKlokiHeadingFontFamily,
+                    fontSize: 12,
+                    color: color,
+                    height: 1,
+                  ).merge(weightVariableTextStyle(context, wght: selected ? 700 : 600)),
+                  textAlign: TextAlign.center,
+                  textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
+            ]))));
 
     result = MergeSemantics(
       child: Semantics(
@@ -492,8 +512,8 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(spacing: 8, children: [
                   AvatarShape(
-                    size: 28,
-                    borderRadius: 4,
+                    size: 32,
+                    borderRadius: 9,
                     child: RealmContentNetworkImage(
                       store.resolvedRealmIcon,
                       filterQuality: FilterQuality.medium,
@@ -502,9 +522,10 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: designVariables.title,
+                      fontFamily: kKlokiHeadingFontFamily,
                       fontSize: 20,
                       height: 24 / 20,
-                    ).merge(weightVariableTextStyle(context, wght: 600)))),
+                    ).merge(weightVariableTextStyle(context, wght: 800)))),
                 ]))),
               Icon(ZulipIcons.arrow_left_right,
                 color: designVariables.icon,
@@ -562,9 +583,6 @@ abstract class MenuButton extends StatelessWidget {
     // we can cancel out those adjustments by subtracting it.
     final densityVerticalAdjustment = visualDensity.baseSizeAdjustment.dy;
 
-    final borderSideSelected = BorderSide(width: 1,
-      strokeAlign: BorderSide.strokeAlignOutside,
-      color: designVariables.borderMenuButtonSelected);
     final buttonStyle = TextButton.styleFrom(
       // Make the button 44px instead of 48px tall, to match the Figma.
       visualDensity: visualDensity,
@@ -585,10 +603,8 @@ abstract class MenuButton extends StatelessWidget {
         WidgetState.any:
           selected ? designVariables.bgMenuButtonSelected : Colors.transparent,
       }),
-      side: WidgetStateBorderSide.fromMap({
-        WidgetState.pressed: null,
-        ~WidgetState.pressed: selected ? borderSideSelected : null,
-      }));
+      foregroundColor: WidgetStatePropertyAll(
+        selected ? designVariables.iconSelected : designVariables.labelMenuButton));
 
     final trailing = buildTrailing(context);
 
@@ -604,7 +620,7 @@ abstract class MenuButton extends StatelessWidget {
           Expanded(child: Text(label(zulipLocalizations),
             // TODO(design): determine if we prefer to wrap
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 19, height: 23 / 19)
+            style: const TextStyle(fontSize: 18, height: 23 / 18)
               .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
           ?trailing,
         ])));
