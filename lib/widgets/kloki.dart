@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
+import '../model/settings.dart';
+import 'store.dart';
 import 'theme.dart';
 
 /// The chat realm Konvo signs in to through Kloki by default.
@@ -826,4 +829,40 @@ class _KlokiLoaderPainter extends CustomPainter {
   @override
   bool shouldRepaint(_KlokiLoaderPainter oldDelegate) =>
     progress != oldDelegate.progress || tone != oldDelegate.tone || check != oldDelegate.check;
+}
+
+/// A quiet sun-or-moon button that switches between the light and dark themes,
+/// live; the choice is the same setting as in the settings page.
+class KlokiThemeToggle extends StatelessWidget {
+  const KlokiThemeToggle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return IconButton(
+      tooltip: isDark
+        ? zulipLocalizations.themeSettingLight
+        : zulipLocalizations.themeSettingDark,
+      style: IconButton.styleFrom(
+        backgroundColor: designVariables.fabBg,
+        fixedSize: const Size.square(40)),
+      onPressed: () => GlobalStoreWidget.settingsOf(context)
+        .setThemeSetting(isDark ? ThemeSetting.light : ThemeSetting.dark),
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOutBack,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) => RotationTransition(
+          turns: animation.drive(Tween(begin: 0.6, end: 1.0)),
+          child: ScaleTransition(scale: animation,
+            child: FadeTransition(opacity: animation, child: child))),
+        child: Icon(
+          isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          key: ValueKey(isDark),
+          size: 20,
+          color: Colors.white)));
+  }
 }

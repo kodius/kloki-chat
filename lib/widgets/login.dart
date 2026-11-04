@@ -255,7 +255,13 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
     final designVariables = DesignVariables.of(context);
     final background = designVariables.mainBackground;
 
+    // Reached from the account list, this page needs a way back.
+    final canPop = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
     final header = Row(children: [
+      if (canPop) ...[
+        const BackButton(),
+        const SizedBox(width: 4),
+      ],
       const KlokiMark(size: 28),
       const SizedBox(width: 10),
       Text('Kloki',
@@ -264,6 +270,8 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
           fontSize: 22,
           color: designVariables.title,
         ).merge(weightVariableTextStyle(context, wght: 800))),
+      const Spacer(),
+      const KlokiThemeToggle(),
     ]);
 
     final hero = LayoutBuilder(builder: (context, constraints) {
