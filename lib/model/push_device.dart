@@ -60,7 +60,22 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// This is an entry in [devices].
   ClientDevice? get thisDevice => _devices[account.deviceId];
 
-  bool get _e2eeAvailable => zulipFeatureLevel >= 468; // TODO(server-12)
+  /// Konvo: E2EE push registration is off.
+  ///
+  /// Zulip 12 servers (feature level 468+) would get the push token
+  /// encrypted to Zulip's bouncer ([bouncerPublicKey]), which only that
+  /// bouncer can read. Konvo's servers (*.chat.kloki.app) do not use the
+  /// bouncer; they push straight to APNs and FCM with Konvo's own
+  /// credentials, so the token has to go the legacy way
+  /// (`users/me/apns_device_token` with `appid`, `users/me/android_gcm_reg_id`).
+  ///
+  /// Tests set this to true (test/flutter_test_config.dart) so upstream's
+  /// E2EE tests keep covering that code.
+  @visibleForTesting
+  static bool debugE2eeEnabled = false;
+
+  bool get _e2eeAvailable =>
+    debugE2eeEnabled && zulipFeatureLevel >= 468; // TODO(server-12)
 
   void handleDeviceEvent(DeviceEvent event) {
     switch (event) {

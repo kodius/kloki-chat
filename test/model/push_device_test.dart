@@ -356,6 +356,23 @@ void main() {
         }
       }));
 
+      testAndroidIos('Konvo: legacy registration on a Zulip 12 server', () => awaitFakeAsync((async) async {
+        PushDeviceManager.debugE2eeEnabled = false;
+        addTearDown(() => PushDeviceManager.debugE2eeEnabled = true);
+        testBinding.firebaseMessagingInitialToken = '012abc';
+        testBinding.packageInfoResult = eg.packageInfo(packageName: 'konvo.kodius.com');
+        await NotificationService.instance.start();
+
+        await prepareStore(zulipFeatureLevel: 468);
+        connection.prepare(json: {});
+        await model.debugUnpauseRegisterToken();
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          checkLastRequestFcm(token: '012abc');
+        } else {
+          checkLastRequestApns(token: '012abc', appid: 'konvo.kodius.com');
+        }
+      }));
+
       testAndroidIos('token initially unknown', () => awaitFakeAsync((async) async {
         // This tests the case where the store is created while our
         // request for the token is still pending.
