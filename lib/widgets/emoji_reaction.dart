@@ -23,8 +23,9 @@ import 'user.dart';
 
 /// Emoji-reaction styles that differ between light and dark themes.
 class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
+  // A reaction the self-user has made is tinted Kloki primary.
   static final light = EmojiReactionTheme._(
-    bgSelected: Colors.white,
+    bgSelected: KlokiColors.lightAccent,
 
     // TODO shadow effect, following web, which uses `box-shadow: inset`:
     //   https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow#inset
@@ -36,21 +37,21 @@ class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
     //   want to check that against web when implementing the shadow.
     bgUnselected: const HSLColor.fromAHSL(0.08, 210, 0.50, 0.875).toColor(),
 
-    borderSelected: Colors.black.withValues(alpha: 0.45),
+    borderSelected: KlokiColors.lightPrimary.withValues(alpha: 0.45),
 
     // TODO see TODO on [bgUnselected] about shadow effect
     borderUnselected: Colors.black.withValues(alpha: 0.05),
 
-    textSelected: const HSLColor.fromAHSL(1, 210, 0.20, 0.20).toColor(),
+    textSelected: KlokiColors.lightAccentForeground,
     textUnselected: const HSLColor.fromAHSL(1, 210, 0.20, 0.25).toColor(),
   );
 
   static final dark = EmojiReactionTheme._(
-    bgSelected: Colors.black.withValues(alpha: 0.8),
-    bgUnselected: Colors.black.withValues(alpha: 0.3),
-    borderSelected: Colors.white.withValues(alpha: 0.75),
-    borderUnselected: Colors.white.withValues(alpha: 0.15),
-    textSelected: Colors.white.withValues(alpha: 0.85),
+    bgSelected: KlokiColors.darkPrimary.withValues(alpha: 0.22),
+    bgUnselected: Colors.white.withValues(alpha: 0.04),
+    borderSelected: KlokiColors.darkPrimary.withValues(alpha: 0.6),
+    borderUnselected: Colors.white.withValues(alpha: 0.10),
+    textSelected: KlokiColors.darkAccentForeground,
     textUnselected: Colors.white.withValues(alpha: 0.75),
   );
 
