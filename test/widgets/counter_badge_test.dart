@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/counter_badge.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -56,7 +57,7 @@ void main() {
             kind: CounterBadgeKind.unread,
             count: 1,
             channelIdForBackground: null));
-        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(const Color(0x26666699));
+        check(findBackgroundColor(tester)).isNotNull().isSameColorAs(KlokiColors.lightPrimary.withValues(alpha: 0.15));
       });
 
       testWidgets('stream color', (tester) async {

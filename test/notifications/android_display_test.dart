@@ -534,7 +534,7 @@ void main() {
               ..conversationTitle.equals(expectedTitle)
               ..messages.deepEquals(messageStyleMessagesChecks))
             ..number.equals(messageStyleMessages.length)
-            ..color.equals(kZulipBrandColor.argbInt)
+            ..color.equals(KlokiColors.lightPrimary.argbInt)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
@@ -557,7 +557,7 @@ void main() {
             ..channelId.equals(AndroidNotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
-            ..color.equals(kZulipBrandColor.argbInt)
+            ..color.equals(KlokiColors.lightPrimary.argbInt)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.isNull()
             ..groupKey.equals(expectedGroupKey)

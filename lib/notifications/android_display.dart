@@ -304,7 +304,7 @@ class AndroidNotificationDisplayManager {
       channelId: AndroidNotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
-      color: kZulipBrandColor.argbInt,
+      color: KlokiColors.lightPrimary.argbInt,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
 
@@ -348,7 +348,7 @@ class AndroidNotificationDisplayManager {
       groupKey: groupKey,
       isGroupSummary: true,
 
-      color: kZulipBrandColor.argbInt,
+      color: KlokiColors.lightPrimary.argbInt,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
       inboxStyle: InboxStyle(summaryText: account.realmName ?? data.realmName),

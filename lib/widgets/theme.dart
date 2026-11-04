@@ -30,7 +30,10 @@ ThemeData zulipThemeData(BuildContext context) {
   //   https://m3.material.io/theme-builder#/custom
   final colorScheme = ColorScheme.fromSeed(
     brightness: brightness,
-    seedColor: kZulipBrandColor);
+    // Fidelity keeps [ColorScheme.primary] at the Kloki primary itself.
+    dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    seedColor: brightness == Brightness.light
+      ? KlokiColors.lightPrimary : KlokiColors.darkPrimary);
 
   switch (brightness) {
     case Brightness.light: {
@@ -70,8 +73,10 @@ ThemeData zulipThemeData(BuildContext context) {
       foregroundColor: designVariables.icon,
     )),
     elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
-      backgroundColor: colorScheme.secondaryContainer,
-      foregroundColor: colorScheme.onSecondaryContainer,
+      backgroundColor: designVariables.fabBg,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     )),
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
@@ -93,10 +98,10 @@ ThemeData zulipThemeData(BuildContext context) {
         textBaseline: localizedTextBaseline(context),
         leadingDistribution: TextLeadingDistribution.even,
         decoration: TextDecoration.none,
-        fontFamily: kDefaultFontFamily,
+        fontFamily: kKlokiHeadingFontFamily,
         fontFamilyFallback: defaultFontFamilyFallback,
       )
-        .merge(weightVariableTextStyle(context, wght: 600)),
+        .merge(weightVariableTextStyle(context, wght: 700)),
       titleSpacing: 4,
 
       // TODO Figma has height 42; we should try `toolbarHeight: 42` and test
@@ -133,6 +138,35 @@ ThemeData zulipThemeData(BuildContext context) {
 // As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
 const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 
+/// Colors from the Kloki design tokens, as on the web app and chat.kloki.app.
+///
+/// Source: kloking-core packages/configs/tailwind/styles/globals.css
+/// (`:root` and `.dark`).
+abstract final class KlokiColors {
+  static const lightPrimary = Color(0xff493dcc);
+  static const lightPrimaryHover = Color(0xff352fb2);
+  static const lightAccent = Color(0xffe3e6f8);
+  static const lightAccentForeground = Color(0xff2a258d);
+  static const lightBackground = Color(0xfff8f8f8);
+  static const lightCard = Color(0xffffffff);
+  static const lightForeground = Color(0xff252525);
+  static const lightMuted = Color(0xffececec);
+  static const lightMutedForeground = Color(0xff666666);
+  static const lightBorder = Color(0xffd3d3d3);
+  static const lightDanger = Color(0xffdc2828);
+
+  static const darkPrimary = Color(0xff706ed8);
+  static const darkPrimaryHover = Color(0xff8688df);
+  static const darkAccent = Color(0xff383838);
+  static const darkAccentForeground = Color(0xffe2e6f8);
+  static const darkBackground = Color(0xff212121);
+  static const darkCard = Color(0xff2e2e2e);
+  static const darkForeground = Color(0xfff7f7f7);
+  static const darkMutedForeground = Color(0xffb2b2b2);
+  static const darkBorder = Color(0x1affffff);
+  static const darkDanger = Color(0xffe66565);
+}
+
 /// Design variables, mainly from the Figma design.
 ///
 /// For how to export these from the Figma, see:
@@ -143,71 +177,71 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   static final light = DesignVariables._(
     background: const Color(0xffffffff),
     bannerBgIntDanger: const Color(0xfff2e4e4),
-    bannerBgIntInfo: const Color(0xffddecf6),
+    bannerBgIntInfo: KlokiColors.lightAccent,
     bannerBgIntWarning: const Color(0xfffaf5dc),
-    bannerTextIntInfo: const Color(0xff06037c),
-    bgBotBar: const Color(0xfff6f6f6),
-    bgContextMenu: const Color(0xfff2f2f2),
-    bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
+    bannerTextIntInfo: KlokiColors.lightAccentForeground,
+    bgBotBar: KlokiColors.lightCard,
+    bgContextMenu: KlokiColors.lightBackground,
+    bgCounterUnread: KlokiColors.lightPrimary.withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: Colors.white,
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
-    bgSearchInput: const Color(0xffe3e3e3),
-    bgTopBar: const Color(0xfff5f5f5),
-    borderBar: Colors.black.withValues(alpha: 0.2),
+    bgSearchInput: KlokiColors.lightMuted,
+    bgTopBar: KlokiColors.lightCard,
+    borderBar: KlokiColors.lightBorder,
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
-    btnBgAttHighIntInfoActive: const Color(0xff1e41d3),
-    btnBgAttHighIntInfoNormal: const Color(0xff3c6bff),
+    btnBgAttHighIntInfoActive: KlokiColors.lightPrimaryHover,
+    btnBgAttHighIntInfoNormal: KlokiColors.lightPrimary,
     btnBgAttHighIntWarningActive: const Color(0xffeba002),
     btnBgAttHighIntWarningNormal: const Color(0xfffebe3d),
     btnBgAttLowIntDangerActive: const Color(0xffc0070a).withValues(alpha: 0.13),
-    btnBgAttLowIntInfoActive: const Color(0xff06037c).withValues(alpha: 0.09),
+    btnBgAttLowIntInfoActive: KlokiColors.lightPrimary.withValues(alpha: 0.09),
     btnBgAttLowIntNeutralActive: const Color(0xff535663).withValues(alpha: 0.11),
     btnBgAttMediumIntDangerActive: const Color(0xffe1392e).withValues(alpha: 0.23),
     btnBgAttMediumIntDangerNormal: const Color(0xffe1392e).withValues(alpha: 0.13),
-    btnBgAttMediumIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
-    btnBgAttMediumIntInfoNormal: const Color(0xff3c6bff).withValues(alpha: 0.12),
+    btnBgAttMediumIntInfoActive: KlokiColors.lightPrimary.withValues(alpha: 0.22),
+    btnBgAttMediumIntInfoNormal: KlokiColors.lightPrimary.withValues(alpha: 0.12),
     btnBgAttMediumIntWarningActive: const Color(0xffeba001).withValues(alpha: 0.28),
     btnBgAttMediumIntWarningNormal: const Color(0xffeba002).withValues(alpha: 0.18),
     btnLabelAttHigh: const Color(0xffffffff),
     btnLabelAttHighIntWarning: const Color(0xff000000).withValues(alpha: 0.88),
     btnLabelAttLowIntDanger: const Color(0xffc0070a),
-    btnLabelAttLowIntInfo: const Color(0xff2347c6),
+    btnLabelAttLowIntInfo: KlokiColors.lightPrimary,
     btnLabelAttLowIntNeutral: const Color(0xff535663), // grey/600
     btnLabelAttMediumIntDanger: const Color(0xffac0508),
-    btnLabelAttMediumIntInfo: const Color(0xff1027a6),
+    btnLabelAttMediumIntInfo: KlokiColors.lightAccentForeground,
     btnLabelAttMediumIntWarning: const Color(0xff764607),
     btnShadowAttMed: const Color(0xff000000).withValues(alpha: 0.20),
     composeBoxBg: const Color(0xffffffff),
     contextMenuBg: const Color(0xffffffff), // grey/900
     contextMenuBorder: const Color(0xff9ea1ae), // grey/350
     contextMenuCancelText: const Color(0xff222222),
-    contextMenuItemBg: const Color(0xff6159e1),
+    contextMenuItemBg: KlokiColors.lightPrimary,
     contextMenuItemBgDanger: const Color(0xffc0070a), // TODO(#831) red/550
-    contextMenuItemIcon: const Color(0xff4f42c9),
+    contextMenuItemIcon: KlokiColors.lightPrimary,
     contextMenuItemIconDanger: const Color(0xffac0508), // TODO(#831) red/600
     contextMenuItemLabel: const Color(0xff242631),
     contextMenuItemMeta: const Color(0xff626573),
-    contextMenuItemText: const Color(0xff381da7),
+    contextMenuItemText: KlokiColors.lightAccentForeground,
     contextMenuItemTextDanger: const Color(0xffac0508), // TODO(#831) red/600
     editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
-    fabBg: const Color(0xff6e69f3),
-    fabBgPressed: const Color(0xff6159e1),
+    fabBg: KlokiColors.lightPrimary,
+    fabBgPressed: KlokiColors.lightPrimaryHover,
     fabLabel: const Color(0xfff1f3fe),
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff2b0e8a).withValues(alpha: 0.4),
     folderText: const Color(0xff596680),
-    foreground: const Color(0xff000000),
+    foreground: KlokiColors.lightForeground,
     groupIcon: const Color(0xff7199fe), // blue/350
-    icon: const Color(0xff6159e1),
-    iconSelected: const Color(0xff222222),
+    icon: KlokiColors.lightPrimary,
+    iconSelected: KlokiColors.lightForeground,
     labelCounterQuantity: const Color(0xff222222).withValues(alpha: 0.6),
     labelCounterUnread: const Color(0xff1a1a1a),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
     labelMenuButton: const Color(0xff222222),
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     labelTime: const Color(0x00000000).withValues(alpha: 0.49),
-    link: const Color(0xff066bd0), // from "Zulip Web UI kit"
+    link: KlokiColors.lightPrimary,
     listMenuItemBg: const Color(0xffcbcdd6),
     listMenuItemIcon: const Color(0xff9194a3),
     listMenuItemText: const Color(0xff2d303c),
@@ -215,12 +249,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // Keep the color here and the corresponding non-dark mode entry in
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
     // in sync.
-    mainBackground: const Color(0xfff0f0f0),
+    mainBackground: KlokiColors.lightBackground,
 
     neutralButtonBg: const Color(0xff8c84ae),
     neutralButtonLabel: const Color(0xff433d5c),
     radioBorder: Color(0xffbbbdc8),
-    radioFillSelected: Color(0xff4370f0),
+    radioFillSelected: KlokiColors.lightPrimary,
     statusAway: Color(0xff73788c).withValues(alpha: 0.25),
 
     // Following Web because it uses a gradient, to distinguish it by shape from
@@ -228,10 +262,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     statusIdle: Color(0xfff5b266),
 
     statusOnline: Color(0xff46aa62),
-    textInput: const Color(0xff000000),
-    textMessage: const Color(0xff262626),
-    textMessageMuted: const Color(0xff262626).withValues(alpha: 0.6),
-    title: const Color(0xff1a1a1a),
+    textInput: KlokiColors.lightForeground,
+    textMessage: KlokiColors.lightForeground,
+    textMessageMuted: KlokiColors.lightForeground.withValues(alpha: 0.6),
+    title: KlokiColors.lightForeground,
     channelColorSwatches: ChannelColorSwatches.light,
     avatarPlaceholderBg: const Color(0x33808080),
     avatarPlaceholderIcon: Colors.black.withValues(alpha: 0.5),
@@ -239,8 +273,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
-    loginOrDivider: const Color(0xffdedede),
-    loginOrDividerText: const Color(0xff575757),
+    loginOrDivider: KlokiColors.lightBorder,
+    loginOrDividerText: KlokiColors.lightMutedForeground,
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.3),
     mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.8).toColor(),
     navigationButtonBg: Colors.black.withValues(alpha: 0.05),
@@ -253,65 +287,65 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   );
 
   static final dark = DesignVariables._(
-    background: const Color(0xff000000),
+    background: KlokiColors.darkBackground,
     bannerBgIntDanger: const Color(0xff461616),
-    bannerBgIntInfo: const Color(0xff00253d),
+    bannerBgIntInfo: KlokiColors.darkAccent,
     bannerBgIntWarning: const Color(0xff332b00),
-    bannerTextIntInfo: const Color(0xffcbdbfd),
-    bgBotBar: const Color(0xff222222),
-    bgContextMenu: const Color(0xff262626),
+    bannerTextIntInfo: KlokiColors.darkAccentForeground,
+    bgBotBar: KlokiColors.darkCard,
+    bgContextMenu: KlokiColors.darkCard,
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
-    bgMessageRegular: const Color(0xff1d1d1d),
-    bgSearchInput: const Color(0xff313131),
-    bgTopBar: const Color(0xff242424),
+    bgMessageRegular: KlokiColors.darkBackground,
+    bgSearchInput: KlokiColors.darkAccent,
+    bgTopBar: KlokiColors.darkCard,
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
-    btnBgAttHighIntInfoActive: const Color(0xff1e41d3),
-    btnBgAttHighIntInfoNormal: const Color(0xff1e41d3),
+    btnBgAttHighIntInfoActive: KlokiColors.darkPrimaryHover,
+    btnBgAttHighIntInfoNormal: KlokiColors.darkPrimary,
     btnBgAttHighIntWarningActive: const Color(0xffdb920d),
     btnBgAttHighIntWarningNormal: const Color(0xffdb920d),
     btnBgAttLowIntDangerActive: const Color(0xfff34c3e).withValues(alpha: 0.17),
-    btnBgAttLowIntInfoActive: const Color(0xff4d7bfd).withValues(alpha: 0.17),
+    btnBgAttLowIntInfoActive: KlokiColors.darkPrimary.withValues(alpha: 0.17),
     btnBgAttLowIntNeutralActive: const Color(0xff9194a3).withValues(alpha: 0.18),
     btnBgAttMediumIntDangerActive: const Color(0xfffd5f50).withValues(alpha: 0.12),
     btnBgAttMediumIntDangerNormal: const Color(0xfffd5f50).withValues(alpha: 0.12),
-    btnBgAttMediumIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
-    btnBgAttMediumIntInfoNormal: const Color(0xff97b6fe).withValues(alpha: 0.12),
+    btnBgAttMediumIntInfoActive: KlokiColors.darkPrimary.withValues(alpha: 0.22),
+    btnBgAttMediumIntInfoNormal: KlokiColors.darkPrimary.withValues(alpha: 0.12),
     btnBgAttMediumIntWarningActive: const Color(0xffdb920d).withValues(alpha: 0.12),
     btnBgAttMediumIntWarningNormal: const Color(0xffdb920d).withValues(alpha: 0.12),
     btnLabelAttHigh: const Color(0xffffffff).withValues(alpha: 0.85),
     btnLabelAttHighIntWarning: const Color(0xff000000).withValues(alpha: 0.90),
     btnLabelAttLowIntDanger: const Color(0xffff8b7c),
-    btnLabelAttLowIntInfo: const Color(0xff84a8fd),
+    btnLabelAttLowIntInfo: KlokiColors.darkPrimaryHover,
     btnLabelAttLowIntNeutral: const Color(0xffaaadba), // grey/300
     btnLabelAttMediumIntDanger: const Color(0xffff8b7c),
-    btnLabelAttMediumIntInfo: const Color(0xff97b6fe),
+    btnLabelAttMediumIntInfo: KlokiColors.darkAccentForeground,
     btnLabelAttMediumIntWarning: const Color(0xfff8b325),
     btnShadowAttMed: const Color(0xffffffff).withValues(alpha: 0.21),
-    composeBoxBg: const Color(0xff0f0f0f),
-    contextMenuBg: const Color(0xff11131e),
+    composeBoxBg: KlokiColors.darkCard,
+    contextMenuBg: KlokiColors.darkAccent,
     contextMenuBorder: const Color(0xff444754), // grey/650
     contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
-    contextMenuItemBg: const Color(0xff7977fe),
+    contextMenuItemBg: KlokiColors.darkPrimary,
     contextMenuItemBgDanger: const Color(0xffe1392e), // TODO(#831) red/450
-    contextMenuItemIcon: const Color(0xff9398fd),
+    contextMenuItemIcon: KlokiColors.darkPrimaryHover,
     contextMenuItemIconDanger: const Color(0xfffd7465), // TODO(#831) red/300
     contextMenuItemLabel: const Color(0xffdfe1e8),
     contextMenuItemMeta: const Color(0xff9194a3),
-    contextMenuItemText: const Color(0xff9398fd),
+    contextMenuItemText: KlokiColors.darkPrimaryHover,
     contextMenuItemTextDanger: const Color(0xfffd7465), // TODO(#831) red/300
     editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
-    fabBg: const Color(0xff4f42c9),
-    fabBgPressed: const Color(0xff4331b8),
+    fabBg: KlokiColors.darkPrimary,
+    fabBgPressed: KlokiColors.darkPrimaryHover,
     fabLabel: const Color(0xffeceefc),
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff18171c),
     folderText: const Color(0xff8793ab),
-    foreground: const Color(0xffffffff),
+    foreground: KlokiColors.darkForeground,
     groupIcon: const Color(0xff84a8fd), // blue/300
-    icon: const Color(0xff7977fe),
+    icon: KlokiColors.darkPrimary,
     iconSelected: Colors.white.withValues(alpha: 0.8),
     labelCounterQuantity: const Color(0xffffffff).withValues(alpha: 0.7),
     labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.95),
@@ -319,7 +353,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelMenuButton: const Color(0xffffffff).withValues(alpha: 0.85),
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     labelTime: const Color(0xffffffff).withValues(alpha: 0.50),
-    link: const Color(0xff00aaff), // from "Zulip Web UI kit"
+    link: KlokiColors.darkPrimaryHover,
     listMenuItemBg: const Color(0xff2d303c),
     listMenuItemIcon: const Color(0xff767988),
     listMenuItemText: const Color(0xffcbcdd6),
@@ -327,12 +361,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // Keep the color here and the corresponding dark mode entry in
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
     // in sync.
-    mainBackground: const Color(0xff1d1d1d),
+    mainBackground: KlokiColors.darkBackground,
 
     neutralButtonBg: const Color(0xffd4d1e0),
     neutralButtonLabel: const Color(0xffa9a3c2),
     radioBorder: Color(0xff626573),
-    radioFillSelected: Color(0xff4e7cfa),
+    radioFillSelected: KlokiColors.darkPrimary,
     statusAway: Color(0xffabaeba).withValues(alpha: 0.30),
 
     // Following Web because it uses a gradient, to distinguish it by shape from
@@ -354,8 +388,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
-    loginOrDivider: const Color(0xff424242),
-    loginOrDividerText: const Color(0xffa8a8a8),
+    loginOrDivider: KlokiColors.darkBorder,
+    loginOrDividerText: KlokiColors.darkMutedForeground,
     modalBarrierColor: const Color(0xff000000).withValues(alpha: 0.5),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     mutedUnreadBadge: const HSLColor.fromAHSL(0.5, 0, 0, 0.6).toColor(),
