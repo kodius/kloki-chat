@@ -1434,4 +1434,34 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+
+  @override
+  String get klokiSignInTitle => 'Chat sign-in goes through Kloki';
+
+  @override
+  String get klokiSignInDescription =>
+      'Sign in the same way as in Kloki. Chat accounts come from Kloki and have no password of their own.';
+
+  @override
+  String get klokiSignInButton => 'Sign in through Kloki';
+
+  @override
+  String get klokiGuestSignIn => 'Guest sign-in';
+
+  @override
+  String get klokiGuestSignInDescription =>
+      'For guests the company invited to its chat. Everyone with a Kloki account signs in through Kloki.';
+
+  @override
+  String get klokiBackToKlokiSignIn => 'Back to signing in through Kloki';
+
+  @override
+  String get klokiOtherServer => 'Sign in to another server';
+
+  @override
+  String get klokiWelcomeTitle => 'Your team\'s chat';
+
+  @override
+  String get klokiWelcomeDescription =>
+      'Channels, direct messages and groups for the whole team. Sign in with your Kloki account, no separate password.';
 }

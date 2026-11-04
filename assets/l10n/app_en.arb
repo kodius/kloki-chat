@@ -1724,5 +1724,41 @@
   "topicListEmptyPlaceholderHeader": "There are no topics here yet.",
   "@topicListEmptyPlaceholderHeader": {
     "description": "Header text shown when a channel has no topics."
+  },
+  "klokiSignInTitle": "Chat sign-in goes through Kloki",
+  "@klokiSignInTitle": {
+    "description": "Title of the page for signing in to a chat through Kloki."
+  },
+  "klokiSignInDescription": "Sign in the same way as in Kloki. Chat accounts come from Kloki and have no password of their own.",
+  "@klokiSignInDescription": {
+    "description": "Explanation under the title of the page for signing in through Kloki."
+  },
+  "klokiSignInButton": "Sign in through Kloki",
+  "@klokiSignInButton": {
+    "description": "Button that opens Kloki's sign-in in the browser."
+  },
+  "klokiGuestSignIn": "Guest sign-in",
+  "@klokiGuestSignIn": {
+    "description": "Link to, and title of, the sign-in with a password for guests outside Kloki."
+  },
+  "klokiGuestSignInDescription": "For guests the company invited to its chat. Everyone with a Kloki account signs in through Kloki.",
+  "@klokiGuestSignInDescription": {
+    "description": "Explanation on the guest sign-in form."
+  },
+  "klokiBackToKlokiSignIn": "Back to signing in through Kloki",
+  "@klokiBackToKlokiSignIn": {
+    "description": "Link from the guest sign-in form back to signing in through Kloki."
+  },
+  "klokiOtherServer": "Sign in to another server",
+  "@klokiOtherServer": {
+    "description": "Link to entering the URL of a chat server other than Kloki's."
+  },
+  "klokiWelcomeTitle": "Your team's chat",
+  "@klokiWelcomeTitle": {
+    "description": "Title of the welcome page, before signing in through Kloki."
+  },
+  "klokiWelcomeDescription": "Channels, direct messages and groups for the whole team. Sign in with your Kloki account, no separate password.",
+  "@klokiWelcomeDescription": {
+    "description": "Text under the title of the welcome page."
   }
 }

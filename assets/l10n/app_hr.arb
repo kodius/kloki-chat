@@ -1,0 +1,11 @@
+{
+  "klokiSignInTitle": "Prijava u chat ide kroz Kloki",
+  "klokiSignInDescription": "Prijavite se istom prijavom kao u Kloki. Računi u chatu dolaze iz Klokija i nemaju vlastitu lozinku.",
+  "klokiSignInButton": "Prijavi se kroz Kloki",
+  "klokiGuestSignIn": "Prijava za goste",
+  "klokiGuestSignInDescription": "Za goste koje je tvrtka pozvala u svoj chat. Svi s računom u Klokiju prijavljuju se kroz Kloki.",
+  "klokiBackToKlokiSignIn": "Natrag na prijavu kroz Kloki",
+  "klokiOtherServer": "Prijava na drugi server",
+  "klokiWelcomeTitle": "Chat cijelog tima",
+  "klokiWelcomeDescription": "Kanali, privatne poruke i grupe za cijeli tim. Prijavite se svojim Kloki računom, bez posebne lozinke."
+}

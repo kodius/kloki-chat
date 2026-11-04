@@ -17,6 +17,7 @@ import 'zulip_localizations_es.dart';
 import 'zulip_localizations_et.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_he.dart';
+import 'zulip_localizations_hr.dart';
 import 'zulip_localizations_hu.dart';
 import 'zulip_localizations_hy.dart';
 import 'zulip_localizations_it.dart';
@@ -133,6 +134,7 @@ abstract class ZulipLocalizations {
     Locale('et'),
     Locale('fr'),
     Locale('he'),
+    Locale('hr'),
     Locale('hu'),
     Locale('hy'),
     Locale('it'),
@@ -2507,6 +2509,60 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'There are no topics here yet.'**
   String get topicListEmptyPlaceholderHeader;
+
+  /// Title of the page for signing in to a chat through Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat sign-in goes through Kloki'**
+  String get klokiSignInTitle;
+
+  /// Explanation under the title of the page for signing in through Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in the same way as in Kloki. Chat accounts come from Kloki and have no password of their own.'**
+  String get klokiSignInDescription;
+
+  /// Button that opens Kloki's sign-in in the browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in through Kloki'**
+  String get klokiSignInButton;
+
+  /// Link to, and title of, the sign-in with a password for guests outside Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest sign-in'**
+  String get klokiGuestSignIn;
+
+  /// Explanation on the guest sign-in form.
+  ///
+  /// In en, this message translates to:
+  /// **'For guests the company invited to its chat. Everyone with a Kloki account signs in through Kloki.'**
+  String get klokiGuestSignInDescription;
+
+  /// Link from the guest sign-in form back to signing in through Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to signing in through Kloki'**
+  String get klokiBackToKlokiSignIn;
+
+  /// Link to entering the URL of a chat server other than Kloki's.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to another server'**
+  String get klokiOtherServer;
+
+  /// Title of the welcome page, before signing in through Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Your team\'s chat'**
+  String get klokiWelcomeTitle;
+
+  /// Text under the title of the welcome page.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels, direct messages and groups for the whole team. Sign in with your Kloki account, no separate password.'**
+  String get klokiWelcomeDescription;
 }
 
 class _ZulipLocalizationsDelegate
@@ -2530,6 +2586,7 @@ class _ZulipLocalizationsDelegate
     'et',
     'fr',
     'he',
+    'hr',
     'hu',
     'hy',
     'it',
@@ -2603,6 +2660,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsFr();
     case 'he':
       return ZulipLocalizationsHe();
+    case 'hr':
+      return ZulipLocalizationsHr();
     case 'hu':
       return ZulipLocalizationsHu();
     case 'hy':
