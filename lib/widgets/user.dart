@@ -36,7 +36,8 @@ class Avatar extends StatelessWidget {
     assert(backgroundColor == null || showPresence);
     return AvatarShape(
       size: size,
-      borderRadius: borderRadius,
+      // Kloki shows people as circles, whatever radius the caller asks for.
+      borderRadius: size / 2,
       backgroundColor: backgroundColor,
       userIdForPresence: showPresence ? userId : null,
       child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));

@@ -108,6 +108,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       children: [
         if (sorted.isEmpty)
           PageBodyEmptyContentPlaceholder(
+            icon: ZulipIcons.two_person,
             header: zulipLocalizations.recentDmConversationsEmptyPlaceholderHeader,
             message: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage)
         else
@@ -376,7 +377,7 @@ class DmConversationAvatar extends StatelessWidget {
 
     return AvatarShape(
       size: _avatarSize,
-      borderRadius: 3,
+      borderRadius: _avatarSize / 2,
       backgroundColor: userIdForPresence != null ? backgroundColor : null,
       userIdForPresence: userIdForPresence,
       child: avatar);

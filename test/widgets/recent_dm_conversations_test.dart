@@ -154,7 +154,7 @@ void main() {
           ));
         check(shape)
           ..size.equals(32)
-          ..borderRadius.equals(3);
+          ..borderRadius.equals(16); // a circle
 
         switch (narrow.otherRecipientIds) {
           case []:                // self-1:1
