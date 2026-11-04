@@ -27,6 +27,7 @@ import 'emoji.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'kloki.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'profile.dart';
@@ -268,7 +269,7 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final child = loading
-      ? CircularProgressIndicator()
+      ? const KlokiLoader()
       : Text(
           textAlign: TextAlign.center,
           style: TextStyle(

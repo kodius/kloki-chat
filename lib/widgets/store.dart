@@ -5,6 +5,7 @@ import '../model/binding.dart';
 import '../model/database.dart';
 import '../model/settings.dart';
 import '../model/store.dart';
+import 'kloki.dart';
 import 'page.dart';
 
 /// Provides access to the app's data.
@@ -355,7 +356,7 @@ class LoadingPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(child: KlokiLoader());
   }
 }
 

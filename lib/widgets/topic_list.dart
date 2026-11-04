@@ -16,6 +16,7 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
+import 'kloki.dart';
 
 class TopicListPage extends StatelessWidget {
   const TopicListPage({super.key, required this.channelId});
@@ -163,7 +164,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   Widget build(BuildContext context) {
     final channelTopics = topicsModel!.channelTopics(widget.channelId);
     if (channelTopics == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: KlokiLoader());
     }
 
     if (channelTopics.isEmpty) {
