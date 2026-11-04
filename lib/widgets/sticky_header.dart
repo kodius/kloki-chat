@@ -636,6 +636,11 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
       header!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
       final headerExtent = header!.size.onAxis(constraints.axis);
 
+      // A pinned sliver before this one (such as the inset under a frosted
+      // app bar) covers this much of the start; stick the header just past it.
+      final startOverlap = _headerAtCoordinateEnd()
+        ? 0.0 : math.max(0.0, constraints.overlap);
+
       final double headerOffset;
       if (_headerEndBound == null) {
         // The header's item has [StickyHeaderItem.allowOverflow] true.
@@ -649,7 +654,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
           headerOffset = _headerAtCoordinateEnd()
             ? childExtent - headerExtent
-            : 0.0;
+            : math.min(startOverlap, childExtent - headerExtent);
         } else {
           // The header will overflow the child sliver.
           // That makes this sliver's geometry a bit more complicated.
@@ -706,7 +711,7 @@ class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelper
 
         headerOffset = _headerAtCoordinateEnd()
           ? math.max(childExtent - headerExtent, endBoundAbsolute)
-          : math.min(0.0, endBoundAbsolute - headerExtent);
+          : math.min(startOverlap, endBoundAbsolute - headerExtent);
       }
 
       final headerParentData = (header!.parentData as SliverPhysicalParentData);
