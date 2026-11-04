@@ -164,8 +164,13 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
       // Other *PageBody widgets don't handle this because they aren't
       // (re-)used outside the context of the home page.
       bottom: false,
+      // The top inset is padded inside the list, so it scrolls on under
+      // a frosted page title.
+      top: false,
       child: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.paddingOf(context).top)),
           if (pinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
             _SubscriptionList(
