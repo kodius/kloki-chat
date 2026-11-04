@@ -75,7 +75,7 @@ class PushDeviceManager extends PerAccountStoreBase {
   static bool debugE2eeEnabled = false;
 
   bool get _e2eeAvailable =>
-    debugE2eeEnabled && zulipFeatureLevel >= 468; // TODO(server-12)
+    debugE2eeEnabled && zulipFeatureLevel >= 468;
 
   void handleDeviceEvent(DeviceEvent event) {
     switch (event) {
