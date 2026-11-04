@@ -710,10 +710,19 @@ class KlokiEntrance extends InheritedWidget {
 /// Without a [KlokiEntrance], or once it has run, the row just shows;
 /// so rows scrolled to later appear at once.
 class KlokiStaggered extends StatelessWidget {
-  const KlokiStaggered({super.key, required this.index, required this.child});
+  const KlokiStaggered({super.key, required this.index, required this.child})
+    : begin = null;
+
+  /// A row that starts easing in at [begin] of the way through the entrance,
+  /// for a page that orders its own beats.
+  const KlokiStaggered.at({super.key, required double this.begin, required this.child})
+    : index = 0;
 
   /// The row's place on the page, from the top.
   final int index;
+
+  /// Where in the entrance this row starts; if null, from [index].
+  final double? begin;
   final Widget child;
 
   /// Rows past this many share the last row's moment;
@@ -726,7 +735,7 @@ class KlokiStaggered extends StatelessWidget {
     if (entrance == null) return child;
     // Rows start almost together, each a beat after the one above;
     // each fades in quickly, while its short rise eases out after.
-    final begin = math.min(index, _maxStaggered) * 0.03;
+    final begin = this.begin ?? math.min(index, _maxStaggered) * 0.03;
     final end = math.min(begin + 0.6, 1.0);
     final opacity = CurvedAnimation(parent: entrance,
       curve: Interval(begin, begin + (end - begin) * 0.5, curve: Curves.easeOut));
