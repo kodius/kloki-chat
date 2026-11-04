@@ -347,10 +347,10 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
               children: [
                 KlokiIllustration(icon: icon),
                 const SizedBox(height: 28),
-                header,
+                KlokiEaseIn(delay: 0.15, child: header),
                 if (message != null) ...[
                   const SizedBox(height: 8),
-                  message,
+                  KlokiEaseIn(delay: 0.3, child: message),
                 ],
                 // Lift the content a little above the true center.
                 const SizedBox(height: 48),

@@ -86,7 +86,7 @@ class _KlokiMarkPainter extends CustomPainter {
 /// Follows `EmptyStateMark` with the "generic" motif
 /// in kloking-core apps/users/components/empty-state/,
 /// at its "page" size.
-class KlokiIllustration extends StatelessWidget {
+class KlokiIllustration extends StatefulWidget {
   const KlokiIllustration({
     super.key,
     required this.icon,
@@ -105,36 +105,156 @@ class KlokiIllustration extends StatelessWidget {
   static const _circleSize = 72.0;
 
   @override
+  State<KlokiIllustration> createState() => _KlokiIllustrationState();
+}
+
+/// The illustration comes in quickly (the circle pops, the shapes fly out
+/// from behind it, the dots light up), then the shapes float gently
+/// for as long as it shows; its ticker stops when the page is hidden.
+/// It comes in again each time the page shows again.
+/// With reduced motion it just shows.
+class _KlokiIllustrationState extends State<KlokiIllustration>
+    with TickerProviderStateMixin, _ReplayWhenShown {
+  late final AnimationController _entrance = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 450));
+  late final AnimationController _float = AnimationController(
+    vsync: this, duration: const Duration(seconds: 4));
+
+  @override
+  void enter() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _entrance.value = 1;
+    } else {
+      _entrance.forward(from: 0);
+      if (!_float.isAnimating) _float.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    _float.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final tone = this.tone ?? designVariables.fabBg;
+    final tone = widget.tone ?? designVariables.fabBg;
     final card = designVariables.bgTopBar;
+
+    final pop = CurvedAnimation(parent: _entrance,
+      curve: const Interval(0, 0.6, curve: Curves.easeOutBack));
+    final popFade = CurvedAnimation(parent: _entrance,
+      curve: const Interval(0, 0.3, curve: Curves.easeOut));
+    final dotsFade = CurvedAnimation(parent: _entrance,
+      curve: const Interval(0.2, 0.8, curve: Curves.easeOut));
+    final iconIn = CurvedAnimation(parent: _entrance,
+      curve: const Interval(0.25, 0.75, curve: Curves.easeOutBack));
+
     return ExcludeSemantics(
       child: SizedBox(
-        width: _width,
-        height: _height,
+        width: KlokiIllustration._width,
+        height: KlokiIllustration._height,
         child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
           Positioned(left: -24, right: -24, top: -40, bottom: -40,
-            child: CustomPaint(painter: _DotsPainter(
-              color: designVariables.foreground.withValues(alpha: 0.08)))),
+            child: FadeTransition(
+              opacity: dotsFade,
+              child: CustomPaint(painter: _DotsPainter(
+                color: designVariables.foreground.withValues(alpha: 0.08))))),
           Positioned.fill(
-            child: CustomPaint(painter: _GenericMotifPainter(tone: tone, card: card))),
-          Container(
-            width: _circleSize,
-            height: _circleSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: card, width: 4),
-              boxShadow: [BoxShadow(color: tone.withValues(alpha: 0.12), spreadRadius: 1)],
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4), // "circle at 35% 30%"
-                radius: 0.9,
-                colors: [
-                  Color.lerp(card, tone, 0.07)!,
-                  Color.lerp(card, tone, 0.20)!,
-                ])),
-            child: Icon(icon, size: 28, color: tone)),
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_entrance, _float]),
+              builder: (context, _) => CustomPaint(painter: _GenericMotifPainter(
+                tone: tone, card: card,
+                entrance: _entrance.value, float: _float.value)))),
+          FadeTransition(
+            opacity: popFade,
+            child: ScaleTransition(
+              scale: pop.drive(Tween(begin: 0.6, end: 1.0)),
+              child: Container(
+                width: KlokiIllustration._circleSize,
+                height: KlokiIllustration._circleSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: card, width: 4),
+                  boxShadow: [BoxShadow(color: tone.withValues(alpha: 0.12), spreadRadius: 1)],
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.3, -0.4), // "circle at 35% 30%"
+                    radius: 0.9,
+                    colors: [
+                      Color.lerp(card, tone, 0.07)!,
+                      Color.lerp(card, tone, 0.20)!,
+                    ])),
+                child: ScaleTransition(
+                  scale: iconIn,
+                  child: Icon(widget.icon, size: 28, color: tone))))),
         ])));
+  }
+}
+
+/// Calls [enter] when the widget first shows,
+/// and again each time it shows after being hidden
+/// (on another tab, or under another page),
+/// as told by [TickerMode].
+mixin _ReplayWhenShown<T extends StatefulWidget> on State<T> {
+  bool? _wasShown;
+
+  void enter();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (shown && _wasShown != true) enter();
+    _wasShown = shown;
+  }
+}
+
+/// Eases [child] in (a fade and a short rise) as it shows,
+/// after [delay] of the way through a 450ms entrance;
+/// again each time it shows after being hidden.
+class KlokiEaseIn extends StatefulWidget {
+  const KlokiEaseIn({super.key, required this.delay, required this.child});
+
+  final double delay;
+  final Widget child;
+
+  @override
+  State<KlokiEaseIn> createState() => _KlokiEaseInState();
+}
+
+class _KlokiEaseInState extends State<KlokiEaseIn>
+    with SingleTickerProviderStateMixin, _ReplayWhenShown {
+  late final AnimationController _controller = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 450));
+  late final _curve = CurvedAnimation(parent: _controller,
+    curve: Interval(widget.delay, 1, curve: Curves.easeOutCubic));
+
+  @override
+  void enter() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _curve,
+      child: SlideTransition(
+        position: _curve.drive(
+          Tween(begin: const Offset(0, 0.25), end: Offset.zero)),
+        child: widget.child));
   }
 }
 
@@ -172,10 +292,21 @@ class _DotsPainter extends CustomPainter {
 /// The "generic" motif: scattered rounded squares and bars,
 /// drawn on a 240×72 box.
 class _GenericMotifPainter extends CustomPainter {
-  _GenericMotifPainter({required this.tone, required this.card});
+  _GenericMotifPainter({
+    required this.tone,
+    required this.card,
+    this.entrance = 1,
+    this.float = 0,
+  });
 
   final Color tone;
   final Color card;
+
+  /// From 0 to 1 as the shapes fly out from behind the circle to their places.
+  final double entrance;
+
+  /// The phase of the shapes' gentle float, from 0 to 1.
+  final double float;
 
   // x, y, width, height, radius, rotation in degrees, fill opacity
   static const _shapes = <(double, double, double, double, double, double, double)>[
@@ -206,9 +337,16 @@ class _GenericMotifPainter extends CustomPainter {
     canvas.scale(size.width / 240, size.height / 72);
     final backing = Paint()..color = card;
     final fill = Paint();
-    for (final (x, y, w, h, r, deg, opacity) in _shapes) {
+    for (final (i, (x, y, w, h, r, deg, opacity)) in _shapes.indexed) {
+      // Each shape flies out from the center a moment after the one before.
+      final t = Curves.easeOutCubic.transform(
+        ((entrance - 0.15 - (i % 10) * 0.03) / 0.55).clamp(0.0, 1.0));
+      if (t == 0) continue;
+      final cx = x + w / 2;
+      final dx = (120 - cx) * (1 - t) * 0.6;
+      final dy = 1.5 * math.sin(2 * math.pi * (float + i * 0.13));
       final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, w, h), Radius.circular(r));
+        Rect.fromLTWH(x + dx, y + dy, w, h), Radius.circular(r));
       canvas.save();
       if (deg != 0) {
         final c = rrect.center;
@@ -217,16 +355,20 @@ class _GenericMotifPainter extends CustomPainter {
         canvas.translate(-c.dx, -c.dy);
       }
       // A card-colored backing hides the dots behind each shape.
+      backing.color = card.withValues(alpha: card.a * t);
       canvas.drawRRect(rrect, backing);
-      fill.color = tone.withValues(alpha: opacity);
+      fill.color = tone.withValues(alpha: opacity * t);
       canvas.drawRRect(rrect, fill);
       canvas.restore();
     }
 
+    // The small marks come in last.
+    final marks = ((entrance - 0.6) / 0.4).clamp(0.0, 1.0);
+    if (marks == 0) return;
     final dashed = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2
-      ..color = tone.withValues(alpha: 0.24);
+      ..color = tone.withValues(alpha: 0.24 * marks);
     for (final rect in const [
       Rect.fromLTWH(10.6, 48.6, 7.8, 7.8),
       Rect.fromLTWH(220.6, 12.6, 7.8, 7.8),
@@ -238,7 +380,7 @@ class _GenericMotifPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round
-      ..color = tone.withValues(alpha: 0.34);
+      ..color = tone.withValues(alpha: 0.34 * marks);
     for (final (cx, cy) in const [(30.0, 42.0), (203.0, 40.0)]) {
       canvas.drawLine(Offset(cx, cy - 3), Offset(cx, cy + 3), plus);
       canvas.drawLine(Offset(cx - 3, cy), Offset(cx + 3, cy), plus);
@@ -256,7 +398,8 @@ class _GenericMotifPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GenericMotifPainter oldDelegate) =>
-    tone != oldDelegate.tone || card != oldDelegate.card;
+    tone != oldDelegate.tone || card != oldDelegate.card
+    || entrance != oldDelegate.entrance || float != oldDelegate.float;
 }
 
 /// The animated illustration on the welcome page:
@@ -541,4 +684,146 @@ class _ChatBubble extends StatelessWidget {
         bubble,
       ]);
   }
+}
+
+/// The entrance of a page, for its rows to stagger in with [KlokiStaggered].
+///
+/// [animation] runs from 0 to 1 as the page appears.
+class KlokiEntrance extends InheritedWidget {
+  const KlokiEntrance({super.key, required this.animation, required super.child});
+
+  final Animation<double> animation;
+
+  static Animation<double>? maybeOf(BuildContext context) =>
+    context.dependOnInheritedWidgetOfExactType<KlokiEntrance>()?.animation;
+
+  @override
+  bool updateShouldNotify(KlokiEntrance oldWidget) => animation != oldWidget.animation;
+}
+
+/// A row of a page that eases in (a fade and a short rise)
+/// a moment after the rows above it, as the page's [KlokiEntrance] runs.
+///
+/// Without a [KlokiEntrance], or once it has run, the row just shows;
+/// so rows scrolled to later appear at once.
+class KlokiStaggered extends StatelessWidget {
+  const KlokiStaggered({super.key, required this.index, required this.child});
+
+  /// The row's place on the page, from the top.
+  final int index;
+  final Widget child;
+
+  /// Rows past this many share the last row's moment;
+  /// they're below the first screen anyway.
+  static const _maxStaggered = 10;
+
+  @override
+  Widget build(BuildContext context) {
+    final entrance = KlokiEntrance.maybeOf(context);
+    if (entrance == null) return child;
+    // Rows start almost together, each a beat after the one above;
+    // each fades in quickly, while its short rise eases out after.
+    final begin = math.min(index, _maxStaggered) * 0.03;
+    final end = math.min(begin + 0.6, 1.0);
+    final opacity = CurvedAnimation(parent: entrance,
+      curve: Interval(begin, begin + (end - begin) * 0.5, curve: Curves.easeOut));
+    final rise = CurvedAnimation(parent: entrance,
+      curve: Interval(begin, end, curve: Curves.easeOutCubic));
+    return FadeTransition(
+      opacity: opacity,
+      child: SlideTransition(
+        position: rise.drive(
+          Tween(begin: const Offset(0, 0.15), end: Offset.zero)),
+        child: child));
+  }
+}
+
+/// A Kloki loading indicator: the Kloki ring, with an arc running around it
+/// and the check inside gently pulsing.
+///
+/// With reduced motion, it's the still Kloki mark.
+class KlokiLoader extends StatefulWidget {
+  const KlokiLoader({super.key, this.size = 40});
+
+  final double size;
+
+  @override
+  State<KlokiLoader> createState() => _KlokiLoaderState();
+}
+
+class _KlokiLoaderState extends State<KlokiLoader> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 1100));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return KlokiMark(size: widget.size);
+    }
+    final designVariables = DesignVariables.of(context);
+    return Semantics(
+      label: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => CustomPaint(
+            size: Size.square(widget.size),
+            painter: _KlokiLoaderPainter(
+              progress: _controller.value,
+              tone: designVariables.fabBg,
+              check: designVariables.title)))));
+  }
+}
+
+class _KlokiLoaderPainter extends CustomPainter {
+  _KlokiLoaderPainter({required this.progress, required this.tone, required this.check});
+
+  final double progress;
+  final Color tone;
+  final Color check;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / 28, size.height / 28);
+    const center = Offset(14.07, 14.07);
+    const radius = 11.4;
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.7
+      ..strokeCap = StrokeCap.round;
+
+    ring.color = tone.withValues(alpha: 0.18);
+    canvas.drawCircle(center, radius, ring);
+
+    // The arc runs round, stretching and shrinking a little as it goes.
+    final turn = 2 * math.pi * progress;
+    final sweep = math.pi * (0.45 + 0.25 * math.sin(turn));
+    ring.color = tone;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
+      turn - math.pi / 2, sweep, false, ring);
+
+    final pulse = 0.55 + 0.45 * (0.5 + 0.5 * math.sin(turn * 2));
+    canvas.drawPath(_KlokiMarkPainter._check,
+      Paint()..color = check.withValues(alpha: check.a * pulse));
+  }
+
+  @override
+  bool shouldRepaint(_KlokiLoaderPainter oldDelegate) =>
+    progress != oldDelegate.progress || tone != oldDelegate.tone || check != oldDelegate.check;
 }
