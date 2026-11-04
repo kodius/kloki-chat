@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -1972,18 +1971,22 @@ void main() {
           matching: find.byIcon(ZulipIcons.unmute))).findsOne();
       });
 
-      testWidgets('color of recipient header background', (tester) async {
+      testWidgets('recipient header is a card, with a tile in the channel color', (tester) async {
         final subscription = eg.subscription(stream, color: Colors.red.argbInt);
         final swatch = ChannelColorSwatch.light(subscription.color);
         await setupMessageListPage(tester,
           messages: [eg.streamMessage(stream: subscription)],
           subscriptions: [subscription]);
         await tester.pump();
-        check(tester.widget<ColoredBox>(
-          find.descendant(
-            of: find.byType(StreamMessageRecipientHeader),
-            matching: find.byType(ColoredBox),
-        ))).color.isNotNull().isSameColorAs(swatch.barBackground);
+        final colors = tester.widgetList<DecoratedBox>(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.byType(DecoratedBox),
+        )).map((box) => (box.decoration as BoxDecoration).color);
+        check(colors).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<Color>().isSameColorAs(DesignVariables.light.bgMessageRegular),
+          (it) => it.isA<Color>().isSameColorAs(
+            swatch.iconOnPlainBackground.withValues(alpha: 0.14)),
+        ]);
       });
 
       testWidgets('color of stream icon', (tester) async {
@@ -1995,7 +1998,7 @@ void main() {
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
-          .color.isNotNull().isSameColorAs(swatch.iconOnBarBackground);
+          .color.isNotNull().isSameColorAs(swatch.iconOnPlainBackground);
       });
 
       testWidgets('normal streams show hash icon', (tester) async {
@@ -2191,17 +2194,13 @@ void main() {
         check(find.text('You and Muted user, Muted user, User 2')).findsOne();
       });
 
-      testWidgets('icon color matches text color', (tester) async {
-        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      testWidgets('icon in the Kloki primary color', (tester) async {
         await setupMessageListPage(tester, messages: [
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
         ]);
         await tester.pump();
-        final textSpan = tester.renderObject<RenderParagraph>(find.text(
-          zulipLocalizations.messageListGroupYouAndOthers(
-            zulipLocalizations.unknownUserName))).text;
         final icon = tester.widget<Icon>(find.byIcon(ZulipIcons.two_person));
-        check(textSpan).style.isNotNull().color.isNotNull().isSameColorAs(icon.color!);
+        check(icon).color.isNotNull().isSameColorAs(DesignVariables.light.fabBg);
       });
     });
 

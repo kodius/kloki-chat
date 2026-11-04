@@ -393,6 +393,8 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 
     Widget result = Scaffold(
       appBar: _MessageListAppBar.build(context, narrow: narrow),
+      // The chat is white edge to edge.
+      backgroundColor: DesignVariables.of(context).bgMessageRegular,
       // TODO question for Vlad: for a stream view, should we set the Scaffold's
       //   [backgroundColor] based on stream color, as in this frame:
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=132%3A9684&mode=dev
@@ -453,34 +455,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 //   to customize by composition in a reasonable way.
 abstract class _MessageListAppBar {
   static AppBar build(BuildContext context, {required Narrow narrow}) {
-    final store = PerAccountStoreWidget.of(context);
-    final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-
-    final Color? appBarBackgroundColor;
-    bool removeAppBarBottomBorder = false;
-    switch(narrow) {
-      case CombinedFeedNarrow():
-      case MentionsNarrow():
-      case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
-        appBarBackgroundColor = null; // i.e., inherit
-
-      case ChannelNarrow(:final channelId):
-      case TopicNarrow(:final channelId):
-        final subscription = store.subscriptions[channelId];
-        appBarBackgroundColor =
-          colorSwatchFor(context, subscription).barBackground;
-        // All recipient headers will match this color; remove distracting line
-        // (but are recipient headers even needed for topic narrows?)
-        removeAppBarBottomBorder = true;
-
-      case DmNarrow():
-        appBarBackgroundColor = messageListTheme.dmRecipientHeaderBg;
-        // All recipient headers will match this color; remove distracting line
-        // (but are recipient headers even needed?)
-        removeAppBarBottomBorder = true;
-    }
 
     List<Widget> actions = [];
     switch (narrow) {
@@ -519,11 +494,9 @@ abstract class _MessageListAppBar {
       },
       buildTitle: (willCenterTitle) =>
         MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
+      // The bar is part of the page: white, over the white chat.
+      backgroundColor: DesignVariables.of(context).bgMessageRegular,
       actions: actions,
-      backgroundColor: appBarBackgroundColor,
-      shape: removeAppBarBottomBorder
-        ? const Border()
-        : null, // i.e., inherit
     );
   }
 }
@@ -1363,25 +1336,30 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
     switch (narrow) {
       case CombinedFeedNarrow():
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.message_feed,
           header: zulipLocalizations.emptyMessageListCombinedFeed);
 
       case ChannelNarrow(:final channelId) || TopicNarrow(:final channelId):
         final channel = store.streams[channelId];
         if (channel == null) {
           return PageBodyEmptyContentPlaceholder(
+            icon: ZulipIcons.hash_sign,
             header: zulipLocalizations.emptyMessageListChannelUnavailable);
         } else if (!store.selfHasContentAccess(channel)) {
           return PageBodyEmptyContentPlaceholder(
+            icon: ZulipIcons.lock,
             headerWithLinkMarkup: zulipLocalizations.emptyMessageListChannelWithoutContentAccess,
             onTapHeaderLink: () => PlatformActions.launchUrl(context,
               store.tryResolveUrl('/help/channel-permissions')!));
         } else {
           return PageBodyEmptyContentPlaceholder(
+            icon: ZulipIcons.topic,
             header: zulipLocalizations.emptyMessageList);
         }
 
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.person,
           header: zulipLocalizations.emptyMessageListSelfDmHeader,
           message: zulipLocalizations.emptyMessageListSelfDmMessage);
 
@@ -1390,14 +1368,17 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
         switch (user) {
           case null:
             return PageBodyEmptyContentPlaceholder(
+              icon: ZulipIcons.person,
               header: zulipLocalizations.emptyMessageListDmUnknownUser);
           case User(isActive: false):
             return PageBodyEmptyContentPlaceholder(
+              icon: ZulipIcons.person,
               header: zulipLocalizations.emptyMessageListDmDeactivatedUser(
                 store.userDisplayName(user.userId, replaceIfMuted: false)));
           case User():
             final displayName = store.userDisplayName(user.userId, replaceIfMuted: false);
             return PageBodyEmptyContentPlaceholder(
+              icon: ZulipIcons.person,
               header: zulipLocalizations.emptyMessageListDm(displayName),
               message: store.isUserMuted(user.userId)
                 ? null
@@ -1410,15 +1391,18 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
             return user != null && !user.isActive;
           }):
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.two_person,
           header: zulipLocalizations.emptyMessageListGroupDmDeactivatedUser);
 
       case DmNarrow():
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.two_person,
           header: zulipLocalizations.emptyMessageListGroupDm,
           message: zulipLocalizations.emptyMessageListDmStartConversation);
 
       case MentionsNarrow():
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.at_sign,
           headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
           onTapHeaderLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/mention-a-user-or-group')!),
@@ -1426,6 +1410,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.star,
           header: zulipLocalizations.emptyMessageListStarredHeader,
           messageWithLinkMarkup: zulipLocalizations.emptyMessageListStarredMessage(
             zulipLocalizations.actionSheetOptionStarMessage),
@@ -1434,6 +1419,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
       case KeywordSearchNarrow():
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.search,
           header: zulipLocalizations.emptyMessageListSearch);
     }
   }
@@ -1713,6 +1699,51 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
   }
 }
 
+/// The vertical padding inside a recipient header.
+///
+/// Children apply it themselves, inside their tap targets,
+/// so that a tap anywhere in the header's height reaches them.
+const _kRecipientHeaderPadding = EdgeInsets.symmetric(vertical: 10);
+
+/// A recipient header's frame: a thin full-width line
+/// between conversations in the full-screen chat.
+class _RecipientHeaderFrame extends StatelessWidget {
+  const _RecipientHeaderFrame({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final rule = BorderSide(color: designVariables.borderBar.withValues(alpha: 0.5));
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: designVariables.bgMessageRegular,
+        border: Border(top: rule, bottom: rule)),
+      child: child);
+  }
+}
+
+/// A small rounded tile with an icon, leading a recipient header.
+class _RecipientHeaderTile extends StatelessWidget {
+  const _RecipientHeaderTile({required this.icon, required this.color});
+
+  final IconData? icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28, height: 28,
+      margin: const EdgeInsetsDirectional.only(start: 10, end: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(8)),
+      // A null [Icon.icon] makes a blank space.
+      child: Icon(icon, size: 15, color: color));
+  }
+}
+
 class RecipientHeader extends StatelessWidget {
   const RecipientHeader({super.key, required this.message, required this.narrow});
 
@@ -1722,6 +1753,10 @@ class RecipientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = this.message;
+    // In a topic or DM chat, the app bar already names the conversation.
+    if (narrow is TopicNarrow || narrow is DmNarrow) {
+      return const SizedBox.shrink();
+    }
     return switch (message) {
       MessageBase<StreamConversation>() =>
         StreamMessageRecipientHeader(message: message, narrow: narrow),
@@ -1893,14 +1928,13 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final topic = message.conversation.topic;
 
     final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
-    final backgroundColor = swatch.barBackground;
-    final iconColor = swatch.iconOnBarBackground;
+    final iconColor = swatch.iconOnPlainBackground;
+    final stream = store.streams[streamId];
 
     final Widget streamWidget;
     if (!_containsDifferentChannels(narrow)) {
-      streamWidget = const SizedBox(width: 16);
+      streamWidget = _RecipientHeaderTile(icon: ZulipIcons.topic, color: iconColor);
     } else {
-      final stream = store.streams[streamId];
       final streamName = stream?.name
         ?? message.conversation.displayRecipient
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
@@ -1914,22 +1948,13 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            _RecipientHeaderTile(color: iconColor,
+              icon: stream != null ? iconDataForStream(stream) : null),
             Padding(
-              // Figma specifies 5px horizontal spacing around an icon that's
-              // 18x18 and includes 1px padding.  The icon SVG is flush with
-              // the edges, so make it 16x16 with 6px horizontal padding.
-              // Bottom padding added here to shift icon up to
-              // match alignment with text visually.
-              padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
-              child: Icon(size: 16, color: iconColor,
-                // A null [Icon.icon] makes a blank space.
-                stream != null ? iconDataForStream(stream) : null)),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 11),
+              padding: _kRecipientHeaderPadding,
               child: Text(streamName,
                 style: recipientHeaderTextStyle(context),
-                overflow: TextOverflow.ellipsis),
-            ),
+                overflow: TextOverflow.ellipsis)),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
@@ -1940,9 +1965,10 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           ]));
     }
 
-    final topicStyle = recipientHeaderTextStyle(context);
+    final topicStyle = recipientHeaderTextStyle(context).copyWith(
+      color: designVariables.title.withValues(alpha: 0.7));
     final topicWidget = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 11),
+      padding: _kRecipientHeaderPadding,
       child: Row(
         children: [
           Flexible(
@@ -1976,8 +2002,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         channelId: streamId,
         topic: topic,
         someMessageIdInTopic: message.id),
-      child: ColoredBox(
-        color: backgroundColor,
+      child: _RecipientHeaderFrame(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -2017,7 +2042,6 @@ class DmRecipientHeader extends StatelessWidget {
       title = zulipLocalizations.messageListGroupYouWithYourself;
     }
 
-    final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
     return GestureDetector(
@@ -2031,35 +2055,30 @@ class DmRecipientHeader extends StatelessWidget {
               narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
       onLongPress: () => showDmActionSheet(context,
         narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId)),
-      child: ColoredBox(
-        color: messageListTheme.dmRecipientHeaderBg,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(
-                  color: designVariables.title,
-                  size: 16,
-                  ZulipIcons.two_person)),
-              Expanded(
+      child: _RecipientHeaderFrame(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _RecipientHeaderTile(icon: ZulipIcons.two_person,
+              color: designVariables.fabBg),
+            Expanded(
+              child: Padding(
+                padding: _kRecipientHeaderPadding,
                 child: Text(title,
                   style: recipientHeaderTextStyle(context),
-                  overflow: TextOverflow.ellipsis)),
-              RecipientHeaderDate(message: message),
-            ]))));
+                  overflow: TextOverflow.ellipsis))),
+            RecipientHeaderDate(message: message),
+          ])));
   }
 }
 
 TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
     color: DesignVariables.of(context).title,
-    fontSize: 16,
-    letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-    height: (18 / 16),
-  ).merge(weightVariableTextStyle(context, wght: 600));
+    fontFamily: kKlokiHeadingFontFamily,
+    fontSize: 15,
+    height: (18 / 15),
+  ).merge(weightVariableTextStyle(context, wght: 700));
 }
 
 class RecipientHeaderDate extends StatelessWidget {
@@ -2070,13 +2089,11 @@ class RecipientHeaderDate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(10, 0, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 0, 14, 0),
       child: DateText(
-        fontSize: 16,
-        // In Figma this has a line-height of 19, but using 18
-        // here to match the stream/topic text widgets helps
-        // to align all the text to the same baseline.
-        height: (18 / 16),
+        fontSize: 13,
+        height: (18 / 13),
+        smallCaps: false,
         timestamp: message.timestamp));
   }
 }
@@ -2087,11 +2104,15 @@ class DateText extends StatelessWidget {
     required this.fontSize,
     required this.height,
     required this.timestamp,
+    this.smallCaps = true,
   });
 
   final double fontSize;
   final double height;
   final int timestamp;
+
+  /// Whether to show in small caps; if false, in the Kloki heading font.
+  final bool smallCaps;
 
   @override
   Widget build(BuildContext context) {
@@ -2104,14 +2125,21 @@ class DateText extends StatelessWidget {
       twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
       zulipLocalizations: zulipLocalizations)!;
     return Text(
-      style: TextStyle(
-        color: messageListTheme.labelTime,
-        fontSize: fontSize,
-        height: height,
-        // This is equivalent to css `all-small-caps`, see:
-        //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-        fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-      ),
+      style: smallCaps
+        ? TextStyle(
+            color: messageListTheme.labelTime,
+            fontSize: fontSize,
+            height: height,
+            // This is equivalent to css `all-small-caps`, see:
+            //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
+            fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+          )
+        : TextStyle(
+            color: messageListTheme.labelTime,
+            fontFamily: kKlokiHeadingFontFamily,
+            fontSize: fontSize,
+            height: height,
+          ).merge(weightVariableTextStyle(context, wght: 600)),
       formattedTimestamp);
   }
 }
