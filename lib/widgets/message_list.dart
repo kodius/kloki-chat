@@ -26,6 +26,7 @@ import 'content.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'input.dart';
+import 'kloki.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'scrolling.dart';
@@ -1094,7 +1095,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
-    if (!model.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) return const Center(child: KlokiLoader());
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
       return _EmptyMessageListPlaceholder(narrow: widget.narrow);
@@ -1446,7 +1447,7 @@ class _MessageListLoadingMore extends StatelessWidget {
     return const Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        child: KlokiLoader(size: 28)));
   }
 }
 
@@ -1703,7 +1704,7 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
 ///
 /// Children apply it themselves, inside their tap targets,
 /// so that a tap anywhere in the header's height reaches them.
-const _kRecipientHeaderPadding = EdgeInsets.symmetric(vertical: 10);
+const _kRecipientHeaderPadding = EdgeInsets.symmetric(vertical: 13);
 
 /// A recipient header's frame: a thin full-width line
 /// between conversations in the full-screen chat.
@@ -1715,7 +1716,7 @@ class _RecipientHeaderFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final rule = BorderSide(color: designVariables.borderBar.withValues(alpha: 0.5));
+    final rule = BorderSide(color: designVariables.borderBar.withFadedAlpha(0.5));
     return DecoratedBox(
       decoration: BoxDecoration(
         color: designVariables.bgMessageRegular,
@@ -1841,17 +1842,85 @@ class MessageItem extends StatelessWidget {
         if (isLastInFeed)
           const SizedBox(height: 5)
         else if (item.isLastInBlock)
-          const SizedBox(height: 11),
+          const SizedBox(height: 18),
       ]));
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
         child: child);
     }
+    child = _ArrivingMessage(
+      animate: _isArriving(context, item),
+      child: child);
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: child);
+  }
+}
+
+/// Whether [item] is a message arriving now, rather than one from history:
+/// the self-user's message being sent, or someone's message from just now.
+bool _isArriving(BuildContext context, MessageListMessageBaseItem item) {
+  switch (item) {
+    case MessageListOutboxMessageItem():
+      return true;
+    case MessageListMessageItem(:final message):
+      final store = PerAccountStoreWidget.of(context);
+      // The self-user's sent message replaces its outbox item, which has eased in already.
+      if (message.senderId == store.selfUserId) return false;
+      final now = ZulipBinding.instance.utcNow().millisecondsSinceEpoch ~/ 1000;
+      return now - message.timestamp < 15;
+  }
+}
+
+/// A message easing in (a fade and a short rise) as it arrives.
+class _ArrivingMessage extends StatefulWidget {
+  const _ArrivingMessage({required this.animate, required this.child});
+
+  /// Whether to ease in when first shown; otherwise just show.
+  final bool animate;
+  final Widget child;
+
+  @override
+  State<_ArrivingMessage> createState() => _ArrivingMessageState();
+}
+
+class _ArrivingMessageState extends State<_ArrivingMessage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 260),
+    value: widget.animate ? 0 : 1);
+
+  late final _curve = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_controller.isDismissed) {
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _controller.value = 1;
+      } else {
+        _controller.forward();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _curve,
+      child: SlideTransition(
+        position: _curve.drive(
+          Tween(begin: const Offset(0, 0.25), end: Offset.zero)),
+        child: widget.child));
   }
 }
 
