@@ -34,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.kodius.konvo"
+        applicationId = "konvo.kodius.com"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
         // These are synced to local.properties from pubspec.yaml by the flutter tool.
