@@ -200,10 +200,20 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         message: zulipLocalizations.inboxEmptyPlaceholderMessage);
     }
 
+    final padding = MediaQuery.paddingOf(context);
     return SafeArea( // horizontal insets
-      child: StickyHeaderListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) {
+      // The top and bottom insets are inside the list, so it scrolls on
+      // under a frosted page title and bottom nav.
+      top: false,
+      bottom: false,
+      child: CustomScrollView(slivers: [
+        // Pinned, so the sticky headers below stick just under the title.
+        SliverPersistentHeader(pinned: true,
+          delegate: _InsetDelegate(padding.top)),
+        SliverStickyHeaderList(
+          headerPlacement: HeaderPlacement.scrollingStart,
+          delegate: SliverChildBuilderDelegate(childCount: items.length,
+        (context, index) {
           final item = items[index];
           switch (item) {
             case _InboxListItemFolderHeader():
@@ -214,8 +224,31 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
               final collapsed = collapsedStreamIds.contains(streamId);
               return _StreamSection(data: item, collapsed: collapsed, pageState: this);
           }
-        }));
+        })),
+        SliverToBoxAdapter(child: SizedBox(height: padding.bottom)),
+      ]));
   }
+}
+
+/// An empty pinned header of [extent], standing in for a frosted bar
+/// that floats over the list.
+class _InsetDelegate extends SliverPersistentHeaderDelegate {
+  _InsetDelegate(this.extent);
+
+  final double extent;
+
+  @override
+  double get minExtent => extent;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+    const SizedBox.shrink();
+
+  @override
+  bool shouldRebuild(_InsetDelegate oldDelegate) => extent != oldDelegate.extent;
 }
 
 sealed class _InboxListItem {
