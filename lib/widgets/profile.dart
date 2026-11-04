@@ -56,7 +56,8 @@ class ProfilePage extends StatelessWidget {
     }
 
     final nameStyle = _TextStyles.primaryFieldText
-      .merge(weightVariableTextStyle(context, wght: 700));
+      .copyWith(fontFamily: kKlokiHeadingFontFamily, fontSize: 24)
+      .merge(weightVariableTextStyle(context, wght: 800));
 
     final userStatus = store.getUserStatus(userId);
 

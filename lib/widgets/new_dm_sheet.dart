@@ -206,9 +206,10 @@ class _NewDmHeader extends StatelessWidget {
         Expanded(child: Text(zulipLocalizations.newDmSheetScreenTitle,
           style: TextStyle(
             color: designVariables.title,
-            fontSize: 20,
-            height: 30 / 20,
-          ).merge(weightVariableTextStyle(context, wght: 600)),
+            fontFamily: kKlokiHeadingFontFamily,
+            fontSize: 18,
+            height: 30 / 18,
+          ).merge(weightVariableTextStyle(context, wght: 800)),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
           textAlign: TextAlign.center)),
@@ -261,9 +262,13 @@ class _NewDmSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    // A rounded Kloki search field, inset from the sheet's edges.
     return Container(
       constraints: const BoxConstraints(maxHeight: 124),
-      decoration: BoxDecoration(color: designVariables.bgSearchInput),
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      decoration: BoxDecoration(
+        color: designVariables.bgSearchInput,
+        borderRadius: BorderRadius.circular(14)),
       child: SingleChildScrollView(
         reverse: true,
         child: Padding(
