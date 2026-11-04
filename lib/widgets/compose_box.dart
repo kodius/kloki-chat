@@ -587,7 +587,7 @@ class _ContentInput extends StatelessWidget {
     return base + numFullLines * scaledLineHeight;
   }
 
-  static const _verticalPadding = 8.0;
+  static const _verticalPadding = 11.0;
   static const _fontSize = 17.0;
   static const _lineHeight = 22.0;
   static const _lineHeightRatio = _lineHeight / _fontSize;
@@ -602,7 +602,8 @@ class _ContentInput extends StatelessWidget {
       child: ClipRect(
         child: InsetShadowBox(
           top: _verticalPadding, bottom: _verticalPadding,
-          color: designVariables.composeBoxBg,
+          // The color of the rounded field the input sits in.
+          color: designVariables.mainBackground,
           child: Padding(
             // This padding ensures that the user can always scroll long
             // content entirely out of the top or bottom shadow if desired.
@@ -635,7 +636,8 @@ class _ContentInput extends StatelessWidget {
                 //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
                 // > Compose box has the height to fit 2 lines. This is [done] to
                 // > have a bigger hit area for the user to start the input. […]
-                minLines: 2,
+                // One line, growing as the message does, in a Kloki pill field.
+                minLines: 1,
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
@@ -832,10 +834,11 @@ class _TopicInputState extends State<_TopicInput> {
     final store = PerAccountStoreWidget.of(context);
 
     final topicTextStyle = TextStyle(
-      fontSize: 20,
-      height: 22 / 20,
+      fontFamily: kKlokiHeadingFontFamily,
+      fontSize: 15,
+      height: 20 / 15,
       color: designVariables.textInput.withFadedAlpha(0.9),
-    ).merge(weightVariableTextStyle(context, wght: 600));
+    ).merge(weightVariableTextStyle(context, wght: 700));
 
     // TODO(server-10) simplify away
     final emptyTopicsSupported = store.zulipFeatureLevel >= 334;
@@ -877,13 +880,12 @@ class _TopicInputState extends State<_TopicInput> {
       }
     }
 
-    final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle);
+    final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle,
+      prefixIcon: Icon(ZulipIcons.topic, size: 16, color: designVariables.fabBg),
+      prefixIconConstraints: const BoxConstraints(minWidth: 26, minHeight: 20));
 
     return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 9),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(
-        width: 1,
-        color: designVariables.foreground.withFadedAlpha(0.2)))),
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 2),
       child: TopicAutocomplete(
         channelId: widget.channelId,
         controller: widget.controller.topic,
@@ -1412,13 +1414,16 @@ class _SendButtonState extends State<_SendButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final iconColor = _hasValidationErrors
-      ? designVariables.icon.withFadedAlpha(0.5)
-      : designVariables.icon;
+    final iconColor = Colors.white;
 
-    return SizedBox(
-      width: _composeButtonSize,
+    return SizedBox.square(
+      dimension: 44,
       child: IconButton(
+        style: IconButton.styleFrom(
+          backgroundColor: _hasValidationErrors
+            ? designVariables.fabBg.withValues(alpha: 0.35)
+            : designVariables.fabBg,
+          shape: const CircleBorder()),
         tooltip: zulipLocalizations.composeBoxSendTooltip,
         icon: Icon(ZulipIcons.send,
           // We set [Icon.color] instead of [IconButton.color] because the
@@ -1478,7 +1483,6 @@ class _ComposeBoxContainer extends StatelessWidget {
 
     return Container(width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
         boxShadow: ComposeBoxTheme.of(context).boxShadow,
       ),
       child: Material(
@@ -1535,26 +1539,34 @@ abstract class _ComposeBoxBody extends StatelessWidget {
     final sendButton = buildSendButton();
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
-      child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Theme(
-            data: inputThemeData,
-            child: Column(children: [
-              ?topicInput,
-              buildContentInput(),
-            ]))),
-        SizedBox(
-          height: _composeButtonSize,
-          child: IconButtonTheme(
-            data: iconButtonThemeData,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(children: composeButtons),
-                ?sendButton,
-              ]))),
-      ]));
+      child: Theme(
+        data: inputThemeData,
+        child: Column(children: [
+          // The topic, as a light line above the message.
+          if (topicInput != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: topicInput),
+          const SizedBox(height: 6),
+          // The message in a soft rounded field, with the send button beside it.
+          Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Expanded(child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: designVariables.mainBackground,
+                borderRadius: BorderRadius.circular(22)),
+              child: buildContentInput())),
+            if (sendButton != null) ...[
+              const SizedBox(width: 8),
+              sendButton,
+            ],
+          ]),
+          SizedBox(
+            height: _composeButtonSize,
+            child: IconButtonTheme(
+              data: iconButtonThemeData,
+              child: Row(children: composeButtons))),
+        ])));
   }
 }
 
