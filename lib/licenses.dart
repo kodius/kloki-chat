@@ -35,6 +35,9 @@ Stream<LicenseEntry> additionalLicenses() async* {
       return '$licenseFileText\n\nAUTHORS file follows:\n\n$authorsFileText';
     }());
   yield LicenseEntryWithLineBreaks(
+    ['Raleway'],
+    await rootBundle.loadString('assets/Raleway/LICENSE.txt'));
+  yield LicenseEntryWithLineBreaks(
     ['Source Code Pro'],
     await rootBundle.loadString('assets/Source_Code_Pro/LICENSE.md'));
   yield LicenseEntryWithLineBreaks(

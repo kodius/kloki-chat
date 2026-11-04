@@ -147,6 +147,7 @@ flutter:
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt
     - assets/Pygments/LICENSE.txt
+    - assets/Raleway/LICENSE.txt
     - assets/Source_Code_Pro/LICENSE.md
     - assets/Source_Sans_3/LICENSE.md
 
@@ -246,6 +247,11 @@ flutter:
         - asset: assets/Source_Sans_3/SourceSans3VF-Upright.otf
         - asset: assets/Source_Sans_3/SourceSans3VF-Italic.otf
           style: italic
+
+    # Kloki's heading font.
+    - family: Raleway
+      fonts:
+        - asset: assets/Raleway/RalewayVF.ttf
 
     # Zulip's custom icons.  To use or edit, see class ZulipIcons.
     - family: Zulip Icons
