@@ -22,6 +22,7 @@ class ZulipAppBar extends AppBar {
     Widget Function(bool willCenterTitle)? buildTitle,
     super.centerTitle,
     super.backgroundColor,
+    super.flexibleSpace,
     super.shape,
     super.actions,
   }) :
