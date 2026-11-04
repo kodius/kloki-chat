@@ -793,7 +793,7 @@ class Toggle extends StatelessWidget {
 
     // Figma has this (blue/500) in both light and dark mode.
     // TODO(#831)
-    final activeColor = Color(0xff4370f0);
+    final activeColor = designVariables.fabBg;
 
     final activeColorDisabled = activeColor.withFadedAlpha(0.4);
 

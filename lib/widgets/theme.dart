@@ -1,3 +1,4 @@
+import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoThemeData;
 import 'package:material_ui/material_ui.dart';
 
 import '../api/model/model.dart';
@@ -72,6 +73,14 @@ ThemeData zulipThemeData(BuildContext context) {
     iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
       foregroundColor: designVariables.icon,
     )),
+    filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
+      backgroundColor: designVariables.fabBg,
+      foregroundColor: Colors.white,
+      minimumSize: const Size.fromHeight(52),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      textStyle: const TextStyle(fontFamily: kKlokiHeadingFontFamily, fontSize: 16)
+        .merge(weightVariableTextStyle(context, wght: 700)),
+    )),
     elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
       backgroundColor: designVariables.fabBg,
       foregroundColor: Colors.white,
@@ -85,7 +94,8 @@ ThemeData zulipThemeData(BuildContext context) {
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
-      backgroundColor: designVariables.bgTopBar,
+      // The bar is part of the page, as in Kloki: same color, no rule below.
+      backgroundColor: designVariables.mainBackground,
 
       // TODO match actions layout to Figma
 
@@ -108,10 +118,6 @@ ThemeData zulipThemeData(BuildContext context) {
       //   that it looks reasonable with different system text-size settings.
       //   Also the back button will look too big and need adjusting.
 
-      shape: Border(bottom: BorderSide(
-        color: designVariables.borderBar,
-        strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
-      )),
     ),
     colorScheme: colorScheme,
     scaffoldBackgroundColor: designVariables.mainBackground,
@@ -122,6 +128,16 @@ ThemeData zulipThemeData(BuildContext context) {
       // TODO(design) selectionColor, selectionHandleColor?
     ),
     tooltipTheme: const TooltipThemeData(preferBelow: false),
+    // Kloki primary for selection controls, including their iOS forms.
+    cupertinoOverrideTheme: CupertinoThemeData(primaryColor: designVariables.fabBg),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected) ? designVariables.fabBg : null)),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected) ? Colors.white : null),
+      trackColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected) ? designVariables.fabBg : null)),
     bottomSheetTheme: BottomSheetThemeData(
       clipBehavior: Clip.antiAlias,
       backgroundColor: designVariables.bgContextMenu,
@@ -184,12 +200,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgContextMenu: KlokiColors.lightBackground,
     bgCounterUnread: KlokiColors.lightPrimary.withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
-    bgMenuButtonSelected: Colors.white,
+    bgMenuButtonSelected: KlokiColors.lightPrimary.withValues(alpha: 0.10),
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
     bgSearchInput: KlokiColors.lightMuted,
     bgTopBar: KlokiColors.lightCard,
     borderBar: KlokiColors.lightBorder,
-    borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
+    borderMenuButtonSelected: KlokiColors.lightPrimary.withValues(alpha: 0.5),
     btnBgAttHighIntInfoActive: KlokiColors.lightPrimaryHover,
     btnBgAttHighIntInfoNormal: KlokiColors.lightPrimary,
     btnBgAttHighIntWarningActive: const Color(0xffeba002),
@@ -216,13 +232,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuBg: const Color(0xffffffff), // grey/900
     contextMenuBorder: const Color(0xff9ea1ae), // grey/350
     contextMenuCancelText: const Color(0xff222222),
-    contextMenuItemBg: KlokiColors.lightPrimary,
+    contextMenuItemBg: const Color(0xff8c8c8c),
     contextMenuItemBgDanger: const Color(0xffc0070a), // TODO(#831) red/550
     contextMenuItemIcon: KlokiColors.lightPrimary,
     contextMenuItemIconDanger: const Color(0xffac0508), // TODO(#831) red/600
     contextMenuItemLabel: const Color(0xff242631),
     contextMenuItemMeta: const Color(0xff626573),
-    contextMenuItemText: KlokiColors.lightAccentForeground,
+    contextMenuItemText: KlokiColors.lightForeground,
     contextMenuItemTextDanger: const Color(0xffac0508), // TODO(#831) red/600
     editorButtonPressedBg: Colors.black.withValues(alpha: 0.06),
     fabBg: KlokiColors.lightPrimary,
@@ -234,7 +250,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     foreground: KlokiColors.lightForeground,
     groupIcon: const Color(0xff7199fe), // blue/350
     icon: KlokiColors.lightPrimary,
-    iconSelected: KlokiColors.lightForeground,
+    iconSelected: KlokiColors.lightPrimary,
     labelCounterQuantity: const Color(0xff222222).withValues(alpha: 0.6),
     labelCounterUnread: const Color(0xff1a1a1a),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 0).toColor(),
@@ -242,9 +258,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelSearchPrompt: const Color(0xff000000).withValues(alpha: 0.5),
     labelTime: const Color(0x00000000).withValues(alpha: 0.49),
     link: KlokiColors.lightPrimary,
-    listMenuItemBg: const Color(0xffcbcdd6),
-    listMenuItemIcon: const Color(0xff9194a3),
-    listMenuItemText: const Color(0xff2d303c),
+    listMenuItemBg: const Color(0xffd9d9d9),
+    listMenuItemIcon: KlokiColors.lightMutedForeground,
+    listMenuItemText: KlokiColors.lightForeground,
 
     // Keep the color here and the corresponding non-dark mode entry in
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
@@ -271,7 +287,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     avatarPlaceholderIcon: Colors.black.withValues(alpha: 0.5),
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15),
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20),
-    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor(),
+    dmHeaderBg: KlokiColors.lightAccent,
     inboxItemIconMarker: const HSLColor.fromAHSL(0.5, 0, 0, 0.2).toColor(),
     loginOrDivider: KlokiColors.lightBorder,
     loginOrDividerText: KlokiColors.lightMutedForeground,
@@ -296,12 +312,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgContextMenu: KlokiColors.darkCard,
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
-    bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
+    bgMenuButtonSelected: KlokiColors.darkPrimary.withValues(alpha: 0.22),
     bgMessageRegular: KlokiColors.darkBackground,
     bgSearchInput: KlokiColors.darkAccent,
     bgTopBar: KlokiColors.darkCard,
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
-    borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
+    borderMenuButtonSelected: KlokiColors.darkPrimary.withValues(alpha: 0.6),
     btnBgAttHighIntInfoActive: KlokiColors.darkPrimaryHover,
     btnBgAttHighIntInfoNormal: KlokiColors.darkPrimary,
     btnBgAttHighIntWarningActive: const Color(0xffdb920d),
@@ -328,13 +344,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuBg: KlokiColors.darkAccent,
     contextMenuBorder: const Color(0xff444754), // grey/650
     contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
-    contextMenuItemBg: KlokiColors.darkPrimary,
+    contextMenuItemBg: const Color(0xffa0a0a0),
     contextMenuItemBgDanger: const Color(0xffe1392e), // TODO(#831) red/450
     contextMenuItemIcon: KlokiColors.darkPrimaryHover,
     contextMenuItemIconDanger: const Color(0xfffd7465), // TODO(#831) red/300
     contextMenuItemLabel: const Color(0xffdfe1e8),
     contextMenuItemMeta: const Color(0xff9194a3),
-    contextMenuItemText: KlokiColors.darkPrimaryHover,
+    contextMenuItemText: KlokiColors.darkForeground,
     contextMenuItemTextDanger: const Color(0xfffd7465), // TODO(#831) red/300
     editorButtonPressedBg: Colors.white.withValues(alpha: 0.06),
     fabBg: KlokiColors.darkPrimary,
@@ -346,7 +362,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     foreground: KlokiColors.darkForeground,
     groupIcon: const Color(0xff84a8fd), // blue/300
     icon: KlokiColors.darkPrimary,
-    iconSelected: Colors.white.withValues(alpha: 0.8),
+    iconSelected: KlokiColors.darkPrimaryHover,
     labelCounterQuantity: const Color(0xffffffff).withValues(alpha: 0.7),
     labelCounterUnread: const Color(0xffffffff).withValues(alpha: 0.95),
     labelEdited: const HSLColor.fromAHSL(0.35, 0, 0, 1).toColor(),
@@ -354,9 +370,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     labelSearchPrompt: const Color(0xffffffff).withValues(alpha: 0.5),
     labelTime: const Color(0xffffffff).withValues(alpha: 0.50),
     link: KlokiColors.darkPrimaryHover,
-    listMenuItemBg: const Color(0xff2d303c),
-    listMenuItemIcon: const Color(0xff767988),
-    listMenuItemText: const Color(0xffcbcdd6),
+    listMenuItemBg: const Color(0xff555555),
+    listMenuItemIcon: KlokiColors.darkMutedForeground,
+    listMenuItemText: KlokiColors.darkForeground,
 
     // Keep the color here and the corresponding dark mode entry in
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
@@ -386,7 +402,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
     contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
+    dmHeaderBg: KlokiColors.darkAccent,
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
     loginOrDivider: KlokiColors.darkBorder,
     loginOrDividerText: KlokiColors.darkMutedForeground,

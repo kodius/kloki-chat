@@ -17,6 +17,7 @@ class ZulipAppBar extends AppBar {
   ZulipAppBar({
     super.key,
     super.titleSpacing,
+    super.toolbarHeight,
     Widget? title,
     Widget Function(bool willCenterTitle)? buildTitle,
     super.centerTitle,
