@@ -137,6 +137,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     if (pinned.isEmpty && unpinned.isEmpty) {
       if (includeAllChannelsButton) {
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.hash_sign,
           header: zulipLocalizations.channelsEmptyPlaceholderHeader,
           messageWithLinkMarkup:
             zulipLocalizations.channelsEmptyPlaceholderMessage(
@@ -145,6 +146,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
             AllChannelsPage.buildRoute(context: context)));
       } else {
         return PageBodyEmptyContentPlaceholder(
+          icon: ZulipIcons.hash_sign,
           header: zulipLocalizations.channelsEmptyPlaceholderHeader);
       }
     }
@@ -211,32 +213,19 @@ class _SubscriptionListHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final line = Expanded(child: Divider(
-      color: designVariables.subscriptionListHeaderLine));
-
+    // A Kloki section label: small, muted, left-aligned.
     return SliverToBoxAdapter(
       child: ColoredBox(
-        // TODO(design) check if this is the right variable
         color: designVariables.background,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(width: 16),
-            line,
-            const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 7),
-              child: Text(label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: designVariables.subscriptionListHeaderText,
-                  fontSize: 14,
-                  letterSpacing: proportionalLetterSpacing(context, 0.04, baseFontSize: 14),
-                  height: (16 / 14),
-                ))),
-            const SizedBox(width: 8),
-            line,
-            const SizedBox(width: 16),
-          ])));
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 16, 6),
+          child: Text(label,
+            style: TextStyle(
+              color: designVariables.loginOrDividerText,
+              fontFamily: kKlokiHeadingFontFamily,
+              fontSize: 13,
+              height: 16 / 13,
+            ).merge(weightVariableTextStyle(context, wght: 700))))));
   }
 }
 
@@ -306,12 +295,18 @@ class SubscriptionItem extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 11),
+            padding: const EdgeInsets.symmetric(vertical: 6),
             child: Opacity(
               opacity: opacity,
-              child: Icon(size: 18, color: swatch.iconOnPlainBackground,
-                iconDataForStream(subscription)))),
-          const SizedBox(width: 5),
+              // The channel's icon on a tile of its color, like a Kloki list item.
+              child: Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(
+                  color: swatch.iconOnPlainBackground.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(10)),
+                child: Icon(size: 17, color: swatch.iconOnPlainBackground,
+                  iconDataForStream(subscription))))),
+          const SizedBox(width: 12),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -322,8 +317,8 @@ class SubscriptionItem extends StatelessWidget {
                 opacity: opacity,
                 child: Text(
                   style: TextStyle(
-                    fontSize: 18,
-                    height: (20 / 18),
+                    fontSize: 17,
+                    height: (20 / 17),
                     // TODO(design) check if this is the right variable
                     color: designVariables.labelMenuButton,
                   ).merge(weightVariableTextStyle(context,
