@@ -126,8 +126,13 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
             // Other *PageBody widgets don't handle this because they aren't
             // (re-)used outside the context of the home page.
             bottom: false,
+            // The top inset is padded inside the list, so it scrolls on under
+            // a frosted page title.
+            top: false,
             child: ListView.builder(
-              padding: EdgeInsets.only(bottom: bottomInsets + 90),
+              padding: EdgeInsets.only(
+                top: MediaQuery.paddingOf(context).top,
+                bottom: bottomInsets + 90),
               itemCount: sorted.length,
               itemBuilder: (context, index) {
                 final narrow = sorted[index];
@@ -152,9 +157,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                     unreadCount: unreadsModel!.countInDmNarrow(narrow),
                     onDmSelect: _handleDmSelect));
               })),
-        Positioned(
-          bottom: bottomInsets + 21,
-          child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms)),
+        PositionedDirectional(
+          end: 16,
+          bottom: bottomInsets + 16,
+          child: KlokiEaseIn(delay: 0.3,
+            child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms))),
       ]);
   }
 }
@@ -256,42 +263,44 @@ class _NewDmButtonState extends State<_NewDmButton> {
     final fabBgColor = _pressed
       ? designVariables.fabBgPressed
       : designVariables.fabBg;
-    final fabLabelColor = _pressed
-      ? designVariables.fabLabelPressed
-      : designVariables.fabLabel;
 
+    // A compact Kloki pill: pencil and label, pressing in a little on tap.
     return GestureDetector(
       onTap: () => showNewDmSheet(context, widget.onDmSelect),
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
+      child: AnimatedScale(
+        scale: _pressed ? 0.94 : 1,
+        duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 20, 12),
-        decoration: BoxDecoration(
-          color: fabBgColor,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [BoxShadow(
-            color: designVariables.fabShadow,
-            blurRadius: _pressed ? 12 : 16,
-            offset: _pressed
-              ? const Offset(0, 2)
-              : const Offset(0, 4)),
-          ]),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(ZulipIcons.plus, size: 24, color: fabLabelColor),
-            const SizedBox(width: 8),
-            Text(
-              zulipLocalizations.newDmFabButtonLabel,
-              style: TextStyle(
-                fontSize: 20,
-                height: 24 / 20,
-                color: fabLabelColor,
-              ).merge(weightVariableTextStyle(context, wght: 500))),
-          ])));
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          height: 52,
+          padding: const EdgeInsetsDirectional.fromSTEB(18, 0, 20, 0),
+          decoration: BoxDecoration(
+            color: fabBgColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(
+              color: designVariables.fabBg.withValues(alpha: _pressed ? 0.2 : 0.32),
+              blurRadius: _pressed ? 10 : 20,
+              offset: Offset(0, _pressed ? 3 : 8)),
+            ]),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(ZulipIcons.edit, size: 18, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(
+                zulipLocalizations.newDmFabButtonLabel,
+                style: const TextStyle(
+                  fontFamily: kKlokiHeadingFontFamily,
+                  fontSize: 15,
+                  height: 20 / 15,
+                  color: Colors.white,
+                ).merge(weightVariableTextStyle(context, wght: 700))),
+            ]))));
   }
 }
 
