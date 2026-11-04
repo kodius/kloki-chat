@@ -29,6 +29,7 @@ import 'subscription_list.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
+import 'kloki.dart';
 import 'user.dart';
 
 enum _HomePageTab {
@@ -126,7 +127,7 @@ class _HomePageState extends State<HomePage> {
       appBar: ZulipAppBar(
         titleSpacing: 20,
         centerTitle: false,
-        toolbarHeight: 64,
+        toolbarHeight: 76,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
@@ -150,10 +151,77 @@ class _HomePageState extends State<HomePage> {
               child: Stack(
                 children: [
                   for (final (tab, body) in pageBodies)
-                    Offstage(offstage: tab != _tab.value, child: body),
+                    _TabBody(active: tab == _tab.value, child: body),
                 ]))),
         ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+/// A home-page tab's body, kept alive while hidden,
+/// which eases in (a fade and a short rise) when its tab is chosen,
+/// its rows staggering in through a [KlokiEntrance].
+class _TabBody extends StatefulWidget {
+  const _TabBody({required this.active, required this.child});
+
+  final bool active;
+  final Widget child;
+
+  @override
+  State<_TabBody> createState() => _TabBodyState();
+}
+
+class _TabBodyState extends State<_TabBody> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 320));
+
+  // The page itself eases in over the first part, its rows staggering alongside.
+  late final _curve = CurvedAnimation(parent: _controller,
+    curve: const Interval(0, 0.35, curve: Curves.easeOutCubic));
+
+  void _enter() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.active && _controller.isDismissed) _enter();
+  }
+
+  @override
+  void didUpdateWidget(covariant _TabBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !oldWidget.active) _enter();
+  }
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !widget.active,
+      // Stop the hidden tab's animations; showing it again restarts them,
+      // as for a page uncovered in the navigator.
+      child: TickerMode(
+        enabled: widget.active,
+        child: KlokiEntrance(
+        animation: _controller,
+        child: FadeTransition(
+          opacity: _curve,
+          child: SlideTransition(
+            position: _curve.drive(
+              Tween(begin: const Offset(0, 0.015), end: Offset.zero)),
+            child: widget.child)))));
   }
 }
 
@@ -286,7 +354,7 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            const KlokiLoader(),
             Visibility(
               visible: showTryAnotherAccount,
               maintainSize: true,

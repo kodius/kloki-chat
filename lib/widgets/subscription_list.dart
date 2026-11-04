@@ -15,6 +15,7 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
+import 'kloki.dart';
 
 typedef OnChannelSelectCallback = void Function(ChannelNarrow narrow);
 
@@ -176,6 +177,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
           if (unpinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.unpinnedSubscriptionsLabel),
             _SubscriptionList(
+              staggerOffset: pinned.length,
               unreadsModel: unreadsModel,
               subscriptions: unpinned,
               showTopicListButtonInActionSheet: widget.showTopicListButtonInActionSheet,
@@ -231,12 +233,15 @@ class _SubscriptionListHeader extends StatelessWidget {
 
 class _SubscriptionList extends StatelessWidget {
   const _SubscriptionList({
+    this.staggerOffset = 0,
     required this.unreadsModel,
     required this.subscriptions,
     required this.showTopicListButtonInActionSheet,
     required this.onChannelSelect,
   });
 
+  /// The rows above this list, for staggering its rows in after them.
+  final int staggerOffset;
   final Unreads? unreadsModel;
   final List<Subscription> subscriptions;
   final bool showTopicListButtonInActionSheet;
@@ -251,11 +256,12 @@ class _SubscriptionList extends StatelessWidget {
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
         final showMutedUnreadBadge = unreadCount == 0
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
-        return SubscriptionItem(subscription: subscription,
-          unreadCount: unreadCount,
-          showMutedUnreadBadge: showMutedUnreadBadge,
-          showTopicListButtonInActionSheet: showTopicListButtonInActionSheet,
-          onChannelSelect: onChannelSelect);
+        return KlokiStaggered(index: staggerOffset + index,
+          child: SubscriptionItem(subscription: subscription,
+            unreadCount: unreadCount,
+            showMutedUnreadBadge: showMutedUnreadBadge,
+            showTopicListButtonInActionSheet: showTopicListButtonInActionSheet,
+            onChannelSelect: onChannelSelect));
     });
   }
 }
@@ -295,7 +301,7 @@ class SubscriptionItem extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(width: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Opacity(
               opacity: opacity,
               // The channel's icon on a tile of its color, like a Kloki list item.

@@ -13,6 +13,7 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
+import 'kloki.dart';
 import 'user.dart';
 
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
@@ -145,10 +146,11 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
                     return SizedBox.shrink();
                   }
                 }
-                return RecentDmConversationsItem(
-                  narrow: narrow,
-                  unreadCount: unreadsModel!.countInDmNarrow(narrow),
-                  onDmSelect: _handleDmSelect);
+                return KlokiStaggered(index: index,
+                  child: RecentDmConversationsItem(
+                    narrow: narrow,
+                    unreadCount: unreadsModel!.countInDmNarrow(narrow),
+                    onDmSelect: _handleDmSelect));
               })),
         Positioned(
           bottom: bottomInsets + 21,
@@ -203,7 +205,7 @@ class RecentDmConversationsItem extends StatelessWidget {
         onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
+            Padding(padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 0, 10),
               child: DmConversationAvatar(
                 narrow: narrow,
                 backgroundColor: backgroundColor)),
