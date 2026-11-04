@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
@@ -8,7 +10,6 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
-import 'action_sheet.dart';
 import 'actions.dart';
 import 'app.dart';
 import 'app_bar.dart';
@@ -16,9 +17,7 @@ import 'banner.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
-import 'image.dart';
 import 'inbox.dart';
-import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'profile.dart';
@@ -34,8 +33,10 @@ import 'user.dart';
 
 enum _HomePageTab {
   inbox,
+  feed,
   channels,
   directMessages,
+  menu,
 }
 
 class HomePage extends StatefulWidget {
@@ -88,16 +89,21 @@ class _HomePageState extends State<HomePage> {
     switch(_tab.value) {
       case _HomePageTab.inbox:
         return zulipLocalizations.inboxPageTitle;
+      case _HomePageTab.feed:
+        return zulipLocalizations.navBarFeedLabel;
       case _HomePageTab.channels:
         return zulipLocalizations.channelsPageTitle;
       case _HomePageTab.directMessages:
         return zulipLocalizations.recentDmConversationsPageTitle;
+      case _HomePageTab.menu:
+        return zulipLocalizations.navBarMenuLabel;
     }
   }
 
   List<Widget>? get _currentTabAppBarActions {
     switch(_tab.value) {
       case .inbox:
+      case .feed:
         return [
           IconButton(
             icon: const Icon(ZulipIcons.search),
@@ -108,6 +114,7 @@ class _HomePageState extends State<HomePage> {
         ];
       case .channels:
       case .directMessages:
+      case .menu:
         return null;
     }
   }
@@ -116,18 +123,35 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     const pageBodies = [
       (_HomePageTab.inbox,          InboxPageBody()),
+      (_HomePageTab.feed,
+        MessageListPage(initNarrow: CombinedFeedNarrow(), embedded: true)),
       (_HomePageTab.channels,       SubscriptionListPageBody()),
       // TODO(#1094): Users
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
+      (_HomePageTab.menu,           _MenuPageBody()),
     ];
 
     final designVariables = DesignVariables.of(context);
+    // With the server-compat banner at the top, keep the plain layout.
+    final frostedTitle = !_ServerCompatBanner.shows(context);
     return Scaffold(
+      // Lists scroll on under the frosted title, as under the bottom nav.
+      extendBodyBehindAppBar: frostedTitle,
       // A large Kloki page title, part of the page rather than a bar.
       appBar: ZulipAppBar(
         titleSpacing: 20,
         centerTitle: false,
         toolbarHeight: 76,
+        backgroundColor: frostedTitle ? Colors.transparent : null,
+        flexibleSpace: frostedTitle
+          ? ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: ColoredBox(
+                  color: designVariables.mainBackground.withValues(alpha: 0.6),
+                  // Fill the bar; the app bar lays this out loosely.
+                  child: const SizedBox.expand())))
+          : null,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
@@ -154,6 +178,8 @@ class _HomePageState extends State<HomePage> {
                     _TabBody(active: tab == _tab.value, child: body),
                 ]))),
         ]),
+      // The bar floats over the content, which scrolls on under it.
+      extendBody: true,
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
   }
 }
@@ -225,6 +251,8 @@ class _TabBodyState extends State<_TabBody> with SingleTickerProviderStateMixin 
   }
 }
 
+/// The Kloki bottom navigation: a floating, frosted capsule,
+/// with a tinted pill that slides to the chosen tab.
 class _BottomNavBar extends StatelessWidget {
   const _BottomNavBar({required this.tabNotifier});
 
@@ -253,12 +281,9 @@ class _BottomNavBar extends StatelessWidget {
       _button(tab: _HomePageTab.inbox,
         icon: ZulipIcons.inbox,
         label: zulipLocalizations.inboxPageTitle),
-      _NavigationBarButton(icon: ZulipIcons.message_feed,
-        label: zulipLocalizations.navBarFeedLabel,
-        selected: false,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: const CombinedFeedNarrow()))),
+      _button(tab: _HomePageTab.feed,
+        icon: ZulipIcons.message_feed,
+        label: zulipLocalizations.navBarFeedLabel),
       _button(tab: _HomePageTab.channels,
         icon: ZulipIcons.hash_italic,
         label: zulipLocalizations.channelsPageTitle),
@@ -268,26 +293,67 @@ class _BottomNavBar extends StatelessWidget {
         label: zulipLocalizations.recentDmConversationsPageShortLabel),
       _NavigationBarButton(icon: ZulipIcons.menu,
         label: zulipLocalizations.navBarMenuLabel,
-        selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
+        selected: tabNotifier.value == _HomePageTab.menu,
+        onPressed: () {
+          tabNotifier.value = _HomePageTab.menu;
+        }),
     ];
 
-    Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
-        color: designVariables.bgBotBar),
-      child: SafeArea(
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            // TODO(design): determine a suitable max width for bottom nav bar
-            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final navigationBarButton in navigationBarButtons)
-                  Expanded(child: navigationBarButton),
-              ])))));
+    final selectedIndex = switch (tabNotifier.value) {
+      _HomePageTab.inbox => 0,
+      _HomePageTab.feed => 1,
+      _HomePageTab.channels => 2,
+      _HomePageTab.directMessages => 3,
+      _HomePageTab.menu => 4,
+    };
+
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    Widget result = Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, math.max(bottomInset, 12)),
+      child: Center(
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 24, offset: const Offset(0, 8)),
+              ]),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    // Frosted: what scrolls under shows through, softly.
+                    color: designVariables.bgBotBar.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: designVariables.borderBar.withFadedAlpha(0.6))),
+                  child: SizedBox(
+                    height: 64,
+                    child: Stack(children: [
+                      // The pill slides from tab to tab.
+                      AnimatedAlign(
+                        duration: const Duration(milliseconds: 320),
+                        curve: Curves.easeOutCubic,
+                        alignment: Alignment(-1 + selectedIndex * 0.5, 0),
+                        child: FractionallySizedBox(
+                          widthFactor: 1 / navigationBarButtons.length,
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: designVariables.fabBg.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(22)),
+                              child: const SizedBox(height: 52))))),
+                      Row(children: [
+                        for (final navigationBarButton in navigationBarButtons)
+                          Expanded(child: navigationBarButton),
+                      ]),
+                    ])))))))));
 
     result = Semantics(
       container: true,
@@ -393,45 +459,46 @@ class _NavigationBarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final tone = designVariables.fabBg;
     final color = selected
-      ? tone
+      ? designVariables.fabBg
       : designVariables.foreground.withValues(alpha: 0.55);
 
-    Widget result = AnimatedScaleOnPress(
-      scaleEnd: 0.9,
-      duration: const Duration(milliseconds: 100),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(3, 8, 3, 4),
-          child: Column(
-            spacing: 4,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // The Kloki nav marks the current tab with a tinted pill.
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                width: 56,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: selected ? tone.withValues(alpha: 0.12) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(15)),
-                child: Icon(icon, size: 22, color: color)),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: kKlokiHeadingFontFamily,
-                    fontSize: 12,
-                    color: color,
-                    height: 1,
-                  ).merge(weightVariableTextStyle(context, wght: selected ? 700 : 600)),
-                  textAlign: TextAlign.center,
-                  textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
-            ]))));
+    Widget result = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: AnimatedScaleOnPress(
+        scaleEnd: 0.88,
+        duration: const Duration(milliseconds: 100),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // The chosen tab's icon pops a little.
+            AnimatedScale(
+              scale: selected ? 1.08 : 1,
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutBack,
+              child: Icon(icon, size: 22, color: color)),
+            // Only the chosen tab says its name.
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              child: selected
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontFamily: kKlokiHeadingFontFamily,
+                        fontSize: 11,
+                        color: color,
+                        height: 1,
+                      ).merge(weightVariableTextStyle(context, wght: 700)),
+                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3)))
+                : const SizedBox(width: double.infinity),
+            ),
+          ])));
 
     result = MergeSemantics(
       child: Semantics(
@@ -442,170 +509,151 @@ class _NavigationBarButton extends StatelessWidget {
         },
         selected: selected,
         onTap: onPressed,
+        // Unchosen tabs show no name; give it to screen readers anyway.
+        label: selected ? null : label,
         child: result));
 
     return result;
   }
 }
 
-void _showMainMenu(BuildContext context, {
-  required ValueNotifier<_HomePageTab> tabNotifier,
-}) {
-  final designVariables = DesignVariables.of(context);
-  final accountId = PerAccountStoreWidget.accountIdOf(context);
-  showModalBottomSheet<void>(
-    context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
-    useSafeArea: true,
-    isScrollControlled: true,
-    // TODO: Fix the issue that the color does not respond when the theme
-    //   changes, because `designVariables` was retrieved from a gesture handler,
-    //   not a build method.  Discussion and screenshots:
-    //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
-    backgroundColor: designVariables.bgBotBar,
-    builder: (BuildContext _) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: _MainMenu(tabNotifier: tabNotifier));
-    });
+/// The menu tab: the self-user up top, then cards of places and settings.
+class _MenuPageBody extends StatelessWidget {
+  const _MenuPageBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    final self = store.selfUser;
+
+    final header = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.push(context,
+        ProfilePage.buildRoute(context: context, userId: store.selfUserId)),
+      child: Column(children: [
+        Avatar(userId: store.selfUserId, size: 88, borderRadius: 44),
+        const SizedBox(height: 14),
+        Text(store.userDisplayName(store.selfUserId),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: kKlokiHeadingFontFamily,
+            fontSize: 22,
+            color: designVariables.title,
+          ).merge(weightVariableTextStyle(context, wght: 800))),
+        const SizedBox(height: 4),
+        Text(self.deliveryEmail ?? self.email,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 15, color: designVariables.loginOrDividerText)),
+      ]));
+
+    // Two quick beats: the user and the cards come in nearly together,
+    // then the rows ripple in down through the cards.
+    var rowIndex = 0;
+    Widget row(MenuButton button) => KlokiStaggered.at(
+      begin: 0.22 + 0.045 * rowIndex++,
+      child: _MenuPageRow(button: button));
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(16, padding.top + 8, 16, padding.bottom + 24),
+      children: [
+        KlokiStaggered.at(begin: 0, child: header),
+        const SizedBox(height: 24),
+        KlokiStaggered.at(begin: 0.05, child: _MenuPageCard(children: [
+          row(const _MyProfileButton()),
+          row(const _SearchButton()),
+          row(const _MentionsButton()),
+          row(const _StarredMessagesButton()),
+        ])),
+        const SizedBox(height: 16),
+        KlokiStaggered.at(begin: 0.1, child: _MenuPageCard(children: [
+          row(const _SettingsButton()),
+          row(const _SwitchAccountButton()),
+          row(const _AboutZulipButton()),
+        ])),
+      ]);
+  }
 }
 
-/// The main-menu sheet.
-///
-/// Figma link:
-///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=143-10939&t=s7AS3nEgNgjyqHck-4
-class _MainMenu extends StatelessWidget {
-  const _MainMenu({
-    required this.tabNotifier,
-  });
+/// A rounded Kloki card of menu rows, as on the settings page.
+class _MenuPageCard extends StatelessWidget {
+  const _MenuPageCard({required this.children});
 
-  final ValueNotifier<_HomePageTab> tabNotifier;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-
-    final menuItems = <Widget>[
-      const _SearchButton(),
-      // const SizedBox(height: 8),
-      _InboxButton(tabNotifier: tabNotifier),
-      // TODO: Recent conversations
-      const _MentionsButton(),
-      const _StarredMessagesButton(),
-      const _CombinedFeedButton(),
-      // TODO: Drafts
-      _ChannelsButton(tabNotifier: tabNotifier),
-      _DirectMessagesButton(tabNotifier: tabNotifier),
-      // TODO(#1094): Users
-      const _MyProfileButton(),
-      // TODO(#198): Set my status
-      // const SizedBox(height: 8),
-      const _SettingsButton(),
-      // TODO(#661): Notifications
-      // const SizedBox(height: 8),
-      const _AboutZulipButton(),
-      // TODO(#1095): VersionInfo
-    ];
-
-    return SafeArea(
-      minimum: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _MainMenuHeader(),
-          Flexible(child: InsetShadowBox(
-            top: 8, bottom: 8,
-            color: designVariables.bgBotBar,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              child: Column(children: menuItems)))),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: AnimatedScaleOnPress(
-              scaleEnd: 0.95,
-              duration: Duration(milliseconds: 100),
-              child: BottomSheetDismissButton(
-                style: BottomSheetDismissButtonStyle.close))),
-        ]));
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: designVariables.bgTopBar,
+        border: Border.all(color: designVariables.borderBar),
+        borderRadius: BorderRadius.circular(16)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Column(children: children))));
   }
 }
 
-class _MainMenuHeader extends StatefulWidget {
-  const _MainMenuHeader();
+/// A row of the menu tab, showing a [MenuButton]'s icon, label and trailing.
+class _MenuPageRow extends StatelessWidget {
+  const _MenuPageRow({required this.button});
+
+  final MenuButton button;
 
   @override
-  State<_MainMenuHeader> createState() => _MainMenuHeaderState();
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final tone = designVariables.fabBg;
+    final icon = button.icon;
+    return InkWell(
+      onTap: () => button.onPressed(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: tone.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10)),
+            child: icon != null
+              ? Icon(icon, size: 18, color: tone)
+              : Center(child: button.buildLeading(context))),
+          const SizedBox(width: 14),
+          Expanded(child: Text(button.label(zulipLocalizations),
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 17, color: designVariables.title)
+              .merge(weightVariableTextStyle(context, wght: 500)))),
+          ?button.buildTrailing(context),
+          const SizedBox(width: 6),
+          Icon(ZulipIcons.chevron_right, size: 18,
+            color: designVariables.loginOrDividerText),
+        ])));
+  }
 }
 
-class _MainMenuHeaderState extends State<_MainMenuHeader> {
-  bool _isPressed = false;
+class _SwitchAccountButton extends MenuButton {
+  const _SwitchAccountButton();
 
-  void _setIsPressed(bool isPressed) {
-    setState(() {
-      _isPressed = isPressed;
-    });
+  @override
+  IconData get icon => ZulipIcons.arrow_left_right;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.switchAccountButtonTooltip;
   }
 
-  void _handleSwitchAccount(BuildContext context) {
-    Navigator.pop(context); // Close the main menu.
+  @override
+  void onPressed(BuildContext context) {
     Navigator.push(context,
       MaterialWidgetRoute(page: const ChooseAccountPage()));
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
-
-    return Tooltip(
-      message: zulipLocalizations.switchAccountButtonTooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _handleSwitchAccount(context),
-        onTapDown: (_) => _setIsPressed(true),
-        onTapUp: (_) => _setIsPressed(false),
-        onTapCancel: () => _setIsPressed(false),
-        child: AnimatedOpacity(
-          opacity: _isPressed ? 0.5 : 1,
-          duration: const Duration(milliseconds: 100),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
-            child: Row(spacing: 12, children: [
-              Flexible(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(spacing: 8, children: [
-                  AvatarShape(
-                    size: 32,
-                    borderRadius: 9,
-                    child: RealmContentNetworkImage(
-                      store.resolvedRealmIcon,
-                      filterQuality: FilterQuality.medium,
-                      fit: BoxFit.cover)),
-                  Flexible(child: Text(store.realmName,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: designVariables.title,
-                      fontFamily: kKlokiHeadingFontFamily,
-                      fontSize: 20,
-                      height: 24 / 20,
-                    ).merge(weightVariableTextStyle(context, wght: 800)))),
-                ]))),
-              Icon(ZulipIcons.arrow_left_right,
-                color: designVariables.icon,
-                size: 24),
-            ])))));
-  }
 }
 
-/// A button in the main menu.
-///
-/// See Figma:
-///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2037-243759&m=dev
 @visibleForTesting
 abstract class MenuButton extends StatelessWidget {
   const MenuButton({super.key});
@@ -696,22 +744,6 @@ abstract class MenuButton extends StatelessWidget {
 }
 
 /// A menu button controlling the selected [_HomePageTab] on the bottom nav bar.
-abstract class _NavigationBarMenuButton extends MenuButton {
-  const _NavigationBarMenuButton({required this.tabNotifier});
-
-  final ValueNotifier<_HomePageTab> tabNotifier;
-
-  _HomePageTab get navigationTarget;
-
-  @override
-  bool get selected => tabNotifier.value == navigationTarget;
-
-  @override
-  void onPressed(BuildContext context) {
-    tabNotifier.value = navigationTarget;
-  }
-}
-
 class _SearchButton extends MenuButton {
   const _SearchButton();
 
@@ -728,34 +760,6 @@ class _SearchButton extends MenuButton {
     Navigator.of(context).push(MessageListPage.buildRoute(
       context: context, narrow: KeywordSearchNarrow('')));
   }
-}
-
-class _InboxButton extends _NavigationBarMenuButton {
-  const _InboxButton({required super.tabNotifier});
-
-  @override
-  IconData get icon => ZulipIcons.inbox;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.inboxPageTitle;
-  }
-
-  @override
-  Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInCombinedFeedNarrow();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
-  }
-
-  @override
-  _HomePageTab get navigationTarget => _HomePageTab.inbox;
 }
 
 class _MentionsButton extends MenuButton {
@@ -817,67 +821,6 @@ class _StarredMessagesButton extends MenuButton {
     Navigator.of(context).push(MessageListPage.buildRoute(
       context: context, narrow: const StarredMessagesNarrow()));
   }
-}
-
-class _CombinedFeedButton extends MenuButton {
-  const _CombinedFeedButton();
-
-  @override
-  IconData get icon => ZulipIcons.message_feed;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.combinedFeedPageTitle;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: const CombinedFeedNarrow()));
-  }
-}
-
-class _ChannelsButton extends _NavigationBarMenuButton {
-  const _ChannelsButton({required super.tabNotifier});
-
-  @override
-  IconData get icon => ZulipIcons.hash_italic;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.channelsPageTitle;
-  }
-
-  @override
-  _HomePageTab get navigationTarget => _HomePageTab.channels;
-}
-
-class _DirectMessagesButton extends _NavigationBarMenuButton {
-  const _DirectMessagesButton({required super.tabNotifier});
-
-  @override
-  IconData get icon => ZulipIcons.two_person;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.recentDmConversationsPageTitle;
-  }
-
-  @override
-  Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInDms();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
-  }
-
-  @override
-  _HomePageTab get navigationTarget => _HomePageTab.directMessages;
 }
 
 class _MyProfileButton extends MenuButton {
@@ -946,6 +889,14 @@ class _AboutZulipButton extends MenuButton {
 
 class _ServerCompatBanner extends StatelessWidget {
   const _ServerCompatBanner();
+
+  /// Whether the banner shows.
+  static bool shows(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    return store.zulipFeatureLevel < kMinSupportedZulipFeatureLevel
+      && !globalStore.getServerCompatBannerDismissed(store.accountId);
+  }
 
   @override
   Widget build(BuildContext context) {
