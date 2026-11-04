@@ -94,6 +94,7 @@ ThemeData zulipThemeData(BuildContext context) {
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
+      toolbarHeight: 64,
       // The bar is part of the page, as in Kloki: same color, no rule below.
       backgroundColor: designVariables.mainBackground,
 
@@ -265,7 +266,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // Keep the color here and the corresponding non-dark mode entry in
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
     // in sync.
-    mainBackground: KlokiColors.lightBackground,
+    // One white plane, as Kloki pages are; fields are tinted to stand out.
+    mainBackground: KlokiColors.lightCard,
 
     neutralButtonBg: const Color(0xff8c84ae),
     neutralButtonLabel: const Color(0xff433d5c),
