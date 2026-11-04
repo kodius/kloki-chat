@@ -12,9 +12,11 @@ import '../model/store.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
+import 'kloki.dart';
 import 'login.dart';
 import 'page.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 
 class ZulipApp extends StatefulWidget {
@@ -409,59 +411,86 @@ class ChooseAccountPage extends StatelessWidget {
   Widget _buildAccountItem(
     BuildContext context, {
     required int accountId,
-    required Widget title,
-    Widget? subtitle,
+    required Account account,
   }) {
-    final colorScheme = ColorScheme.of(context);
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final materialLocalizations = MaterialLocalizations.of(context);
-    return Card(
-      clipBehavior: Clip.hardEdge,
-      child: ListTile(
-        title: title,
-        subtitle: subtitle,
-        tileColor: colorScheme.secondaryContainer,
-        textColor: colorScheme.onSecondaryContainer,
-        trailing: MenuAnchor(
-          menuChildren: [
-            MenuItemButton(
-              onPressed: () async {
-                final dialog = showSuggestedActionDialog(context: context,
-                  title: zulipLocalizations.logOutConfirmationDialogTitle,
-                  message: zulipLocalizations.logOutConfirmationDialogMessage,
-                  destructiveActionButton: true,
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
-                if (await dialog.result == true) {
-                  if (!context.mounted) return;
-                  // TODO error handling if db write fails?
-                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
-                }
-              },
-              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
-          ],
-          builder: (BuildContext context, MenuController controller, Widget? child) {
-            return IconButton(
-              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
-          }),
-        // The default trailing padding with M3 is 24px. Decrease by 12 because
-        // IconButton (the "…" button) comes with 12px padding on all sides.
-        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => HomePage.navigate(context, accountId: accountId)));
+    final realmIcon = account.realmIcon;
+
+    // A Kloki list row: the organization's icon, its name and the email.
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => HomePage.navigate(context, accountId: accountId),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(4, 10, 0, 10),
+          child: Row(children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox.square(dimension: 44,
+                child: realmIcon == null
+                  ? ColoredBox(color: designVariables.bgSearchInput,
+                      child: const Center(child: KlokiMark(size: 24)))
+                  : Image.network(account.realmUrl.resolveUri(realmIcon).toString(),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => ColoredBox(
+                        color: designVariables.bgSearchInput,
+                        child: const Center(child: KlokiMark(size: 24)))))),
+            const SizedBox(width: 14),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(account.realmName ?? account.realmUrl.host,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: kKlokiHeadingFontFamily,
+                    fontSize: 17,
+                    color: designVariables.title,
+                  ).merge(weightVariableTextStyle(context, wght: 700))),
+                const SizedBox(height: 2),
+                Text(account.email,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 15,
+                    color: designVariables.loginOrDividerText)),
+              ])),
+            MenuAnchor(
+              menuChildren: [
+                MenuItemButton(
+                  onPressed: () async {
+                    final dialog = showSuggestedActionDialog(context: context,
+                      title: zulipLocalizations.logOutConfirmationDialogTitle,
+                      message: zulipLocalizations.logOutConfirmationDialogMessage,
+                      destructiveActionButton: true,
+                      actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
+                    if (await dialog.result == true) {
+                      if (!context.mounted) return;
+                      // TODO error handling if db write fails?
+                      unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                    }
+                  },
+                  child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+              ],
+              builder: (BuildContext context, MenuController controller, Widget? child) {
+                return IconButton(
+                  tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: Icon(Icons.adaptive.more, color: designVariables.loginOrDividerText));
+              }),
+          ]))));
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
 
@@ -470,42 +499,36 @@ class ChooseAccountPage extends StatelessWidget {
       return const KlokiSignInPage();
     }
 
-    // Borrowed from [AppBar.build].
-    // See documentation on [ModalRoute.impliesAppBarDismissal]:
-    // > Whether an [AppBar] in the route should automatically add a back button or
-    // > close button.
-    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
-
-    return MenuButtonTheme(
-      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
-        backgroundColor: colorScheme.secondaryContainer,
-        foregroundColor: colorScheme.onSecondaryContainer)),
-      child: Scaffold(
-        appBar: AppBar(
-          titleSpacing: hasBackButton ? null : 16,
-          title: Text(zulipLocalizations.chooseAccountPageTitle),
-          actions: const [ChooseAccountPageOverflowButton()]),
-        body: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Flexible(child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    for (final (:accountId, :account) in globalStore.accountEntries)
-                      _buildAccountItem(context,
-                        accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
-                  ]))),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context,
-                    KlokiSignInPage.buildRoute()),
-                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-              ]))))));
+    return Scaffold(
+      appBar: AppBar(
+        actions: const [ChooseAccountPageOverflowButton()]),
+      body: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // A large Kloki page title, as on the home tabs.
+              Text(zulipLocalizations.chooseAccountPageTitle,
+                style: TextStyle(
+                  fontFamily: kKlokiHeadingFontFamily,
+                  fontSize: 28,
+                  height: 1.2,
+                  color: designVariables.title,
+                ).merge(weightVariableTextStyle(context, wght: 800))),
+              const SizedBox(height: 20),
+              Expanded(child: ListView(children: [
+                for (final (i, (:accountId, :account)) in globalStore.accountEntries.indexed)
+                  KlokiEaseIn(delay: (i * 0.08).clamp(0, 0.5),
+                    child: _buildAccountItem(context,
+                      accountId: accountId, account: account)),
+              ])),
+              FilledButton.icon(
+                onPressed: () => Navigator.push(context,
+                  KlokiSignInPage.buildRoute()),
+                icon: const Icon(Icons.add),
+                label: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
+            ])))));
   }
 }
 
