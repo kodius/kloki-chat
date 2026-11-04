@@ -5,6 +5,8 @@ import '../model/settings.dart';
 import 'app_bar.dart';
 import 'page.dart';
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -20,17 +22,46 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.settingsPageTitle)),
-      body: ListView(children: [
-        const _ThemeSetting(),
-        const _BrowserPreferenceSetting(),
-        const _VisitFirstUnreadSetting(),
-        const _MarkReadOnScrollSetting(),
-        if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
-          ListTile(
-            title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
-            onTap: () => Navigator.push(context,
-              ExperimentalFeaturesPage.buildRoute()))
-      ]));
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: [
+          const _SettingsCard(children: [_ThemeSetting()]),
+          _SettingsCard(children: [
+            const _BrowserPreferenceSetting(),
+            const _VisitFirstUnreadSetting(),
+            const _MarkReadOnScrollSetting(),
+            if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
+              ListTile(
+                title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(context,
+                  ExperimentalFeaturesPage.buildRoute())),
+          ]),
+        ]));
+  }
+}
+
+/// A group of settings on a rounded card, as in Kloki's settings.
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: designVariables.bgTopBar,
+          border: Border.all(color: designVariables.borderBar),
+          borderRadius: BorderRadius.circular(14)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(children: children)))));
   }
 }
 
@@ -51,9 +82,18 @@ class _ThemeSetting extends StatelessWidget {
       onChanged: (newValue) => _handleChange(context, newValue),
       child: Column(
         children: [
-          ListTile(title: Text(zulipLocalizations.themeSettingTitle)),
+          ListTile(
+            dense: true,
+            title: Text(zulipLocalizations.themeSettingTitle,
+              style: TextStyle(
+                color: DesignVariables.of(context).loginOrDividerText,
+                fontFamily: kKlokiHeadingFontFamily,
+                fontSize: 13,
+                letterSpacing: 0.5,
+              ).merge(weightVariableTextStyle(context, wght: 700)))),
           for (final themeSettingOption in [null, ...ThemeSetting.values])
             RadioListTile<ThemeSetting?>.adaptive(
+              activeColor: DesignVariables.of(context).fabBg,
               title: Text(ThemeSetting.displayName(
                 themeSetting: themeSettingOption,
                 zulipLocalizations: zulipLocalizations)),
@@ -79,6 +119,7 @@ class _BrowserPreferenceSetting extends StatelessWidget {
     final openLinksWithInAppBrowser =
       globalSettings.effectiveBrowserPreference == BrowserPreference.inApp;
     return SwitchListTile.adaptive(
+      activeTrackColor: DesignVariables.of(context).fabBg,
       title: Text(zulipLocalizations.openLinksWithInAppBrowser),
       value: openLinksWithInAppBrowser,
       onChanged: (newValue) => _handleChange(context, newValue));
@@ -96,6 +137,7 @@ class _VisitFirstUnreadSetting extends StatelessWidget {
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
         globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.push(context,
         VisitFirstUnreadSettingPage.buildRoute()));
   }
@@ -140,6 +182,7 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
           ListTile(title: Text(zulipLocalizations.initialAnchorSettingDescription)),
           for (final value in VisitFirstUnreadSetting.values)
             RadioListTile<VisitFirstUnreadSetting>.adaptive(
+              activeColor: DesignVariables.of(context).fabBg,
               title: Text(_valueDisplayName(value,
                 zulipLocalizations: zulipLocalizations)),
               value: value),
@@ -158,6 +201,7 @@ class _MarkReadOnScrollSetting extends StatelessWidget {
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
         globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.push(context,
         MarkReadOnScrollSettingPage.buildRoute()));
   }
@@ -213,6 +257,7 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
           ListTile(title: Text(zulipLocalizations.markReadOnScrollSettingDescription)),
           for (final value in MarkReadOnScrollSetting.values)
             RadioListTile<MarkReadOnScrollSetting>.adaptive(
+              activeColor: DesignVariables.of(context).fabBg,
               title: Text(_valueDisplayName(value,
                 zulipLocalizations: zulipLocalizations)),
               subtitle: () {
@@ -246,6 +291,7 @@ class ExperimentalFeaturesPage extends StatelessWidget {
           title: Text(zulipLocalizations.experimentalFeatureSettingsWarning)),
         for (final flag in flags)
           SwitchListTile.adaptive(
+            activeTrackColor: DesignVariables.of(context).fabBg,
             title: Text(flag.name), // no i18n; these are developer-facing settings
             value: globalSettings.getBool(flag),
             onChanged: (value) => globalSettings.setBool(flag, value)),
