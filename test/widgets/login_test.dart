@@ -16,6 +16,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
 
@@ -23,6 +24,7 @@ import '../api/fake_api.dart';
 import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import '../test_navigation.dart';
@@ -31,6 +33,19 @@ import 'checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
+
+  final klokiAuthMethod = ExternalAuthenticationMethod(
+    name: 'kloki',
+    displayName: 'Kloki',
+    displayIcon: null,
+    loginUrl: '/accounts/login/kloki/',
+    signupUrl: '/accounts/login/kloki/');
+
+  const otp = '186f6d085a5621ebaf1ccfc05033e8acba57dae03f061705ac1e58c402c30a31';
+
+  final findPasswordInput = find.byWidgetPredicate((widget) =>
+    widget is TextField
+    && (widget.autofillHints ?? []).contains(AutofillHints.password));
 
   group('ServerUrlTextEditingController.tryParse', () {
     final controller = ServerUrlTextEditingController();
@@ -96,7 +111,9 @@ void main() {
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
-      await tester.tap(find.text('Add an account'));
+      await tester.pump(const Duration(seconds: 2)); // entrance animation
+      await tester.ensureVisible(find.text('Sign in to another server'));
+      await tester.tap(find.text('Sign in to another server'));
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
       await testNavObserver.pumpPastTransition(tester);
     }
@@ -190,6 +207,113 @@ void main() {
     // TODO other errors
   });
 
+  group('KlokiSignInPage', () {
+    late FakeApiConnection connection;
+    late TestNavigatorObserver testNavObserver;
+    late List<Route<dynamic>> pushedRoutes;
+
+    final serverSettings = eg.serverSettings(
+      realmUrl: kKlokiChatRealmUrl,
+      externalAuthenticationMethods: [klokiAuthMethod]);
+
+    Future<void> prepare(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      prepareBoringImageHttpClient(); // realm icon
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
+
+      pushedRoutes = [];
+      testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) => pushedRoutes.add(route!);
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
+      pushedRoutes.clear();
+      check(find.byType(KlokiSignInPage)).findsOne();
+      await tester.pump(const Duration(seconds: 2)); // entrance animation
+
+      testBinding.globalStore.useCachedApiConnections = true;
+      connection = testBinding.globalStore.apiConnection(
+        realmUrl: kKlokiChatRealmUrl, zulipFeatureLevel: null);
+    }
+
+    testWidgets('sign in through Kloki: browser, then into the app', (tester) async {
+      await prepare(tester);
+      LoginPage.debugOtpOverride = otp;
+      addTearDown(() => LoginPage.debugOtpOverride = null);
+
+      connection.prepare(json: serverSettings.toJson());
+      await tester.tap(find.text('Sign in through Kloki'));
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.equals(kKlokiChatRealmUrl.resolve('/api/v1/server_settings'));
+      final expectedUrl = kKlokiChatRealmUrl.resolve(klokiAuthMethod.loginUrl)
+        .replace(queryParameters: {'mobile_flow_otp': otp});
+      check(testBinding.takeLaunchUrlCalls())
+        .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
+      // No page in between; closing the browser leaves this page.
+      check(pushedRoutes).isEmpty();
+
+      final url = Uri(scheme: 'zulip', host: 'login', queryParameters: {
+        'otp_encrypted_api_key': debugEncodeApiKey(eg.selfAccount.apiKey, otp),
+        'email': eg.selfAccount.email,
+        'user_id': eg.selfAccount.userId.toString(),
+        'realm': kKlokiChatRealmUrl.toString(),
+      });
+      final ByteData message = const JSONMethodCodec().encodeMethodCall(
+        MethodCall('pushRouteInformation', {'location': url.toString()}));
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/navigation', message, null);
+
+      check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
+      final account = testBinding.globalStore.accounts.single;
+      check(account)
+        ..realmUrl.equals(kKlokiChatRealmUrl)
+        ..email.equals(eg.selfAccount.email);
+      check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(account.id)
+        ..page.isA<HomePage>();
+    });
+
+    testWidgets('guest sign-in shows the password form', (tester) async {
+      await prepare(tester);
+
+      connection.prepare(json: serverSettings.toJson());
+      await tester.ensureVisible(find.text('Guest sign-in'));
+      await tester.tap(find.text('Guest sign-in'));
+      await tester.pump(Duration.zero);
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>();
+      await testNavObserver.pumpPastTransition(tester);
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      check(findPasswordInput).findsOne();
+      check(find.text('Back to signing in through Kloki')).findsNothing();
+    });
+
+    testWidgets('no Kloki sign-in when the server cannot be reached', (tester) async {
+      await prepare(tester);
+
+      connection.prepare(httpException: Exception('offline'));
+      await tester.ensureVisible(find.text('Sign in through Kloki'));
+      await tester.tap(find.text('Sign in through Kloki'));
+      await tester.pump(Duration.zero);
+      checkErrorDialog(tester,
+        expectedTitle: 'Could not connect',
+        expectedMessage: 'Failed to connect to server:\n$kKlokiChatRealmUrl');
+      check(pushedRoutes).single.isA<DialogRoute<void>>();
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
+    });
+
+    testWidgets('another server opens AddAccountPage', (tester) async {
+      await prepare(tester);
+
+      await tester.ensureVisible(find.text('Sign in to another server'));
+      await tester.tap(find.text('Sign in to another server'));
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
+      check(connection.takeRequests()).isEmpty();
+    });
+  });
+
   group('LoginPage', () {
     late FakeApiConnection connection;
     late List<Route<void>> pushedRoutes;
@@ -238,9 +362,6 @@ void main() {
     final findUsernameInput = find.byWidgetPredicate((widget) =>
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.email));
-    final findPasswordInput = find.byWidgetPredicate((widget) =>
-      widget is TextField
-      && (widget.autofillHints ?? []).contains(AutofillHints.password));
     final findSubmitButton = find.widgetWithText(ElevatedButton, 'Log in');
 
     /// Check the account is as expected, ignoring fields that are
@@ -449,7 +570,6 @@ void main() {
         check(pushedRoutes).isEmpty();
         check(testBinding.globalStore.accounts).isEmpty();
 
-        const otp = '186f6d085a5621ebaf1ccfc05033e8acba57dae03f061705ac1e58c402c30a31';
         LoginPage.debugOtpOverride = otp;
         await tester.tap(find.textContaining('Google'));
 
@@ -486,6 +606,53 @@ void main() {
 
       // TODO failures, such as: invalid loginUrl; URL can't be launched;
       //   WebAuthPayload.realm doesn't match the realm the UI is about
+    });
+
+    group('Kloki sign-in', () {
+      Future<void> prepareKloki(WidgetTester tester, {bool emailAuthEnabled = true}) async {
+        prepareBoringImageHttpClient(); // realm icon
+        addTearDown(() => debugNetworkImageHttpClientProvider = null);
+        await prepare(tester, eg.serverSettings(
+          emailAuthEnabled: emailAuthEnabled,
+          externalAuthenticationMethods: [klokiAuthMethod]));
+        takeStartingRoutes();
+      }
+
+      testWidgets('Kloki button opens Kloki in the browser', (tester) async {
+        await prepareKloki(tester);
+        check(testBinding.takeLaunchUrlCalls()).isEmpty();
+        check(findPasswordInput).findsNothing();
+
+        LoginPage.debugOtpOverride = otp;
+        addTearDown(() => LoginPage.debugOtpOverride = null);
+        await tester.ensureVisible(find.text('Sign in through Kloki'));
+        await tester.tap(find.text('Sign in through Kloki'));
+        final expectedUrl = eg.realmUrl.resolve(klokiAuthMethod.loginUrl)
+          .replace(queryParameters: {'mobile_flow_otp': otp});
+        check(testBinding.takeLaunchUrlCalls())
+          .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
+      });
+
+      testWidgets('switch to guest sign-in and back', (tester) async {
+        await prepareKloki(tester);
+
+        await tester.ensureVisible(find.text('Guest sign-in'));
+        await tester.tap(find.text('Guest sign-in'));
+        await tester.pump();
+        check(findPasswordInput).findsOne();
+        check(find.text('Sign in through Kloki')).findsNothing();
+
+        await tester.ensureVisible(find.text('Back to signing in through Kloki'));
+        await tester.tap(find.text('Back to signing in through Kloki'));
+        await tester.pump();
+        check(findPasswordInput).findsNothing();
+        check(find.text('Sign in through Kloki')).findsOne();
+      });
+
+      testWidgets('no guest sign-in without password auth', (tester) async {
+        await prepareKloki(tester, emailAuthEnabled: false);
+        check(find.text('Guest sign-in')).findsNothing();
+      });
     });
   });
 }

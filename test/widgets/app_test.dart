@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zulip/log.dart';
@@ -8,6 +9,7 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
@@ -289,18 +291,10 @@ void main() {
         ..bottom.isLessThan(2 / 3 * screenHeight);
     });
 
-    testWidgets('with no accounts, the Add an Account button is centered', (tester) async {
+    testWidgets('with no accounts, shows the Kloki sign-in', (tester) async {
       await setupChooseAccountPage(tester, accounts: []);
-
-      const buttonText = 'Add an account';
-      checkButtonShown(withText: buttonText, expected: true);
-
-      final screenHeight =
-        (tester.view.physicalSize / tester.view.devicePixelRatio).height;
-
-      check(tester.getRect(findButton(withText: buttonText)))
-        ..top.isGreaterThan(1 / 3 * screenHeight)
-        ..bottom.isLessThan(2 / 3 * screenHeight);
+      check(find.byType(KlokiSignInPage)).findsOne();
+      checkButtonShown(withText: 'Add an account', expected: false);
     });
 
     testWidgets('choosing an account clears the navigator stack', (tester) async {

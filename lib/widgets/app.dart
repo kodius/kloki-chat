@@ -465,6 +465,11 @@ class ChooseAccountPage extends StatelessWidget {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
 
+    if (globalStore.accountEntries.isEmpty) {
+      // With no accounts, there's nothing to choose; go straight to signing in.
+      return const KlokiSignInPage();
+    }
+
     // Borrowed from [AppBar.build].
     // See documentation on [ModalRoute.impliesAppBarDismissal]:
     // > Whether an [AppBar] in the route should automatically add a back button or
@@ -498,7 +503,7 @@ class ChooseAccountPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () => Navigator.push(context,
-                    AddAccountPage.buildRoute()),
+                    KlokiSignInPage.buildRoute()),
                   child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
               ]))))));
   }
