@@ -770,7 +770,7 @@ class _KlokiLoaderState extends State<KlokiLoader> with SingleTickerProviderStat
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
       _controller.stop();
     } else if (!_controller.isAnimating) {
       _controller.repeat();
@@ -785,12 +785,15 @@ class _KlokiLoaderState extends State<KlokiLoader> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
       return KlokiMark(size: widget.size);
     }
-    final designVariables = DesignVariables.of(context);
+    // This can show before the app's theme exists, as while the global store loads.
+    final designVariables = Theme.of(context).extension<DesignVariables>()
+      ?? DesignVariables.light;
     return Semantics(
-      label: MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+      label: Localizations.of<MaterialLocalizations>(context, MaterialLocalizations)
+        ?.refreshIndicatorSemanticLabel,
       child: RepaintBoundary(
         child: AnimatedBuilder(
           animation: _controller,
