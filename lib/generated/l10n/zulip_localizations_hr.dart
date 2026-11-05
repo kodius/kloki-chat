@@ -92,7 +92,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionSubscribe => 'Pretplati se';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'Pretplata nije uspjela';
 
   @override
   String get actionSheetOptionMarkChannelAsRead => 'Označi kanal kao pročitan';
@@ -111,18 +111,18 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'Otkazati pretplatu na $channelName?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Kad napustite ovaj kanal, nećete mu se moći ponovno pridružiti.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Otkaži pretplatu';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Otkazivanje pretplate nije uspjelo';
 
   @override
   String get actionSheetOptionPinChannel => 'Prikvači na vrh';
@@ -253,14 +253,14 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionDeleteMessage => 'Izbriši poruku';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'Izbrisati poruku?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
-      'Deleting a message permanently removes it for everyone.';
+      'Brisanjem se poruka trajno uklanja za sve.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Izbriši';
 
   @override
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
@@ -269,11 +269,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionReportMessage => 'Prijavi poruku';
 
   @override
-  String get reportMessageDialogTitle => 'Report message';
+  String get reportMessageDialogTitle => 'Prijavi poruku';
 
   @override
   String get reportMessageDescription =>
-      'Your report will be sent to the private moderation requests channel for this organization.';
+      'Vaša prijava bit će poslana u privatni kanal za moderaciju ove organizacije.';
 
   @override
   String get messageReportTypeSpam => 'Spam';
@@ -291,20 +291,19 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get messageReportTypeOther => 'Drugi razlog';
 
   @override
-  String get reportMessageReasonLabel =>
-      'What’s the problem with this message?';
+  String get reportMessageReasonLabel => 'Što nije u redu s ovom porukom?';
 
   @override
-  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+  String get reportMessageDescriptionLabel => 'Možete li navesti više detalja?';
 
   @override
-  String get reportMessageDescriptionRequired => 'Please provide details.';
+  String get reportMessageDescriptionRequired => 'Navedite detalje.';
 
   @override
-  String get reportMessageSubmitButton => 'Submit';
+  String get reportMessageSubmitButton => 'Pošalji';
 
   @override
-  String get reportMessageSuccess => 'Message reported';
+  String get reportMessageSuccess => 'Poruka je prijavljena';
 
   @override
   String get errorReportMessageFailedTitle => 'Failed to report message';
@@ -757,13 +756,13 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Pričekajte da se učitavanje završi.';
 
   @override
-  String get dialogCancel => 'Cancel';
+  String get dialogCancel => 'Odustani';
 
   @override
-  String get dialogContinue => 'Continue';
+  String get dialogContinue => 'Nastavi';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Zatvori';
 
   @override
   String get errorDialogLearnMore => 'Learn more';
@@ -842,15 +841,16 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       maxLength,
       locale: localeName,
-      other: '$maxLength characters',
-      one: '1 character',
+      other: '$maxLength znakova',
+      few: '$maxLength znaka',
+      one: '$maxLength znaka',
     );
-    return 'Topic length shouldn\'t be greater than $_temp0.';
+    return 'Tema ne smije biti dulja od $_temp0.';
   }
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Topics are required in this channel.';
+      'U ovom kanalu tema je obavezna.';
 
   @override
   String get errorContentNotInsertedTitle => 'Content not inserted';
@@ -918,7 +918,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Try opening it in your browser instead.';
 
   @override
-  String get dialogOpenInBrowser => 'Open in browser';
+  String get dialogOpenInBrowser => 'Otvori u pregledniku';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Upišite adresu.';
@@ -1448,7 +1448,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get zulipAppTitle => 'Kloki Chat';
 
   @override
-  String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+  String get topicListEmptyPlaceholderHeader => 'Ovdje još nema tema.';
 
   @override
   String get klokiSignInTitle => 'Prijava u chat ide kroz Kloki';
