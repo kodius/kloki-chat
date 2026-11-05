@@ -63,14 +63,14 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get chooseAccountButtonAddAnAccount => 'Add an account';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Svi kanali';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Svi kanali';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'U ovoj organizaciji nema kanala koje možete vidjeti.';
 
   @override
   String get profileButtonSendDirectMessage => 'Send direct message';
@@ -654,7 +654,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get unknownUserName => '(unknown user)';
 
   @override
-  String get dmsWithYourselfPageTitle => 'DMs with yourself';
+  String get dmsWithYourselfPageTitle => 'Poruke sa sobom';
 
   @override
   String messageListGroupYouAndOthers(String others) {
@@ -663,76 +663,76 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String dmsWithOthersPageTitle(String others) {
-    return 'DMs with $others';
+    return 'Poruke s: $others';
   }
 
   @override
-  String get emptyMessageList => 'There are no messages here.';
+  String get emptyMessageList => 'Ovdje nema poruka.';
 
   @override
-  String get emptyMessageListCombinedFeed =>
-      'There are no messages in your combined feed.';
+  String get emptyMessageListCombinedFeed => 'U vašem feedu nema poruka.';
 
   @override
   String get emptyMessageListChannelWithoutContentAccess =>
-      'You don’t have <z-link>content access</z-link> to this channel.';
+      'Nemate <z-link>pristup sadržaju</z-link> ovog kanala.';
 
   @override
   String get emptyMessageListChannelUnavailable =>
-      'This channel doesn’t exist, or you are not allowed to view it.';
+      'Ovaj kanal ne postoji ili ga ne smijete vidjeti.';
 
   @override
   String get emptyMessageListSelfDmHeader =>
-      'You have not sent any direct messages to yourself yet!';
+      'Još niste sami sebi poslali nijednu poruku!';
 
   @override
   String get emptyMessageListSelfDmMessage =>
-      'Use this space for personal notes, or to test out Kloki Chat features.';
+      'Koristite ovaj prostor za osobne bilješke ili za isprobavanje mogućnosti Kloki Chata.';
 
   @override
   String emptyMessageListDm(String person) {
-    return 'You have no direct messages with $person yet.';
+    return 'Još nemate privatnih poruka s korisnikom $person.';
   }
 
   @override
   String emptyMessageListDmDeactivatedUser(String person) {
-    return 'You have no direct messages with $person.';
+    return 'Nemate privatnih poruka s korisnikom $person.';
   }
 
   @override
   String get emptyMessageListDmUnknownUser =>
-      'You have no direct messages with this user.';
+      'Nemate privatnih poruka s ovim korisnikom.';
 
   @override
   String get emptyMessageListGroupDm =>
-      'You have no direct messages with these users yet.';
+      'Još nemate privatnih poruka s ovim korisnicima.';
 
   @override
   String get emptyMessageListGroupDmDeactivatedUser =>
-      'You have no direct messages with these users.';
+      'Nemate privatnih poruka s ovim korisnicima.';
 
   @override
   String get emptyMessageListDmStartConversation =>
-      'Why not start the conversation?';
+      'Zašto ne biste započeli razgovor?';
 
   @override
   String get emptyMessageListMentionsHeader =>
-      'This view will show messages where you are <z-link>mentioned</z-link>.';
+      'Ovdje će se prikazivati poruke u kojima ste <z-link>spomenuti</z-link>.';
 
   @override
   String get emptyMessageListMentionsMessage =>
-      'To call attention to a message, you can mention a user, a group, topic participants, or all subscribers to a channel. Type @ in the compose box, and choose who you’d like to mention from the list of suggestions.';
+      'Da biste nekome skrenuli pažnju na poruku, možete spomenuti korisnika, grupu, sudionike teme ili sve pretplatnike kanala. Upišite @ u polje za poruku i odaberite koga želite spomenuti s popisa prijedloga.';
 
   @override
-  String get emptyMessageListStarredHeader => 'You have no starred messages.';
+  String get emptyMessageListStarredHeader =>
+      'Nemate poruka označenih zvjezdicom.';
 
   @override
   String emptyMessageListStarredMessage(String button) {
-    return '<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “$button.”';
+    return '<z-link>Označavanje zvjezdicom</z-link> dobar je način da pratite važne poruke, poput zadataka kojima se trebate vratiti ili korisnih informacija. Da biste označili poruku, dugo je pritisnite i dodirnite „$button”.';
   }
 
   @override
-  String get emptyMessageListSearch => 'No search results.';
+  String get emptyMessageListSearch => 'Nema rezultata pretrage.';
 
   @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
@@ -1124,80 +1124,80 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Error updating user status. Please try again.';
 
   @override
-  String get searchMessagesPageTitle => 'Search';
+  String get searchMessagesPageTitle => 'Pretraga';
 
   @override
-  String get searchMessagesHintText => 'Search';
+  String get searchMessagesHintText => 'Pretraži';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Očisti';
 
   @override
   String get inboxPageTitle => 'Inbox';
 
   @override
   String get inboxEmptyPlaceholderHeader =>
-      'There are no unread messages in your inbox.';
+      'U vašem inboxu nema nepročitanih poruka.';
 
   @override
   String get inboxEmptyPlaceholderMessage =>
-      'Use the buttons below to view the combined feed or list of channels.';
+      'Koristite gumbe ispod za prikaz feeda ili popisa kanala.';
 
   @override
-  String get pinnedChannelsFolderName => 'Pinned channels';
+  String get pinnedChannelsFolderName => 'Prikvačeni kanali';
 
   @override
   String get otherChannelsFolderName => 'Other channels';
 
   @override
-  String get recentDmConversationsPageTitle => 'Direct messages';
+  String get recentDmConversationsPageTitle => 'Privatne poruke';
 
   @override
-  String get recentDmConversationsPageShortLabel => 'DMs';
+  String get recentDmConversationsPageShortLabel => 'Poruke';
 
   @override
-  String get recentDmConversationsSectionHeader => 'Direct messages';
+  String get recentDmConversationsSectionHeader => 'Privatne poruke';
 
   @override
   String get recentDmConversationsEmptyPlaceholderHeader =>
-      'You have no direct messages yet!';
+      'Još nemate privatnih poruka!';
 
   @override
   String get recentDmConversationsEmptyPlaceholderMessage =>
-      'Why not start a conversation?';
+      'Zašto ne biste započeli razgovor?';
 
   @override
-  String get combinedFeedPageTitle => 'Combined feed';
+  String get combinedFeedPageTitle => 'Feed';
 
   @override
-  String get mentionsPageTitle => 'Mentions';
+  String get mentionsPageTitle => 'Spominjanja';
 
   @override
-  String get starredMessagesPageTitle => 'Starred messages';
+  String get starredMessagesPageTitle => 'Poruke sa zvjezdicom';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Kanali';
 
   @override
   String get channelsEmptyPlaceholderHeader =>
-      'You’re not subscribed to any channels yet.';
+      'Još niste pretplaćeni ni na jedan kanal.';
 
   @override
   String channelsEmptyPlaceholderMessage(String allChannelsPageTitle) {
-    return 'Try going to <z-link>$allChannelsPageTitle</z-link> and joining some of them.';
+    return 'Otvorite <z-link>$allChannelsPageTitle</z-link> i pridružite se nekima od njih.';
   }
 
   @override
   String get shareChooseAccountModalTitle => 'Choose an account';
 
   @override
-  String get mainMenuMyProfile => 'My profile';
+  String get mainMenuMyProfile => 'Moj profil';
 
   @override
-  String get topicsButtonTooltip => 'Topics';
+  String get topicsButtonTooltip => 'Teme';
 
   @override
-  String get channelFeedButtonTooltip => 'Channel feed';
+  String get channelFeedButtonTooltip => 'Feed kanala';
 
   @override
   String notifGroupDmConversationLabel(String senderFullName, int numOthers) {
@@ -1211,10 +1211,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get pinnedSubscriptionsLabel => 'Pinned';
+  String get pinnedSubscriptionsLabel => 'Prikvačeni';
 
   @override
-  String get unpinnedSubscriptionsLabel => 'Unpinned';
+  String get unpinnedSubscriptionsLabel => 'Ostali';
 
   @override
   String get notifSelfUser => 'You';
@@ -1309,7 +1309,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get navBarFeedLabel => 'Feed';
 
   @override
-  String get navBarMenuLabel => 'Menu';
+  String get navBarMenuLabel => 'Izbornik';
 
   @override
   String get messageIsEditedLabel => 'EDITED';
