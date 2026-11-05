@@ -23,6 +23,7 @@ class ZulipAppBar extends AppBar {
     super.centerTitle,
     super.backgroundColor,
     super.flexibleSpace,
+    super.systemOverlayStyle,
     super.shape,
     super.actions,
   }) :

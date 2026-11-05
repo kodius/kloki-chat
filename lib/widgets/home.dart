@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../api/core.dart';
@@ -160,6 +161,9 @@ class _HomePageState extends State<HomePage> {
         centerTitle: false,
         toolbarHeight: 76,
         backgroundColor: frostedTitle ? Colors.transparent : null,
+        // With no bar color to go by, say which status-bar icons suit the page.
+        systemOverlayStyle: Theme.of(context).brightness == Brightness.light
+          ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
         // Frosted only once something is under it: the blur would otherwise
         // pull the content just below it up into the bar.
         flexibleSpace: frostedTitle
