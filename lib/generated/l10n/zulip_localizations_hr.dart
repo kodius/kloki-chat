@@ -787,16 +787,16 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get lightboxVideoDuration => 'Trajanje videozapisa';
 
   @override
-  String get loginPageTitle => 'Log in';
+  String get loginPageTitle => 'Prijava';
 
   @override
-  String get loginFormSubmitLabel => 'Log in';
+  String get loginFormSubmitLabel => 'Prijavi se';
 
   @override
-  String get loginMethodDivider => 'OR';
+  String get loginMethodDivider => 'ILI';
 
   @override
-  String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
+  String get loginMethodDividerSemanticLabel => 'Drugi načini prijave';
 
   @override
   String signInWithFoo(String method) {
@@ -804,38 +804,38 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get loginAddAnAccountPageTitle => 'Add an account';
+  String get loginAddAnAccountPageTitle => 'Dodaj račun';
 
   @override
-  String get loginRealmUrlLabel => 'Your organization URL';
+  String get loginRealmUrlLabel => 'Adresa vaše organizacije';
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open the chat in a browser.';
+      'To je adresa na kojoj biste chat otvorili u pregledniku.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Pomoć';
 
   @override
-  String get loginHidePassword => 'Hide password';
+  String get loginHidePassword => 'Sakrij lozinku';
 
   @override
-  String get loginEmailLabel => 'Email address';
+  String get loginEmailLabel => 'E-mail adresa';
 
   @override
-  String get loginErrorMissingEmail => 'Please enter your email.';
+  String get loginErrorMissingEmail => 'Upišite svoj e-mail.';
 
   @override
-  String get loginPasswordLabel => 'Password';
+  String get loginPasswordLabel => 'Lozinka';
 
   @override
-  String get loginErrorMissingPassword => 'Please enter your password.';
+  String get loginErrorMissingPassword => 'Upišite svoju lozinku.';
 
   @override
-  String get loginUsernameLabel => 'Username';
+  String get loginUsernameLabel => 'Korisničko ime';
 
   @override
-  String get loginErrorMissingUsername => 'Please enter your username.';
+  String get loginErrorMissingUsername => 'Upišite svoje korisničko ime.';
 
   @override
   String topicValidationErrorTooLong(int maxLength) {
@@ -870,19 +870,19 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String serverCompatBannerAdminMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+    return '$url koristi Zulip Server $zulipVersion, koji više nije podržan. Nadogradite server što prije.';
   }
 
   @override
   String serverCompatBannerUserMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+    return '$url koristi Zulip Server $zulipVersion, koji više nije podržan. Javite se administratoru servera zbog nadogradnje.';
   }
 
   @override
-  String get serverCompatBannerDismissLabel => 'Dismiss';
+  String get serverCompatBannerDismissLabel => 'Zatvori';
 
   @override
-  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+  String get serverCompatBannerLearnMoreLabel => 'Saznaj više';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -921,18 +921,18 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get dialogOpenInBrowser => 'Open in browser';
 
   @override
-  String get serverUrlValidationErrorEmpty => 'Please enter a URL.';
+  String get serverUrlValidationErrorEmpty => 'Upišite adresu.';
 
   @override
-  String get serverUrlValidationErrorInvalidUrl => 'Please enter a valid URL.';
+  String get serverUrlValidationErrorInvalidUrl => 'Upišite ispravnu adresu.';
 
   @override
   String get serverUrlValidationErrorNoUseEmail =>
-      'Please enter the server URL, not your email.';
+      'Upišite adresu servera, a ne svoj e-mail.';
 
   @override
   String get serverUrlValidationErrorUnsupportedScheme =>
-      'The server URL must start with http:// or https://.';
+      'Adresa servera mora počinjati s http:// ili https://.';
 
   @override
   String get spoilerDefaultHeaderText => 'Spoiler';
@@ -1361,21 +1361,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get pollWidgetOptionsMissing => 'Ova anketa još nema odgovora.';
 
   @override
-  String get initialAnchorSettingTitle => 'Open message feeds at';
+  String get initialAnchorSettingTitle => 'Otvaraj feedove poruka na';
 
   @override
   String get initialAnchorSettingDescription =>
-      'You can choose whether message feeds open at your first unread message or at the newest messages.';
+      'Možete odabrati otvaraju li se feedovi poruka na prvoj nepročitanoj ili na najnovijim porukama.';
 
   @override
-  String get initialAnchorSettingFirstUnreadAlways => 'First unread message';
+  String get initialAnchorSettingFirstUnreadAlways =>
+      'Prvoj nepročitanoj poruci';
 
   @override
   String get initialAnchorSettingFirstUnreadConversations =>
-      'First unread message in conversation views, newest message elsewhere';
+      'Prvoj nepročitanoj u razgovorima, inače na najnovijoj';
 
   @override
-  String get initialAnchorSettingNewestAlways => 'Newest message';
+  String get initialAnchorSettingNewestAlways => 'Najnovijoj poruci';
 
   @override
   String get markReadOnScrollSettingTitle =>
