@@ -42,6 +42,11 @@ void main() {
     check((await Clipboard.getData('text/plain'))!).text.equals('30.0.273');
   });
 
+  testWidgets('titled with the app name', (tester) async {
+    await prepare(tester);
+    check(find.widgetWithText(AppBar, 'About Kloki Chat')).findsOne();
+  });
+
   testWidgets('no release notes link', (tester) async {
     await prepare(tester, version: '30.0.273');
     check(find.text('Release notes')).findsNothing();
