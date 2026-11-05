@@ -36,6 +36,7 @@ import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/topic_list.dart';
 import 'package:zulip/widgets/user.dart';
@@ -142,7 +143,7 @@ void main() {
     (widget) => widget is TextField && widget.controller is ComposeContentController);
 
   final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
-  final findLoadingIndicator = find.byType(CircularProgressIndicator);
+  final findLoadingIndicator = find.byType(KlokiLoader);
 
   group('MessageListPage', () {
     testWidgets('ancestorOf finds page state from message', (tester) async {
@@ -732,7 +733,7 @@ void main() {
       final coloredBoxFinder = find.descendant(
         of: find.byWidgetPredicate((w) => w is MessageItem && w.item.message.id == message.id),
         matching: find.byType(ColoredBox),
-      );
+      ).first; // the message's own; others (e.g. the avatar's) are inside it
       final widget = tester.widget<ColoredBox>(coloredBoxFinder);
       return widget.color;
     }
@@ -1842,10 +1843,6 @@ void main() {
       await handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
-      check(find.descendant(
-        of: find.byType(RecipientHeader),
-        matching: find.text('new topic')).evaluate()
-      ).length.equals(1);
       checkAppBarChannelTopic(channel.name, 'new topic');
     });
   });
@@ -1901,13 +1898,13 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
-      testWidgets('do not show stream name in TopicNarrow', (tester) async {
+      testWidgets('no recipient header in TopicNarrow, which the app bar names', (tester) async {
         await setupMessageListPage(tester,
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
+        check(find.byType(StreamMessageRecipientHeader)).findsNothing();
         check(findInMessageList('stream name')).length.equals(0);
-        check(findInMessageList('topic name')).length.equals(1);
       });
 
       final messageEmptyTopic = eg.streamMessage(stream: stream, topic: '');
@@ -1923,8 +1920,8 @@ void main() {
 
       testWidgets('show general chat for empty topics without channel name', (tester) async {
         await setupMessageListPage(tester,
-          narrow: TopicNarrow.ofMessage(messageEmptyTopic),
-          messages: [messageEmptyTopic]);
+          narrow: ChannelNarrow(stream.streamId),
+          messages: [messageEmptyTopic], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).isEmpty();
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
@@ -1961,7 +1958,7 @@ void main() {
 
       testWidgets('show topic visibility icon when unmuted', (tester) async {
         await setupMessageListPage(tester,
-          narrow: TopicNarrow.ofMessage(message),
+          narrow: ChannelNarrow(stream.streamId),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
           stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
@@ -2124,7 +2121,7 @@ void main() {
         await tester.pumpAndSettle();
       });
 
-      testWidgets('does not navigate on tapping topic in TopicNarrow', (tester) async {
+      testWidgets('no recipient header to tap in TopicNarrow', (tester) async {
         final pushedRoutes = <Route<void>>[];
         final navObserver = TestNavigatorObserver()
           ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -2137,13 +2134,8 @@ void main() {
           navObservers: [navObserver]);
 
         assert(pushedRoutes.length == 1);
-        pushedRoutes.clear();
-
-        await tester.tap(find.descendant(
-          of: find.byType(StreamMessageRecipientHeader),
-          matching: find.text('topic name')));
-        await tester.pump();
-        check(pushedRoutes).isEmpty();
+        // The app bar names the topic; there's no recipient header to tap.
+        check(find.byType(StreamMessageRecipientHeader)).findsNothing();
       });
     });
 
@@ -2244,7 +2236,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('does not navigate on tapping recipient header in DmNarrow', (tester) async {
+    testWidgets('no recipient header to tap in DmNarrow', (tester) async {
       final pushedRoutes = <Route<void>>[];
       final navObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -2255,11 +2247,8 @@ void main() {
         navObservers: [navObserver]);
 
       assert(pushedRoutes.length == 1);
-      pushedRoutes.clear();
-
-      await tester.tap(find.byType(DmRecipientHeader));
-      await tester.pump();
-      check(pushedRoutes).isEmpty();
+      // The app bar names the conversation; there's no recipient header to tap.
+      check(find.byType(DmRecipientHeader)).findsNothing();
     });
   });
 
@@ -2744,6 +2733,8 @@ void main() {
 
       await tester.pump(kLocalEchoDebounceDuration);
       check(outboxMessageFinder).findsOne();
+      // Let it finish easing in, up from under the compose box.
+      await tester.pump(const Duration(milliseconds: 300));
       check(loadingIndicatorFinder).findsOne();
       // The outbox message is still in waiting state;
       // tapping does not restore it.
@@ -2805,6 +2796,8 @@ void main() {
       await sendMessageAndFail(tester,
         delay: kSendMessageOfferRestoreWaitPeriod + const Duration(seconds: 1));
       await tester.pump(kSendMessageOfferRestoreWaitPeriod);
+      // Let it finish easing in, up from under the compose box.
+      await tester.pump(const Duration(milliseconds: 300));
       final localMessageId = store.outboxMessages.keys.single;
       check(messageNotSentFinder).findsOne();
 
@@ -2979,8 +2972,12 @@ void main() {
     //   implementation details and more focused on output, see:
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/robust.20widget.20finders.20in.20tests/near/1671738
     Animation<double> getAnimation(WidgetTester tester, int messageId) {
+      // The unread marker's fade, inside its [AnimatedOpacity]
+      // (not the message's own arrival fade).
       final widget = tester.widget<FadeTransition>(find.descendant(
-        of: find.byKey(ValueKey(messageId)),
+        of: find.descendant(
+          of: find.byKey(ValueKey(messageId)),
+          matching: find.byType(AnimatedOpacity)),
         matching: find.byType(FadeTransition)));
       return widget.opacity;
     }
