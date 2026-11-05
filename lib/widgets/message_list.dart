@@ -2061,15 +2061,16 @@ class StreamMessageRecipientHeader extends StatelessWidget {
             narrow: ChannelNarrow(streamId))),
         onLongPress: () => showChannelActionSheet(context, channelId: streamId),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _RecipientHeaderTile(color: iconColor,
               icon: stream != null ? iconDataForStream(stream) : null),
-            Padding(
+            Flexible(child: Padding(
               padding: _kRecipientHeaderPadding,
               child: Text(streamName,
                 style: recipientHeaderTextStyle(context),
-                overflow: TextOverflow.ellipsis)),
+                overflow: TextOverflow.ellipsis))),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
@@ -2118,16 +2119,19 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         topic: topic,
         someMessageIdInTopic: message.id),
       child: _RecipientHeaderFrame(
-        child: Row(
+        child: LayoutBuilder(builder: (context, constraints) => Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // TODO(#282): Long stream name will break layout; find a fix.
-            streamWidget,
+            // A long channel name takes at most half the row, ellipsized;
+            // the topic has the rest.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: constraints.maxWidth / 2),
+              child: streamWidget),
             Expanded(child: topicWidget),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.
             RecipientHeaderDate(message: message),
-          ])));
+          ]))));
   }
 }
 
