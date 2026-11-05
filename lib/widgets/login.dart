@@ -936,12 +936,14 @@ class _KlokiRealmHeader extends StatelessWidget {
           ]),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: Image.network(iconUrl.toString(),
-            width: 52, height: 52, fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(width: 52, height: 52,
-              color: designVariables.bgTopBar,
-              alignment: Alignment.center,
-              child: const KlokiMark(size: 28))))),
+          // A tile to sit on while the icon loads, not a bare shadow.
+          child: ColoredBox(color: designVariables.bgTopBar,
+            child: Image.network(iconUrl.toString(),
+              width: 52, height: 52, fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(width: 52, height: 52,
+                color: designVariables.bgTopBar,
+                alignment: Alignment.center,
+                child: const KlokiMark(size: 28)))))),
       const SizedBox(width: 14),
       Expanded(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
