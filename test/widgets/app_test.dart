@@ -271,7 +271,7 @@ void main() {
       checkAccountShown(accounts.last, expected: true);
     });
 
-    testWidgets('with just one account, the layout is centered', (tester) async {
+    testWidgets('with just one account, the list starts up top, the button at the bottom', (tester) async {
       final account = eg.selfAccount;
       await setupChooseAccountPage(tester, accounts: [account]);
 
@@ -283,12 +283,10 @@ void main() {
         (tester.view.physicalSize / tester.view.devicePixelRatio).height;
 
       check(tester.getRect(findAccount(account)))
-        ..top.isGreaterThan(1 / 3 * screenHeight)
-        ..bottom.isLessThan(2 / 3 * screenHeight);
+        .bottom.isLessThan(1 / 3 * screenHeight);
 
       check(tester.getRect(findButton(withText: buttonText)))
-        ..top.isGreaterThan(1 / 3 * screenHeight)
-        ..bottom.isLessThan(2 / 3 * screenHeight);
+        .top.isGreaterThan(2 / 3 * screenHeight);
     });
 
     testWidgets('with no accounts, shows the Kloki sign-in', (tester) async {
@@ -365,7 +363,7 @@ void main() {
         await setupChooseAccountPage(tester, accounts: [account]);
 
         final findThreeDotsButton = find.descendant(
-          of: find.widgetWithText(Card, eg.selfAccount.realmUrl.toString()),
+          of: find.widgetWithText(InkWell, eg.selfAccount.email),
           matching: find.byIcon(Icons.adaptive.more));
 
         await tester.tap(findThreeDotsButton);
