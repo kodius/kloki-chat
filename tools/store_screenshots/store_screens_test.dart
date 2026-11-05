@@ -27,11 +27,22 @@ import '../../test/model/test_store.dart';
 import '../../test/test_images.dart';
 import '../../test/widgets/test_app.dart';
 
-/// The phone the screens are drawn for: an iPhone 6.7" (1290 × 2796 px).
-const _logicalSize = Size(430, 932);
-const _pixelRatio = 3.0;
-const _topInset = 59.0;
-const _bottomInset = 34.0;
+/// A device the screens are drawn for.
+class _Device {
+  const _Device(this.prefix, this.logicalSize, this.pixelRatio, this.topInset, this.bottomInset);
+  final String prefix;
+  final Size logicalSize;
+  final double pixelRatio;
+  final double topInset;
+  final double bottomInset;
+}
+
+const _devices = [
+  // An iPhone 6.7" (1290 × 2796 px).
+  _Device('', Size(430, 932), 3, 59, 34),
+  // An iPad Pro 13" (2064 × 2752 px).
+  _Device('ipad_', Size(1032, 1376), 2, 24, 20),
+];
 
 final _now = DateTime.now();
 int _minutesAgo(int minutes) =>
@@ -237,11 +248,11 @@ void main() {
       radius: 56);
   });
 
-  Future<void> setUpView(WidgetTester tester, Brightness brightness) async {
-    tester.view.physicalSize = _logicalSize * _pixelRatio;
-    tester.view.devicePixelRatio = _pixelRatio;
-    const padding = FakeViewPadding(
-      top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio);
+  Future<void> setUpView(WidgetTester tester, Brightness brightness, _Device device) async {
+    tester.view.physicalSize = device.logicalSize * device.pixelRatio;
+    tester.view.devicePixelRatio = device.pixelRatio;
+    final padding = FakeViewPadding(
+      top: device.topInset * device.pixelRatio, bottom: device.bottomInset * device.pixelRatio);
     tester.view.padding = padding;
     tester.view.viewPadding = padding;
     tester.platformDispatcher.platformBrightnessTestValue = brightness;
@@ -287,37 +298,39 @@ void main() {
     await settle(tester);
   }
 
+  for (final device in _devices) {
   for (final brightness in Brightness.values) {
     final suffix = brightness.name;
+    final p = device.prefix;
 
-    testWidgets('welcome $suffix', (tester) async {
-      await setUpView(tester, brightness);
+    testWidgets('${p}welcome $suffix', (tester) async {
+      await setUpView(tester, brightness, device);
       addTearDown(testBinding.reset);
       await tester.pumpWidget(const TestZulipApp(child: KlokiSignInPage()));
       await settle(tester);
-      await capture(tester, 'welcome_$suffix');
+      await capture(tester, '${p}welcome_$suffix');
     });
 
-    testWidgets('home tabs $suffix', (tester) async {
-      await setUpView(tester, brightness);
+    testWidgets('${p}home tabs $suffix', (tester) async {
+      await setUpView(tester, brightness, device);
       await setUpStore();
       await tester.pumpWidget(TestZulipApp(accountId: _account.id,
         child: const HomePage()));
       await settle(tester);
-      await capture(tester, 'inbox_$suffix');
+      await capture(tester, '${p}inbox_$suffix');
 
       await openTab(tester, ZulipIcons.hash_italic);
-      await capture(tester, 'channels_$suffix');
+      await capture(tester, '${p}channels_$suffix');
 
       await openTab(tester, ZulipIcons.two_person);
-      await capture(tester, 'dms_$suffix');
+      await capture(tester, '${p}dms_$suffix');
 
       await openTab(tester, ZulipIcons.menu);
-      await capture(tester, 'menu_$suffix');
+      await capture(tester, '${p}menu_$suffix');
     });
 
-    testWidgets('chat $suffix', (tester) async {
-      await setUpView(tester, brightness);
+    testWidgets('${p}chat $suffix', (tester) async {
+      await setUpView(tester, brightness, device);
       final store = await setUpStore(withUnreads: false);
       final connection = store.connection as FakeApiConnection;
       connection.prepare(json: eg.newestGetMessagesResult(
@@ -326,7 +339,8 @@ void main() {
         child: MessageListPage(
           initNarrow: TopicNarrow(_design.streamId, eg.t(_chatTopic)))));
       await settle(tester);
-      await capture(tester, 'chat_$suffix');
+      await capture(tester, '${p}chat_$suffix');
     });
+  }
   }
 }

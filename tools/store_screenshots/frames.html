@@ -82,7 +82,8 @@
 <div class="bar" id="bar">
   <h1>Kloki Chat · store screenshots</h1>
   <div class="seg" id="platform">
-    <button data-v="ios" class="on">App Store 6.9″</button>
+    <button data-v="ios" class="on">App Store</button>
+    <button data-v="ipad">iPad</button>
     <button data-v="play">Google Play</button>
   </div>
   <div class="seg" id="lang">
@@ -99,7 +100,8 @@ const MARK = `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24
   stroke="#493DCC" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 const SIZES = {
-  ios:  { w: 1290, h: 2796, label: 'iPhone 6.9″ · 1290 × 2796 px (Apple accepts it for the 6.9″ slot)' },
+  ios:  { w: 1206, h: 2622, label: 'iPhone 6.3″ · 1206 × 2622 px (App Store Connect\'s main iPhone slot)' },
+  ipad: { w: 2064, h: 2752, label: 'iPad 13″ · 2064 × 2752 px' },
   play: { w: 1080, h: 1920, label: 'Google Play phone · 1080 × 1920 px (9:16) · plus 1024 × 500 feature graphic' },
 };
 
@@ -139,9 +141,10 @@ function statusBar(platform, theme, scale) {
   const dark = theme === 'dark' || theme === 'brand_dark';
   const color = dark ? '#fff' : '#000';
   const fs = 17 * scale;
-  if (platform === 'ios') {
-    return `<div class="status" style="height:${54*scale}px;padding:${4*scale}px ${32*scale}px 0 ${50*scale}px;font-size:${fs}px;color:${color}">
-      <span>9:41</span>
+  if (platform === 'ios' || platform === 'ipad') {
+    const ipad = platform === 'ipad';
+    return `<div class="status" style="height:${(ipad ? 24 : 54)*scale}px;padding:${(ipad ? 0 : 4)*scale}px ${(ipad ? 20 : 32)*scale}px 0 ${(ipad ? 20 : 50)*scale}px;font-size:${(ipad ? 13 : 17)*scale}px;color:${color}">
+      <span>${ipad ? '9:41 Thu 5 Nov' : '9:41'}</span>
       <span class="icons" style="gap:${6*scale}px">
         <svg width="${18*scale}" height="${12*scale}" viewBox="0 0 18 12"><g fill="${color}">
           <rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/>
@@ -152,7 +155,7 @@ function statusBar(platform, theme, scale) {
           fill="none" stroke="${color}" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2" fill="${color}"/>
           <path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="${color}" opacity=".45"/></svg>
       </span></div>
-      <div class="island" style="top:${11*scale}px;width:${124*scale}px;height:${36*scale}px"></div>`;
+      ${ipad ? '' : `<div class="island" style="top:${11*scale}px;width:${124*scale}px;height:${36*scale}px"></div>`}`;
   }
   return `<div class="status" style="height:${44*scale}px;padding:0 ${26*scale}px;font-size:${15*scale}px;color:${color};font-family:Roboto,'Source Sans 3',sans-serif">
       <span>9:41</span>
@@ -174,20 +177,24 @@ function buildFrame(f, platform, lang) {
   el.style.width = w + 'px';
   el.style.height = h + 'px';
 
-  const topPad = (tall ? 170 : 96) * u;
-  const headSize = (tall ? 118 : 104) * u;
-  const subSize = (tall ? 50 : 44) * u;
+  const ipad = platform === 'ipad';
+  const topPad = (ipad ? 150 : tall ? 170 : 96) * u;
+  const headSize = (ipad ? 74 : tall ? 118 : 104) * u;
+  const subSize = (ipad ? 32 : tall ? 50 : 44) * u;
 
-  // The phone: the screenshot's aspect, sized to fill the space under the caption.
-  const phoneTop = (tall ? 840 : 640) * u;
-  const bezel = 22 * u * (tall ? 1 : .9);
-  const avail = h - phoneTop - (tall ? 60 * u : -200 * u);  // Play: let it run off the bottom
+  // The device: the screenshot's aspect, sized to fill the space under the caption.
+  const aspect = ipad ? 1032 / 1376 : 1290 / 2796;
+  const logicalW = ipad ? 1032 : 430;
+  const phoneTop = (ipad ? 560 : tall ? 840 : 640) * u;
+  const bezel = (ipad ? 18 : 22) * u * (platform === 'play' ? .9 : 1);
+  const avail = h - phoneTop - (ipad ? 110 * u : tall ? 60 * u : -200 * u);  // Play: let it run off the bottom
   const screenH = avail - 2 * bezel;
-  const screenW = screenH * 1290 / 2796;
+  const screenW = screenH * aspect;
   const phoneW = screenW + 2 * bezel, phoneH = screenH + 2 * bezel;
-  const radius = phoneW * 0.155;
-  const scale = screenW / 430;   // screenshot logical px → frame px
+  const radius = ipad ? phoneW * 0.035 : phoneW * 0.155;
+  const scale = screenW / logicalW;   // screenshot logical px → frame px
   const darkScreen = f.screen.endsWith('_dark');
+  const screenFile = (ipad ? 'ipad_' : '') + f.screen;
 
   el.innerHTML = `
     <div style="height:${topPad}px"></div>
@@ -196,9 +203,9 @@ function buildFrame(f, platform, lang) {
     <p class="sub" style="font-size:${subSize}px;margin-top:${34*u}px;padding:0 ${120*u}px">${copy.s}</p>
     <div class="phone" style="top:${phoneTop}px;width:${phoneW}px;height:${phoneH}px;border-radius:${radius}px">
       <div class="screen" style="left:${bezel}px;top:${bezel}px;width:${screenW}px;height:${screenH}px;border-radius:${radius - bezel}px;background:${darkScreen ? '#212121' : '#fff'}">
-        <img src="screens/${f.screen}.png" alt="">
+        <img src="screens/${screenFile}.png" alt="">
         ${statusBar(platform, darkScreen ? 'dark' : 'light', scale)}
-        ${platform === 'ios' ? `<div class="homebar" style="bottom:${8*scale}px;width:${140*scale}px;height:${5*scale}px;background:${darkScreen ? '#fff' : '#000'}"></div>` : ''}
+        ${platform !== 'play' ? `<div class="homebar" style="bottom:${8*scale}px;width:${140*scale}px;height:${5*scale}px;background:${darkScreen ? '#fff' : '#000'}"></div>` : ''}
       </div>
     </div>`;
   return el;
