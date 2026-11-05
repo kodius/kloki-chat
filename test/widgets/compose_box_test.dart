@@ -26,7 +26,6 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/button.dart';
-import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -1283,13 +1282,16 @@ void main() {
       final sendButtonElement = tester.element(find.ancestor(
         of: sendButtonFinder,
         matching: find.byType(IconButton)));
-      final sendButtonWidget = sendButtonElement.widget as IconButton;
       final designVariables = DesignVariables.of(sendButtonElement);
-      final expectedIconColor = expected
-        ? designVariables.icon.withFadedAlpha(0.5)
-        : designVariables.icon;
-      check(sendButtonWidget.icon)
-        .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
+      // The button shows it can't send yet by a faded fill.
+      final fill = tester.widget<AnimatedContainer>(find.ancestor(
+        of: sendButtonFinder,
+        matching: find.byType(AnimatedContainer)).first);
+      final expectedFill = expected
+        ? designVariables.fabBg.withValues(alpha: 0.35)
+        : designVariables.fabBg;
+      check((fill.decoration as BoxDecoration).color)
+        .isNotNull().isSameColorAs(expectedFill);
     }
 
     Future<void> prepare(WidgetTester tester) async {
@@ -2141,7 +2143,7 @@ void main() {
   });
 
   group('ComposeBox content input scaling', () {
-    const verticalPadding = 8;
+    const verticalPadding = 11;
     const lineHeight = 22.0; // _fontSize * _lineHeightRatio
     final stream = eg.stream();
     final narrow = eg.topicNarrow(stream.streamId, 'foo');
@@ -2152,9 +2154,13 @@ void main() {
     ///
     /// In the [maxVisibleLines] check, the partly-visible line at the bottom
     /// is considered visible.
+    /// [maxHeightLines] is the line count the max height is computed from,
+    /// if not [maxVisibleLines]: with rounded line heights, as at 0.8x,
+    /// the last of those lines can fall just past the max height.
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
       required double scaleFactor,
       required int maxVisibleLines,
+      int? maxHeightLines,
     }) async {
       tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -2177,7 +2183,8 @@ void main() {
         height = newHeight;
       }
       final expectedMaxHeight =
-        verticalPadding + scaleFactor * (maxVisibleLines - 0.273) * lineHeight;
+        verticalPadding
+          + scaleFactor * ((maxHeightLines ?? maxVisibleLines) - 0.273) * lineHeight;
       check(height).isNotNull().isCloseTo(expectedMaxHeight, 0.5);
       // The last line added did not stretch the content input,
       // so only the lines before it are at least partially visible.
@@ -2189,14 +2196,14 @@ void main() {
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
 
       await checkContentInputMaxHeight(tester,
-        scaleFactor: 1.0, maxVisibleLines: 8);
+        scaleFactor: 1.0, maxVisibleLines: 7);
     });
 
     testWidgets('lower text scale factor', (tester) async {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        scaleFactor: 0.8, maxVisibleLines: 9);
+        scaleFactor: 0.8, maxVisibleLines: 8, maxHeightLines: 9);
     });
 
     testWidgets('higher text scale factor', (tester) async {
@@ -2223,6 +2230,13 @@ void main() {
       for (final json in responses) {
         connection.prepare(json: json);
       }
+    }
+
+    /// Prepares two responses, each with the fields of both [a] and [b],
+    /// for two requests that may be sent in either order.
+    void prepareNewConnectionForEither(Map<String, dynamic> a, Map<String, dynamic> b) {
+      final both = {...a, ...b};
+      prepareNewConnection([both, both]);
     }
 
     void expireEventQueue() {
@@ -2278,12 +2292,12 @@ void main() {
 
       await enterTopic(tester, narrow: narrow, topic: 'some topic');
 
-      // For the message-list fetch and the topic-autocomplete refetch.
-      prepareNewConnection([
+      // For the message-list fetch and the topic-autocomplete refetch,
+      // which may come in either order: each response serves both.
+      prepareNewConnectionForEither(
         eg.newestGetMessagesResult(foundOldest: true,
           messages: [eg.streamMessage(stream: channel)]).toJson(),
-        GetChannelTopicsResult(topics: []).toJson(),
-      ]);
+        GetChannelTopicsResult(topics: []).toJson());
 
       expireEventQueue();
       await tester.pump();
@@ -2314,12 +2328,12 @@ void main() {
       check(state).controller.isA<StreamComposeBoxController>()
         .topic.text.equals('some topic');
 
-      // For the message-list fetch and the topic-autocomplete refetch.
-      prepareNewConnection([
+      // For the message-list fetch and the topic-autocomplete refetch,
+      // which may come in either order: each response serves both.
+      prepareNewConnectionForEither(
         eg.newestGetMessagesResult(foundOldest: true,
           messages: [eg.streamMessage(stream: channel, topic: '')]).toJson(),
-        GetChannelTopicsResult(topics: []).toJson(),
-      ]);
+        GetChannelTopicsResult(topics: []).toJson());
 
       testBinding.globalStore.loadPerAccountDuration = const Duration(seconds: 1);
       expireEventQueue();
