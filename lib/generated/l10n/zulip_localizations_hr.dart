@@ -24,7 +24,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Podaci o verziji aplikacije nisu pronađeni.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Bilješke o izdanju';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licence otvorenog koda';
@@ -33,31 +33,31 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Odaberite račun';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Postavke';
 
   @override
-  String get switchAccountButtonTooltip => 'Switch account';
+  String get switchAccountButtonTooltip => 'Promijeni račun';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Vaš račun na $url se dugo učitava.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Pokušaj s drugim računom';
 
   @override
   String get chooseAccountPageLogOutButton => 'Odjava';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'Odjaviti se?';
 
   @override
   String get logOutConfirmationDialogMessage =>
-      'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
+      'Da biste ubuduće koristili ovaj račun, morat ćete ponovno upisati adresu organizacije i podatke računa.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'Odjava';
 
   @override
   String get chooseAccountButtonAddAnAccount => 'Dodaj račun';
@@ -73,7 +73,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'U ovoj organizaciji nema kanala koje možete vidjeti.';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'Pošalji privatnu poruku';
 
   @override
   String get errorCouldNotShowUserProfile => 'Could not show user profile.';
@@ -165,11 +165,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionSeeWhoReacted => 'Tko je reagirao';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions => 'Ova poruka nema reakcija.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Emoji reakcije (ukupno $num)';
   }
 
   @override
@@ -177,15 +177,16 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num votes',
-      one: '1 vote',
+      other: '$num glasova',
+      few: '$num glasa',
+      one: '$num glas',
     );
     return '$emojiName: $_temp0';
   }
 
   @override
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
-    return 'Votes for $emojiName ($num)';
+    return 'Glasovi za $emojiName ($num)';
   }
 
   @override
@@ -495,22 +496,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Verzija aplikacije kopirana';
 
   @override
-  String get successLinkCopied => 'Link copied';
+  String get successLinkCopied => 'Poveznica kopirana';
 
   @override
-  String get successMessageTextCopied => 'Message text copied';
+  String get successMessageTextCopied => 'Tekst poruke kopiran';
 
   @override
-  String get successMessageLinkCopied => 'Message link copied';
+  String get successMessageLinkCopied => 'Poveznica na poruku kopirana';
 
   @override
-  String get successTopicLinkCopied => 'Topic link copied';
+  String get successTopicLinkCopied => 'Poveznica na temu kopirana';
 
   @override
-  String get successChannelLinkCopied => 'Channel link copied';
+  String get successChannelLinkCopied => 'Poveznica na kanal kopirana';
 
   @override
   String get composeBoxBannerLabelDeactivatedDmRecipient =>
@@ -633,7 +634,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get composeBoxSendTooltip => 'Pošalji';
 
   @override
-  String get unknownChannelName => '(unknown channel)';
+  String get unknownChannelName => '(nepoznat kanal)';
 
   @override
   String get composeBoxTopicHintText => 'Tema';
@@ -654,7 +655,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get unknownUserName => '(unknown user)';
+  String get unknownUserName => '(nepoznat korisnik)';
 
   @override
   String get dmsWithYourselfPageTitle => 'Poruke sa sobom';
@@ -774,7 +775,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorDialogTitle => 'Error';
 
   @override
-  String get snackBarDetails => 'Details';
+  String get snackBarDetails => 'Detalji';
 
   @override
   String get lightboxCopyLinkTooltip => 'Kopiraj poveznicu';
@@ -799,7 +800,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String signInWithFoo(String method) {
-    return 'Sign in with $method';
+    return 'Prijava putem: $method';
   }
 
   @override
@@ -1006,20 +1007,21 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get yesterday => 'Jučer';
 
   @override
-  String get userActiveNow => 'Active now';
+  String get userActiveNow => 'Trenutno aktivan';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Neaktivan';
 
   @override
   String userActiveMinutesAgo(int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes minutes',
-      one: '1 minute',
+      other: '$minutes minuta',
+      few: '$minutes minute',
+      one: '$minutes minutu',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktivan prije $_temp0';
   }
 
   @override
@@ -1027,47 +1029,49 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours hours',
-      one: '1 hour',
+      other: '$hours sati',
+      few: '$hours sata',
+      one: '$hours sat',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktivan prije $_temp0';
   }
 
   @override
-  String get userActiveYesterday => 'Active yesterday';
+  String get userActiveYesterday => 'Aktivan jučer';
 
   @override
   String userActiveDaysAgo(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
-      one: '1 day',
+      other: '$days dana',
+      few: '$days dana',
+      one: '$days dan',
     );
-    return 'Active $_temp0 ago';
+    return 'Aktivan prije $_temp0';
   }
 
   @override
   String userActiveDate(String date) {
-    return 'Active $date';
+    return 'Aktivan $date';
   }
 
   @override
-  String get userNotActiveInYear => 'Not active in the last year';
+  String get userNotActiveInYear => 'Nije aktivan u posljednjih godinu dana';
 
   @override
-  String get invisibleMode => 'Invisible mode';
+  String get invisibleMode => 'Nevidljivi način';
 
   @override
   String get turnOnInvisibleModeErrorTitle =>
-      'Error turning on invisible mode. Please try again.';
+      'Uključivanje nevidljivog načina nije uspjelo. Pokušajte ponovno.';
 
   @override
   String get turnOffInvisibleModeErrorTitle =>
-      'Error turning off invisible mode. Please try again.';
+      'Isključivanje nevidljivog načina nije uspjelo. Pokušajte ponovno.';
 
   @override
-  String get userRoleOwner => 'Owner';
+  String get userRoleOwner => 'Vlasnik';
 
   @override
   String get userRoleAdministrator => 'Administrator';
@@ -1076,59 +1080,59 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get userRoleModerator => 'Moderator';
 
   @override
-  String get userRoleMember => 'Member';
+  String get userRoleMember => 'Član';
 
   @override
-  String get userRoleGuest => 'Guest';
+  String get userRoleGuest => 'Gost';
 
   @override
-  String get userRoleUnknown => 'Unknown';
+  String get userRoleUnknown => 'Nepoznato';
 
   @override
   String get statusButtonLabelStatusSet => 'Status';
 
   @override
-  String get statusButtonLabelStatusUnset => 'Set status';
+  String get statusButtonLabelStatusUnset => 'Postavi status';
 
   @override
-  String get noStatusText => 'No status text';
+  String get noStatusText => 'Nema teksta statusa';
 
   @override
-  String get setStatusPageTitle => 'Set status';
+  String get setStatusPageTitle => 'Postavi status';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Očisti';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Spremi';
 
   @override
-  String get statusTextHint => 'Your status';
+  String get statusTextHint => 'Vaš status';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Zauzet';
 
   @override
-  String get userStatusInAMeeting => 'In a meeting';
+  String get userStatusInAMeeting => 'Na sastanku';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'Na putu';
 
   @override
-  String get userStatusOutSick => 'Out sick';
+  String get userStatusOutSick => 'Na bolovanju';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'Na godišnjem';
 
   @override
-  String get userStatusWorkingRemotely => 'Working remotely';
+  String get userStatusWorkingRemotely => 'Radim od kuće';
 
   @override
-  String get userStatusAtTheOffice => 'At the office';
+  String get userStatusAtTheOffice => 'U uredu';
 
   @override
   String get updateStatusErrorTitle =>
-      'Error updating user status. Please try again.';
+      'Ažuriranje statusa nije uspjelo. Pokušajte ponovno.';
 
   @override
   String get searchMessagesPageTitle => 'Pretraga';
@@ -1195,7 +1199,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get shareChooseAccountModalTitle => 'Choose an account';
+  String get shareChooseAccountModalTitle => 'Odaberite račun';
 
   @override
   String get mainMenuMyProfile => 'Moj profil';
@@ -1211,10 +1215,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       numOthers,
       locale: localeName,
-      other: '$numOthers others',
-      one: '1 other',
+      other: 'još $numOthers osoba',
+      few: 'još $numOthers osobe',
+      one: 'još $numOthers osobi',
     );
-    return '$senderFullName to you and $_temp0';
+    return '$senderFullName vama i $_temp0';
   }
 
   @override
@@ -1224,7 +1229,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get unpinnedSubscriptionsLabel => 'Ostali';
 
   @override
-  String get notifSelfUser => 'You';
+  String get notifSelfUser => 'Vi';
 
   @override
   String get reactedEmojiSelfUser => 'Vi';
@@ -1334,19 +1339,20 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get themeSettingTitle => 'THEME';
+  String get themeSettingTitle => 'TEMA';
 
   @override
-  String get themeSettingDark => 'Dark';
+  String get themeSettingDark => 'Tamna';
 
   @override
-  String get themeSettingLight => 'Light';
+  String get themeSettingLight => 'Svijetla';
 
   @override
-  String get themeSettingSystem => 'System';
+  String get themeSettingSystem => 'Sustavna';
 
   @override
-  String get openLinksWithInAppBrowser => 'Open links with in-app browser';
+  String get openLinksWithInAppBrowser =>
+      'Otvaraj poveznice u pregledniku aplikacije';
 
   @override
   String get pollWidgetQuestionMissing => 'Nema pitanja.';
@@ -1393,11 +1399,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Poruke će se automatski označiti kao pročitane samo kad gledate jednu temu ili privatni razgovor.';
 
   @override
-  String get experimentalFeatureSettingsPageTitle => 'Experimental features';
+  String get experimentalFeatureSettingsPageTitle => 'Eksperimentalne značajke';
 
   @override
   String get experimentalFeatureSettingsWarning =>
-      'These options enable features which are still under development and not ready. They may not work, and may cause issues in other areas of the app.\n\nThe purpose of these settings is for experimentation by people working on developing Zulip.';
+      'Ove opcije uključuju značajke koje su još u razvoju i nisu spremne. Možda neće raditi i mogu uzrokovati probleme u drugim dijelovima aplikacije.\n\nOve postavke služe za isprobavanje onima koji razvijaju aplikaciju.';
 
   @override
   String get errorNotificationOpenTitle => 'Failed to open notification';
@@ -1426,7 +1432,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get emojiPickerSearchEmoji => 'Pretraži emojije';
 
   @override
-  String get noEarlierMessages => 'No earlier messages';
+  String get noEarlierMessages => 'Nema ranijih poruka';
 
   @override
   String get revealButtonLabel => 'Prikaži poruku';
