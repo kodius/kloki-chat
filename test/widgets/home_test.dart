@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:checks/checks.dart';
 import 'package:flutter_checks/flutter_checks.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -261,6 +262,12 @@ void main () {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       check(findFrost).findsOne();
+    });
+
+    testWidgets('status bar icons are dark in the light theme', (tester) async {
+      await prepare(tester);
+      final appBar = tester.widget<ZulipAppBar>(find.byType(ZulipAppBar));
+      check(appBar.systemOverlayStyle).equals(SystemUiOverlayStyle.dark);
     });
   });
 
