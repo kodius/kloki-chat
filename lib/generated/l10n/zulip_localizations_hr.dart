@@ -30,7 +30,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Licence otvorenog koda';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Odaberite račun';
 
   @override
   String get settingsPageTitle => 'Settings';
@@ -47,7 +47,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get tryAnotherAccountButton => 'Try another account';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'Odjava';
 
   @override
   String get logOutConfirmationDialogTitle => 'Log out?';
@@ -60,7 +60,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get logOutConfirmationDialogConfirmButton => 'Log out';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'Dodaj račun';
 
   @override
   String get navButtonAllChannels => 'Svi kanali';
@@ -79,10 +79,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorCouldNotShowUserProfile => 'Could not show user profile.';
 
   @override
-  String get permissionsNeededTitle => 'Permissions needed';
+  String get permissionsNeededTitle => 'Potrebna dopuštenja';
 
   @override
-  String get permissionsNeededOpenSettings => 'Open settings';
+  String get permissionsNeededOpenSettings => 'Otvori postavke';
 
   @override
   String get permissionsDeniedCameraAccess =>
@@ -512,142 +512,143 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelDeactivatedDmRecipient =>
-      'You cannot send messages to deactivated users.';
+      'Ne možete slati poruke deaktiviranim korisnicima.';
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Ne možete slati poruke nepoznatim korisnicima.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Ovdje ne možete slati poruke.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
-      'You do not have permission to post in this channel.';
+      'Nemate dopuštenje za pisanje u ovom kanalu.';
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Odgovori na vaše poruke neće se pojavljivati automatski.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
-      'New messages will not appear automatically.';
+      'Nove poruke neće se pojavljivati automatski.';
 
   @override
-  String get composeBoxBannerButtonRefresh => 'Refresh';
+  String get composeBoxBannerButtonRefresh => 'Osvježi';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Pretplati se';
 
   @override
-  String get composeBoxBannerLabelEditMessage => 'Edit message';
+  String get composeBoxBannerLabelEditMessage => 'Uređivanje poruke';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Odustani';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Spremi';
 
   @override
-  String get editAlreadyInProgressTitle => 'Cannot edit message';
+  String get editAlreadyInProgressTitle => 'Poruku nije moguće urediti';
 
   @override
   String get editAlreadyInProgressMessage =>
-      'An edit is already in progress. Please wait for it to complete.';
+      'Uređivanje je već u tijeku. Pričekajte da završi.';
 
   @override
-  String get savingMessageEditLabel => 'SAVING EDIT…';
+  String get savingMessageEditLabel => 'SPREMANJE IZMJENE…';
 
   @override
-  String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
+  String get savingMessageEditFailedLabel => 'IZMJENA NIJE SPREMLJENA';
 
   @override
   String get discardDraftConfirmationDialogTitle =>
-      'Discard the message you’re writing?';
+      'Odbaciti poruku koju pišete?';
 
   @override
   String get discardDraftForEditConfirmationDialogMessage =>
-      'When you edit a message, the content that was previously in the compose box is discarded.';
+      'Kad uređujete poruku, sadržaj koji je bio u polju za poruku se odbacuje.';
 
   @override
   String get discardDraftForOutboxConfirmationDialogMessage =>
-      'When you restore an unsent message, the content that was previously in the compose box is discarded.';
+      'Kad vratite neposlanu poruku, sadržaj koji je bio u polju za poruku se odbacuje.';
 
   @override
-  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+  String get discardDraftConfirmationDialogConfirmButton => 'Odbaci';
 
   @override
-  String get composeBoxAttachFilesTooltip => 'Attach files';
+  String get composeBoxAttachFilesTooltip => 'Priloži datoteke';
 
   @override
-  String get composeBoxAttachMediaTooltip => 'Attach images or videos';
+  String get composeBoxAttachMediaTooltip => 'Priloži slike ili videozapise';
 
   @override
-  String get composeBoxAttachFromCameraTooltip => 'Take a photo';
+  String get composeBoxAttachFromCameraTooltip => 'Snimi fotografiju';
 
   @override
-  String get composeBoxGenericContentHint => 'Type a message';
+  String get composeBoxGenericContentHint => 'Napišite poruku';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Napiši';
 
   @override
-  String get newDmSheetScreenTitle => 'New DM';
+  String get newDmSheetScreenTitle => 'Nova poruka';
 
   @override
-  String get newDmFabButtonLabel => 'New DM';
+  String get newDmFabButtonLabel => 'Nova poruka';
 
   @override
-  String get newDmSheetSearchHintEmpty => 'Add one or more users';
+  String get newDmSheetSearchHintEmpty => 'Dodajte jednog ili više korisnika';
 
   @override
-  String get newDmSheetSearchHintSomeSelected => 'Add another user…';
+  String get newDmSheetSearchHintSomeSelected =>
+      'Dodajte još jednog korisnika…';
 
   @override
-  String get newDmSheetNoUsersFound => 'No users found';
+  String get newDmSheetNoUsersFound => 'Nema pronađenih korisnika';
 
   @override
   String composeBoxDmContentHint(String user) {
-    return 'Message @$user';
+    return 'Poruka za @$user';
   }
 
   @override
-  String get composeBoxGroupDmContentHint => 'Message group';
+  String get composeBoxGroupDmContentHint => 'Poruka grupi';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Write yourself a note';
+  String get composeBoxSelfDmContentHint => 'Napišite si bilješku';
 
   @override
   String composeBoxChannelContentHint(String destination) {
-    return 'Message $destination';
+    return 'Poruka za $destination';
   }
 
   @override
-  String get preparingEditMessageContentInput => 'Preparing…';
+  String get preparingEditMessageContentInput => 'Priprema…';
 
   @override
-  String get composeBoxSendTooltip => 'Send';
+  String get composeBoxSendTooltip => 'Pošalji';
 
   @override
   String get unknownChannelName => '(unknown channel)';
 
   @override
-  String get composeBoxTopicHintText => 'Topic';
+  String get composeBoxTopicHintText => 'Tema';
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
-    return 'Enter a topic (skip for “$defaultTopicName”)';
+    return 'Upišite temu (ili preskočite za „$defaultTopicName”)';
   }
 
   @override
   String composeBoxUploadingFilename(String filename) {
-    return 'Uploading $filename…';
+    return 'Učitavanje $filename…';
   }
 
   @override
   String composeBoxLoadingMessage(int messageId) {
-    return '(loading message $messageId)';
+    return '(učitavanje poruke $messageId)';
   }
 
   @override
