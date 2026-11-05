@@ -76,7 +76,8 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Pošalji privatnu poruku';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+  String get errorCouldNotShowUserProfile =>
+      'Profil korisnika nije moguće prikazati.';
 
   @override
   String get permissionsNeededTitle => 'Potrebna dopuštenja';
@@ -131,10 +132,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionUnpinChannel => 'Otkvači s vrha';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'Prikvačivanje kanala nije uspjelo';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'Otkvačivanje kanala nije uspjelo';
 
   @override
   String get actionSheetOptionMuteTopic => 'Utišaj temu';
@@ -155,11 +156,12 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get actionSheetOptionUnresolveTopic => 'Označi kao neriješeno';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle =>
+      'Označavanje teme kao riješene nije uspjelo';
 
   @override
   String get errorUnresolveTopicFailedTitle =>
-      'Failed to mark topic as unresolved';
+      'Označavanje teme kao neriješene nije uspjelo';
 
   @override
   String get actionSheetOptionSeeWhoReacted => 'Tko je reagirao';
@@ -263,7 +265,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get deleteMessageConfirmationDialogConfirmButton => 'Izbriši';
 
   @override
-  String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+  String get errorDeleteMessageFailedTitle => 'Brisanje poruke nije uspjelo';
 
   @override
   String get actionSheetOptionReportMessage => 'Prijavi poruku';
@@ -306,7 +308,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get reportMessageSuccess => 'Poruka je prijavljena';
 
   @override
-  String get errorReportMessageFailedTitle => 'Failed to report message';
+  String get errorReportMessageFailedTitle => 'Prijava poruke nije uspjela';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Označi temu kao pročitanu';
@@ -333,33 +335,34 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Označi razgovor kao pročitan';
 
   @override
-  String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
+  String get errorWebAuthOperationalErrorTitle => 'Nešto je pošlo po zlu';
 
   @override
-  String get errorWebAuthOperationalError => 'An unexpected error occurred.';
+  String get errorWebAuthOperationalError =>
+      'Došlo je do neočekivane pogreške.';
 
   @override
-  String get errorAccountLoggedInTitle => 'Account already logged in';
+  String get errorAccountLoggedInTitle => 'Račun je već prijavljen';
 
   @override
   String errorAccountLoggedIn(String email, String server) {
-    return 'The account $email at $server is already in your list of accounts.';
+    return 'Račun $email na $server već je na vašem popisu računa.';
   }
 
   @override
   String get errorCouldNotFetchMessageSource =>
-      'Could not fetch message source.';
+      'Izvor poruke nije moguće dohvatiti.';
 
   @override
   String get errorCouldNotAccessUploadedFileTitle =>
-      'Could not access uploaded file';
+      'Učitanoj datoteci nije moguće pristupiti';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'Kopiranje nije uspjelo';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
-    return 'Failed to upload file: $filename';
+    return 'Učitavanje datoteke nije uspjelo: $filename';
   }
 
   @override
@@ -376,10 +379,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num files are',
-      one: 'File is',
+      other: '$num datoteka je veće',
+      few: '$num datoteke su veće',
+      one: '$num datoteka je veća',
     );
-    return '$_temp0 larger than the server\'s limit of $maxFileUploadSizeMib MiB and will not be uploaded:\n\n$listMessage';
+    return '$_temp0 od ograničenja servera od $maxFileUploadSizeMib MiB i neće se učitati:\n\n$listMessage';
   }
 
   @override
@@ -387,65 +391,66 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: 'Files',
-      one: 'File',
+      other: 'Datoteke su prevelike',
+      few: 'Datoteke su prevelike',
+      one: 'Datoteka je prevelika',
     );
-    return '$_temp0 too large';
+    return '$_temp0';
   }
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Odabrane datoteke nije moguće učitati.';
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Datoteku nije moguće pročitati: $filename';
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'Neispravan unos';
 
   @override
-  String get errorLoginFailedTitle => 'Login failed';
+  String get errorLoginFailedTitle => 'Prijava nije uspjela';
 
   @override
-  String get errorMessageNotSent => 'Message not sent';
+  String get errorMessageNotSent => 'Poruka nije poslana';
 
   @override
-  String get errorMessageEditNotSaved => 'Message not saved';
+  String get errorMessageEditNotSaved => 'Poruka nije spremljena';
 
   @override
   String errorLoginCouldNotConnect(String url) {
-    return 'Failed to connect to server:\n$url';
+    return 'Povezivanje sa serverom nije uspjelo:\n$url';
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Povezivanje nije uspjelo';
 
   @override
   String get errorMessageDoesNotSeemToExist =>
-      'That message does not seem to exist.';
+      'Čini se da ta poruka ne postoji.';
 
   @override
-  String get errorQuotationFailed => 'Quotation failed';
+  String get errorQuotationFailed => 'Citiranje nije uspjelo';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Server je odgovorio:\n\n$message';
   }
 
   @override
   String get errorConnectingToServerShort =>
-      'Error connecting to the chat server. Retrying…';
+      'Pogreška pri povezivanju s chat serverom. Pokušavam ponovno…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to the chat server at $serverUrl. Will retry:\n\n$error';
+    return 'Pogreška pri povezivanju s chat serverom na $serverUrl. Pokušat ću ponovno:\n\n$error';
   }
 
   @override
   String get errorHandlingEventTitle =>
-      'Error handling a Zulip event. Retrying connection…';
+      'Pogreška pri obradi događaja sa servera. Ponovno povezivanje…';
 
   @override
   String errorHandlingEventDetails(
@@ -453,46 +458,50 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String error,
     String event,
   ) {
-    return 'Error handling a Zulip event from $serverUrl; will retry.\n\nError: $error\n\nEvent: $event';
+    return 'Pogreška pri obradi događaja sa servera $serverUrl; pokušat ću ponovno.\n\nPogreška: $error\n\nDogađaj: $event';
   }
 
   @override
-  String get errorCouldNotOpenLinkTitle => 'Unable to open link';
+  String get errorCouldNotOpenLinkTitle => 'Poveznicu nije moguće otvoriti';
 
   @override
   String errorCouldNotOpenLink(String url) {
-    return 'Link could not be opened: $url';
+    return 'Poveznica se nije mogla otvoriti: $url';
   }
 
   @override
-  String get errorMuteTopicFailed => 'Failed to mute topic';
+  String get errorMuteTopicFailed => 'Utišavanje teme nije uspjelo';
 
   @override
-  String get errorUnmuteTopicFailed => 'Failed to unmute topic';
+  String get errorUnmuteTopicFailed => 'Uključivanje zvuka teme nije uspjelo';
 
   @override
-  String get errorFollowTopicFailed => 'Failed to follow topic';
+  String get errorFollowTopicFailed => 'Praćenje teme nije uspjelo';
 
   @override
-  String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
+  String get errorUnfollowTopicFailed => 'Prestanak praćenja teme nije uspio';
 
   @override
-  String get errorSharingFailed => 'Sharing failed';
+  String get errorSharingFailed => 'Dijeljenje nije uspjelo';
 
   @override
-  String get errorStarMessageFailedTitle => 'Failed to star message';
+  String get errorStarMessageFailedTitle =>
+      'Označavanje zvjezdicom nije uspjelo';
 
   @override
-  String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
+  String get errorUnstarMessageFailedTitle =>
+      'Uklanjanje zvjezdice nije uspjelo';
 
   @override
-  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+  String get errorHideLinkPreviewsFailedTitle =>
+      'Skrivanje pregleda poveznica nije uspjelo';
 
   @override
-  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+  String get errorShowLinkPreviewsFailedTitle =>
+      'Prikaz pregleda poveznica nije uspio';
 
   @override
-  String get errorCouldNotEditMessageTitle => 'Could not edit message';
+  String get errorCouldNotEditMessageTitle => 'Poruku nije moguće urediti';
 
   @override
   String get successAppVersionCopied => 'Verzija aplikacije kopirana';
@@ -765,13 +774,13 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get dialogClose => 'Zatvori';
 
   @override
-  String get errorDialogLearnMore => 'Learn more';
+  String get errorDialogLearnMore => 'Saznaj više';
 
   @override
-  String get errorDialogContinue => 'OK';
+  String get errorDialogContinue => 'U redu';
 
   @override
-  String get errorDialogTitle => 'Error';
+  String get errorDialogTitle => 'Pogreška';
 
   @override
   String get snackBarDetails => 'Detalji';
@@ -853,11 +862,11 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'U ovom kanalu tema je obavezna.';
 
   @override
-  String get errorContentNotInsertedTitle => 'Content not inserted';
+  String get errorContentNotInsertedTitle => 'Sadržaj nije umetnut';
 
   @override
   String get errorContentToInsertIsEmpty =>
-      'The file to be inserted is empty or cannot be accessed.';
+      'Datoteka za umetanje je prazna ili joj nije moguće pristupiti.';
 
   @override
   String errorServerVersionNotAllowedMessage(
@@ -865,7 +874,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String zulipVersion,
     String minAllowedZulipVersion,
   ) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minAllowedZulipVersion.';
+    return '$url koristi Zulip Server $zulipVersion, koji nije podržan. Najniža podržana verzija je Zulip Server $minAllowedZulipVersion.';
   }
 
   @override
@@ -886,36 +895,36 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String errorInvalidApiKeyMessage(String url) {
-    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+    return 'Vaš račun na $url nije moguće potvrditi. Pokušajte se ponovno prijaviti ili koristite drugi račun.';
   }
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response.';
+  String get errorInvalidResponse => 'Server je poslao neispravan odgovor.';
 
   @override
-  String get errorNetworkRequestFailed => 'Network request failed';
+  String get errorNetworkRequestFailed => 'Mrežni zahtjev nije uspio';
 
   @override
   String errorMalformedResponse(int httpStatus) {
-    return 'Server gave malformed response; HTTP status $httpStatus';
+    return 'Server je poslao neispravan odgovor; HTTP status $httpStatus';
   }
 
   @override
   String errorMalformedResponseWithCause(int httpStatus, String details) {
-    return 'Server gave malformed response; HTTP status $httpStatus; $details';
+    return 'Server je poslao neispravan odgovor; HTTP status $httpStatus; $details';
   }
 
   @override
   String errorRequestFailed(int httpStatus) {
-    return 'Network request failed: HTTP status $httpStatus';
+    return 'Mrežni zahtjev nije uspio: HTTP status $httpStatus';
   }
 
   @override
-  String get errorVideoPlayerFailed => 'Unable to play the video.';
+  String get errorVideoPlayerFailed => 'Videozapis nije moguće reproducirati.';
 
   @override
   String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+      'Pokušajte ga otvoriti u pregledniku.';
 
   @override
   String get dialogOpenInBrowser => 'Otvori u pregledniku';
@@ -956,7 +965,8 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get markAsReadInProgress => 'Označavanje poruka kao pročitanih…';
 
   @override
-  String get errorMarkAsReadFailedTitle => 'Mark as read failed';
+  String get errorMarkAsReadFailedTitle =>
+      'Označavanje kao pročitano nije uspjelo';
 
   @override
   String markAsUnreadComplete(int num) {
@@ -974,7 +984,8 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get markAsUnreadInProgress => 'Označavanje poruka kao nepročitanih…';
 
   @override
-  String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
+  String get errorMarkAsUnreadFailedTitle =>
+      'Označavanje kao nepročitano nije uspjelo';
 
   @override
   String markAllAsReadConfirmationDialogTitle(int count) {
@@ -1407,24 +1418,26 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Ove opcije uključuju značajke koje su još u razvoju i nisu spremne. Možda neće raditi i mogu uzrokovati probleme u drugim dijelovima aplikacije.\n\nOve postavke služe za isprobavanje onima koji razvijaju aplikaciju.';
 
   @override
-  String get errorNotificationOpenTitle => 'Failed to open notification';
+  String get errorNotificationOpenTitle => 'Otvaranje obavijesti nije uspjelo';
 
   @override
   String get errorNotificationOpenAccountNotFound =>
-      'The account associated with this notification could not be found.';
+      'Račun povezan s ovom obavijesti nije pronađen.';
 
   @override
-  String get errorReactionAddingFailedTitle => 'Adding reaction failed';
+  String get errorReactionAddingFailedTitle =>
+      'Dodavanje reakcije nije uspjelo';
 
   @override
-  String get errorReactionRemovingFailedTitle => 'Removing reaction failed';
+  String get errorReactionRemovingFailedTitle =>
+      'Uklanjanje reakcije nije uspjelo';
 
   @override
-  String get errorSharingTitle => 'Failed to share content';
+  String get errorSharingTitle => 'Dijeljenje sadržaja nije uspjelo';
 
   @override
   String get errorSharingAccountNotLoggedIn =>
-      'There is no account logged in. Please log in to an account and try again.';
+      'Nijedan račun nije prijavljen. Prijavite se i pokušajte ponovno.';
 
   @override
   String get emojiReactionsMore => 'više';
