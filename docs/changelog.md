@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* Open the chat from Kloki GO already signed in:
+  the `konvo://kloki-login` link signs in to the company's realm
+  without a browser or sign-in page,
+  or switches to the account if it's already here.
+
 
 ## 30.0.275 (2026-10-28)
 

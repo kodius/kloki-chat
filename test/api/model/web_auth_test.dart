@@ -52,6 +52,67 @@ void main() {
     });
   });
 
+  group('KlokiLoginLink', () {
+    Uri link({String? realm = 'https://firma.chat.kloki.app', String? token = 'jwt'}) =>
+      Uri(scheme: 'konvo', host: 'kloki-login', queryParameters: {
+        'realm': ?realm,
+        'token': ?token,
+      });
+
+    test('basic happy case', () {
+      check(KlokiLoginLink.parse(link()))
+        ..realm.equals(Uri.parse('https://firma.chat.kloki.app'))
+        ..token.equals('jwt');
+    });
+
+    test('dev realm', () {
+      check(KlokiLoginLink.parse(link(realm: 'https://firma.chat.dev.kloki.app/')))
+        .realm.equals(Uri.parse('https://firma.chat.dev.kloki.app'));
+    });
+
+    test('realm reduced to scheme and lowercase host', () {
+      check(KlokiLoginLink.parse(link(realm: 'https://Firma.Chat.Kloki.App/#narrow')))
+        .realm.equals(Uri.parse('https://firma.chat.kloki.app'));
+    });
+
+    test('parse fails for a realm outside Kloki', () {
+      for (final realm in [
+        'https://chat.zulip.org',
+        'https://chat.kloki.app',
+        'https://evilchat.kloki.app',
+        'https://firma.chat.kloki.app.evil.example',
+        'https://a.b.chat.kloki.app',
+        'http://firma.chat.kloki.app',
+        'https://firma.chat.kloki.app:8443',
+        'https://user@firma.chat.kloki.app',
+        'not a url',
+      ]) {
+        check(because: realm, () => KlokiLoginLink.parse(link(realm: realm)))
+          .throws<FormatException>();
+        check(because: realm,
+          KlokiLoginLink.allowedRealmOf(link(realm: realm))).isNull();
+      }
+    });
+
+    test('parse fails without realm or token', () {
+      check(() => KlokiLoginLink.parse(link(realm: null))).throws<FormatException>();
+      check(() => KlokiLoginLink.parse(link(token: null))).throws<FormatException>();
+      check(() => KlokiLoginLink.parse(link(token: ''))).throws<FormatException>();
+    });
+
+    test('parse fails for another scheme or host', () {
+      check(() => KlokiLoginLink.parse(link().replace(scheme: 'zulip')))
+        .throws<FormatException>();
+      check(() => KlokiLoginLink.parse(link().replace(host: 'login')))
+        .throws<FormatException>();
+    });
+
+    test('allowedRealmOf with a bad token', () {
+      check(KlokiLoginLink.allowedRealmOf(link(token: null)))
+        .equals(Uri.parse('https://firma.chat.kloki.app'));
+    });
+  });
+
   group('generateOtp', () {
     test('smoke, and check all 256 byte values are used', () {
       // This is a probabilistic test.  We've chosen `n` so that when the test
@@ -82,4 +143,9 @@ extension WebAuthPayloadChecks on Subject<WebAuthPayload> {
   Subject<String> get email => has((x) => x.email, 'email');
   Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<Uri> get realm => has((x) => x.realm, 'realm');
+}
+
+extension KlokiLoginLinkChecks on Subject<KlokiLoginLink> {
+  Subject<Uri> get realm => has((x) => x.realm, 'realm');
+  Subject<String> get token => has((x) => x.token, 'token');
 }

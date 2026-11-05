@@ -1492,4 +1492,17 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   @override
   String get klokiWelcomeDescription =>
       'Kanali, privatne poruke i grupe za cijeli tim. Prijavite se svojim Kloki računom, bez posebne lozinke.';
+
+  @override
+  String get klokiLinkSignInFailedTitle => 'Prijava iz Klokija nije uspjela';
+
+  @override
+  String get klokiLinkSignInFailedMessage =>
+      'Poveznica je možda istekla. Vratite se u Kloki GO i ponovno otvorite chat ili se prijavite ovdje.';
+
+  @override
+  String get klokiLinkBackToKlokiGo => 'Natrag u Kloki GO';
+
+  @override
+  String get klokiLinkTryManually => 'Pokušaj ručno';
 }

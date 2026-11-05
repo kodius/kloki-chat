@@ -2563,6 +2563,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Channels, direct messages and groups for the whole team. Sign in with your Kloki account, no separate password.'**
   String get klokiWelcomeDescription;
+
+  /// Title of the error dialog when signing in from a Kloki GO link fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in from Kloki'**
+  String get klokiLinkSignInFailedTitle;
+
+  /// Message of the error dialog when signing in from a Kloki GO link fails.
+  ///
+  /// In en, this message translates to:
+  /// **'The link may have expired. Go back to Kloki GO and open the chat again, or sign in here.'**
+  String get klokiLinkSignInFailedMessage;
+
+  /// Button in the error dialog of a failed sign-in from Kloki GO, opening the Kloki GO app.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Kloki GO'**
+  String get klokiLinkBackToKlokiGo;
+
+  /// Button in the error dialog of a failed sign-in from Kloki GO, opening this app's sign-in for the same server.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in here'**
+  String get klokiLinkTryManually;
 }
 
 class _ZulipLocalizationsDelegate

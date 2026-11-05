@@ -130,7 +130,8 @@ extension HttpBaseRequestChecks on Subject<http.BaseRequest> {
   Subject<Uri> get url => has((r) => r.url, 'url');
   Subject<int?> get contentLength => has((r) => r.contentLength, 'contentLength');
   Subject<Map<String, String>> get headers => has((r) => r.headers, 'headers');
-  // TODO persistentConnection, followRedirects, maxRedirects, finalized
+  Subject<bool> get followRedirects => has((r) => r.followRedirects, 'followRedirects');
+  // TODO persistentConnection, maxRedirects, finalized
 }
 
 extension HttpRequestChecks on Subject<http.Request> {

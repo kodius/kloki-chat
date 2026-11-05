@@ -1435,4 +1435,17 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   @override
   String get klokiWelcomeDescription =>
       'Channels, direct messages and groups for the whole team. Sign in with your Kloki account, no separate password.';
+
+  @override
+  String get klokiLinkSignInFailedTitle => 'Couldn\'t sign in from Kloki';
+
+  @override
+  String get klokiLinkSignInFailedMessage =>
+      'The link may have expired. Go back to Kloki GO and open the chat again, or sign in here.';
+
+  @override
+  String get klokiLinkBackToKlokiGo => 'Back to Kloki GO';
+
+  @override
+  String get klokiLinkTryManually => 'Sign in here';
 }

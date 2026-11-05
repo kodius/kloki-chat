@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../api/model/web_auth.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
@@ -214,6 +215,15 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     final globalStore = GlobalStoreWidget.of(context);
     final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
 
+    // On Android, a link that launches the app comes as the initial route
+    // (on iOS, through [didPushRouteInformation]).
+    final initialUrl = Uri.tryParse(initialRoute);
+    if (initialUrl != null && KlokiLoginLink.isKlokiLoginUrl(initialUrl)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(KlokiLinkSignIn.handleUrl(initialUrl));
+      });
+    }
+
     return [
       if (lastVisitedAccountId == null)
         // There are no accounts, or the last-visited account was logged out.
@@ -228,6 +238,9 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     switch (routeInformation.uri) {
       case Uri(scheme: 'zulip', host: 'login') && var url:
         await LoginPage.handleWebAuthUrl(url);
+        return true;
+      case var url when KlokiLoginLink.isKlokiLoginUrl(url):
+        await KlokiLinkSignIn.handleUrl(url);
         return true;
     }
     return super.didPushRouteInformation(routeInformation);

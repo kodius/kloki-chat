@@ -325,6 +325,48 @@ class ApiConnection {
     return send(routeName, fromJson, request);
   }
 
+  /// Make a POST request with the given form fields
+  /// to the given path on the realm, outside the API,
+  /// and return the URL it redirects to, without following it.
+  ///
+  /// The request carries no auth.
+  /// A response other than a redirect with a `location`
+  /// throws an [ApiRequestException].
+  Future<Uri> postFormForRedirect(String routeName,
+      String path, Map<String, String> fields) async {
+    assert(_isOpen);
+    final request = http.Request('POST', realmUrl.replace(path: path))
+      ..followRedirects = false
+      ..bodyFields = fields;
+    assert(debugLog("${request.method} ${request.url}"));
+    addUserAgent(request);
+
+    final http.StreamedResponse response;
+    try {
+      response = await _client.send(request);
+    } catch (e) {
+      _throwNetworkException(routeName, e);
+    }
+
+    final int httpStatus = response.statusCode;
+    Map<String, dynamic>? json;
+    try {
+      json = await jsonUtf8Decoder.bind(response.stream).single
+        as Map<String, dynamic>?;
+    } catch (_) {
+      // A redirect's body isn't needed; a 4xx without a JSON error
+      // is reported from its status, below.
+    }
+
+    final location = response.headers['location'];
+    if (300 <= httpStatus && httpStatus <= 399 && location != null) {
+      final url = Uri.tryParse(location);
+      if (url != null) return url;
+    }
+    throw _makeApiException(routeName, httpStatus,
+      httpStatus == 200 ? null : json);
+  }
+
   /// Run [body] with a trigger that fires after [timeout],
   /// for constructing an [http.Abortable] request.
   ///

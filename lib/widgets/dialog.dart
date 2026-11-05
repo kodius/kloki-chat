@@ -217,3 +217,32 @@ DialogStatus<bool> showSuggestedActionDialog({
       ]));
   return DialogStatus(future);
 }
+
+/// Displays an alert dialog with a button for each of [actions],
+/// the last one the default.
+///
+/// The [DialogStatus.result] Future gives the value of the action tapped,
+/// or null if the dialog was dismissed by tapping outside its area.
+///
+/// The context argument should be a descendant of the app's main [Navigator].
+DialogStatus<T> showActionsDialog<T extends Object>({
+  required BuildContext context,
+  required String title,
+  String? message,
+  required List<({String text, T value})> actions,
+}) {
+  HapticFeedback.errorNotification();
+  final future = showDialog<T>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog.adaptive(
+      title: Text(title),
+      content: message != null ? _adaptiveContent(Text(message)) : null,
+      actions: [
+        for (final (i, action) in actions.indexed)
+          _adaptiveAction(
+            onPressed: () => Navigator.pop<T>(context, action.value),
+            isDefaultAction: i == actions.length - 1,
+            text: action.text),
+      ]));
+  return DialogStatus(future);
+}

@@ -10,6 +10,7 @@ import '../api/core.dart';
 import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
+import '../api/route/kloki.dart';
 import '../api/route/realm.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
@@ -17,6 +18,7 @@ import '../model/binding.dart';
 import '../model/server_support.dart';
 import '../model/store.dart';
 import 'actions.dart';
+import 'app.dart';
 import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -351,11 +353,15 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
 }
 
 class AddAccountPage extends StatefulWidget {
-  const AddAccountPage({super.key});
+  const AddAccountPage({super.key, this.initialServerUrl});
 
-  static Route<void> buildRoute() {
-    return _LoginSequenceRoute(page: const AddAccountPage());
+  static Route<void> buildRoute({Uri? initialServerUrl}) {
+    return _LoginSequenceRoute(
+      page: AddAccountPage(initialServerUrl: initialServerUrl));
   }
+
+  /// The server URL to start the input with, if any.
+  final Uri? initialServerUrl;
 
   /// The hint text to show in the "Zulip server URL" input.
   ///
@@ -390,6 +396,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   void initState() {
     super.initState();
+    _controller.text = widget.initialServerUrl?.toString() ?? '';
     _parseResult = _controller.tryParse();
     _controller.addListener(_serverUrlChanged);
   }
@@ -589,43 +596,183 @@ mixin _WebAuthMixin<T extends StatefulWidget> on State<T> {
     required String email,
     required String apiKey,
     required int userId,
-  }) async {
-    final serverSettings = webAuthServerSettings!;
+  }) => _tryInsertAccountAndNavigate(context,
+    serverSettings: webAuthServerSettings!,
+    email: email, apiKey: apiKey, userId: userId);
+}
+
+/// Add the account signed in to, and go to its home page;
+/// shared by every way of signing in.
+Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
+  required GetServerSettingsResult serverSettings,
+  required String email,
+  required String apiKey,
+  required int userId,
+}) async {
+  final globalStore = GlobalStoreWidget.of(context);
+  final realmUrl = serverSettings.realmUrl;
+  final int accountId;
+  try {
+    accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+      realmUrl: realmUrl,
+      realmName: Value(serverSettings.realmName),
+      realmIcon: Value(serverSettings.realmIcon),
+      email: email,
+      apiKey: apiKey,
+      userId: userId,
+      zulipFeatureLevel: serverSettings.zulipFeatureLevel,
+      zulipVersion: serverSettings.zulipVersion,
+      zulipMergeBase: Value(serverSettings.zulipMergeBase),
+      possibleLegacyPushToken: const Value(false),
+    ));
+    // TODO give feedback to user on other SQL exceptions
+  } on AccountAlreadyExistsException {
+    if (!context.mounted) {
+      return;
+    }
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(
+      context: context,
+      title: zulipLocalizations.errorAccountLoggedInTitle,
+      message: zulipLocalizations.errorAccountLoggedIn(
+        email, realmUrl.toString()));
+    return;
+  }
+
+  if (!context.mounted) {
+    return;
+  }
+
+  HomePage.navigate(context, accountId: accountId);
+}
+
+enum _KlokiLinkFailureAction { backToKlokiGo, tryManually }
+
+/// Signing in from a link Kloki GO opens, `konvo://kloki-login?…`;
+/// see [KlokiLoginLink].
+///
+/// With an account on the link's realm already, for the same person,
+/// this just goes to it.
+/// Otherwise it posts the link's token to the realm
+/// with a fresh one-time pad, without a browser,
+/// and signs in from the `zulip://login` redirect that comes back,
+/// as [LoginPage.handleWebAuthUrl] does.
+abstract final class KlokiLinkSignIn {
+  /// The scheme of Kloki GO, to go back to after a failure.
+  static final klokiGoUrl = Uri.parse('klokimobile://');
+
+  static Future<void> handleUrl(Uri url) async {
+    final context = (await ZulipApp.navigator).context;
+    if (!context.mounted) return;
     final globalStore = GlobalStoreWidget.of(context);
-    final realmUrl = serverSettings.realmUrl;
-    final int accountId;
+
+    final KlokiLoginLink link;
     try {
-      accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-        realmUrl: realmUrl,
-        realmName: Value(serverSettings.realmName),
-        realmIcon: Value(serverSettings.realmIcon),
-        email: email,
-        apiKey: apiKey,
-        userId: userId,
-        zulipFeatureLevel: serverSettings.zulipFeatureLevel,
-        zulipVersion: serverSettings.zulipVersion,
-        zulipMergeBase: Value(serverSettings.zulipMergeBase),
-        possibleLegacyPushToken: const Value(false),
-      ));
-      // TODO give feedback to user on other SQL exceptions
-    } on AccountAlreadyExistsException {
-      if (!mounted) {
-        return;
+      link = KlokiLoginLink.parse(url);
+    } on FormatException {
+      unawaited(_showFailure(context, realm: KlokiLoginLink.allowedRealmOf(url)));
+      return;
+    }
+
+    final existing = _existingAccount(globalStore, link);
+    if (existing != null) {
+      HomePage.navigate(context, accountId: existing.id);
+      return;
+    }
+
+    GetServerSettingsResult? serverSettings;
+    final connection = globalStore.apiConnection(
+      realmUrl: link.realm, zulipFeatureLevel: null);
+    try {
+      final otp = _otp;
+      final Uri location;
+      try {
+        final settings = await getServerSettings(connection);
+        final zulipVersionData = ZulipVersionData.fromServerSettings(settings);
+        if (zulipVersionData.isNotAllowed) {
+          throw ServerVersionNotAllowedException(zulipVersionData);
+        }
+        if (settings.realmUrl.origin != link.realm.origin) throw Error();
+        serverSettings = settings;
+        location = await postKlokiJwtLogin(connection,
+          token: link.token, mobileFlowOtp: otp);
+      } finally {
+        connection.close();
       }
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorAccountLoggedInTitle,
-        message: zulipLocalizations.errorAccountLoggedIn(
-          email, realmUrl.toString()));
-      return;
-    }
 
-    if (!mounted) {
-      return;
+      final payload = WebAuthPayload.parse(location);
+      if (payload.realm.origin != link.realm.origin) throw Error();
+      final apiKey = payload.decodeApiKey(otp);
+      if (!context.mounted) return;
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: serverSettings,
+        email: payload.email, apiKey: apiKey, userId: payload.userId);
+    } catch (e) {
+      assert(debugLog(e.toString()));
+      if (!context.mounted) return;
+      unawaited(_showFailure(context,
+        realm: link.realm, serverSettings: serverSettings));
     }
+  }
 
-    HomePage.navigate(context, accountId: accountId);
+  static String get _otp {
+    String? result;
+    assert(() {
+      result = LoginPage.debugOtpOverride;
+      return true;
+    }());
+    return result ?? generateOtp();
+  }
+
+  /// The account for the link's realm and person, if any.
+  ///
+  /// The person is the token's `email`, read without checking the signature;
+  /// it only picks among accounts already here.
+  /// Without it, an only account on the realm is taken.
+  static Account? _existingAccount(GlobalStore globalStore, KlokiLoginLink link) {
+    final onRealm = globalStore.accounts
+      .where((account) => account.realmUrl.origin == link.realm.origin)
+      .toList();
+    final email = link.email?.toLowerCase();
+    if (email == null) return onRealm.length == 1 ? onRealm.single : null;
+    return onRealm
+      .where((account) => account.email.toLowerCase() == email)
+      .firstOrNull;
+  }
+
+  static Future<void> _showFailure(BuildContext context, {
+    required Uri? realm,
+    GetServerSettingsResult? serverSettings,
+  }) async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final action = await showActionsDialog<_KlokiLinkFailureAction>(
+      context: context,
+      title: zulipLocalizations.klokiLinkSignInFailedTitle,
+      message: zulipLocalizations.klokiLinkSignInFailedMessage,
+      actions: [
+        if (realm != null)
+          (text: zulipLocalizations.klokiLinkTryManually,
+           value: _KlokiLinkFailureAction.tryManually),
+        (text: zulipLocalizations.klokiLinkBackToKlokiGo,
+         value: _KlokiLinkFailureAction.backToKlokiGo),
+      ]).result;
+    if (!context.mounted) return;
+    switch (action) {
+      case null:
+        break;
+      case _KlokiLinkFailureAction.backToKlokiGo:
+        try {
+          await ZulipBinding.instance.launchUrl(klokiGoUrl,
+            mode: LaunchMode.externalApplication);
+        } catch (e) {
+          // Kloki GO isn't installed; the dialog is already closed.
+          assert(debugLog(e.toString()));
+        }
+      case _KlokiLinkFailureAction.tryManually:
+        unawaited(Navigator.push(context, serverSettings != null
+          ? LoginPage.buildRoute(serverSettings: serverSettings)
+          : AddAccountPage.buildRoute(initialServerUrl: realm)));
+    }
   }
 }
 

@@ -30,6 +30,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>zulip</string>
+				<string>konvo</string>
 			</array>
 		</dict>
 	</array>

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart' as drift;
@@ -311,6 +312,204 @@ void main() {
       await tester.tap(find.text('Sign in to another server'));
       check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
       check(connection.takeRequests()).isEmpty();
+    });
+  });
+
+  group('KlokiLinkSignIn', () {
+    late FakeApiConnection connection;
+    late List<Route<dynamic>> pushedRoutes;
+
+    final realmUrl = Uri.parse('https://firma.chat.kloki.app');
+    final serverSettings = eg.serverSettings(realmUrl: realmUrl,
+      externalAuthenticationMethods: [klokiAuthMethod]);
+
+    String jwt(Map<String, Object?> claims) {
+      String part(Object json) =>
+        base64Url.encode(utf8.encode(jsonEncode(json))).replaceAll('=', '');
+      return '${part({'alg': 'HS256'})}.${part(claims)}.signature';
+    }
+    final self = eg.selfAccount.copyWith(realmUrl: realmUrl);
+    final token = jwt({'email': self.email, 'purpose': 'zulip_login'});
+
+    Uri link({String? realm}) =>
+      Uri(scheme: 'konvo', host: 'kloki-login', queryParameters: {
+        'realm': realm ?? realmUrl.toString(),
+        'token': token,
+      });
+
+    Uri location() => Uri(scheme: 'zulip', host: 'login', queryParameters: {
+      'otp_encrypted_api_key': debugEncodeApiKey(eg.selfAccount.apiKey, otp),
+      'email': self.email,
+      'user_id': self.userId.toString(),
+      'realm': realmUrl.toString(),
+    });
+
+    Future<void> prepare(WidgetTester tester, {List<Account> accounts = const []}) async {
+      addTearDown(testBinding.reset);
+      LoginPage.debugOtpOverride = otp;
+      addTearDown(() => LoginPage.debugOtpOverride = null);
+      for (final account in accounts) {
+        await testBinding.globalStore.add(account, eg.initialSnapshot());
+      }
+
+      pushedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      testNavObserver.onReplaced = (route, prevRoute) => pushedRoutes.add(route!);
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump();
+      pushedRoutes.clear();
+
+      testBinding.globalStore.useCachedApiConnections = true;
+      connection = testBinding.globalStore.apiConnection(
+        realmUrl: realmUrl, zulipFeatureLevel: null);
+    }
+
+    // Let each request finish, without a frame:
+    // the tests stop short of building the new account's home page.
+    Future<void> pumpSignIn(WidgetTester tester) async {
+      await tester.binding.delayed(Duration.zero);
+      await tester.binding.delayed(Duration.zero);
+    }
+
+    Future<void> open(WidgetTester tester, Uri url) async {
+      // Not awaited: the sign-in's requests need the clock to advance.
+      unawaited(KlokiLinkSignIn.handleUrl(url));
+      await pumpSignIn(tester);
+    }
+
+    /// Open the link as the platform delivers it to a running app.
+    Future<void> openFromPlatform(WidgetTester tester, Uri url) async {
+      final ByteData message = const JSONMethodCodec().encodeMethodCall(
+        MethodCall('pushRouteInformation', {'location': url.toString()}));
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/navigation', message, null);
+    }
+
+    void checkSignedIn() {
+      final account = testBinding.globalStore.accounts.single;
+      check(account)
+        ..realmUrl.equals(realmUrl)
+        ..email.equals(self.email)
+        ..apiKey.equals(self.apiKey)
+        ..userId.equals(self.userId);
+      check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(account.id)
+        ..page.isA<HomePage>();
+    }
+
+    testWidgets('sign in without a browser or sign-in page', (tester) async {
+      await prepare(tester);
+      connection.prepare(json: serverSettings.toJson());
+      connection.prepare(httpStatus: 302,
+        headers: {'location': location().toString()});
+      await open(tester, link());
+      check(connection.takeRequests()).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<http.Request>()
+          ..method.equals('GET')
+          ..url.equals(realmUrl.resolve('/api/v1/server_settings')),
+        (it) => it.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.equals(realmUrl.resolve('/accounts/login/jwt/'))
+          ..followRedirects.isFalse()
+          ..bodyFields.deepEquals({'token': token, 'mobile_flow_otp': otp}),
+      ]);
+      check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      checkSignedIn();
+    });
+
+    testWidgets('on cold start, from the initial route', (tester) async {
+      // On Android, a link that launches the app is the initial route.
+      tester.platformDispatcher.defaultRouteNameTestValue = link().toString();
+      addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
+      addTearDown(testBinding.reset);
+      LoginPage.debugOtpOverride = otp;
+      addTearDown(() => LoginPage.debugOtpOverride = null);
+      testBinding.globalStore.useCachedApiConnections = true;
+      connection = testBinding.globalStore.apiConnection(
+        realmUrl: realmUrl, zulipFeatureLevel: null);
+      connection.prepare(json: serverSettings.toJson());
+      connection.prepare(httpStatus: 302,
+        headers: {'location': location().toString()});
+
+      pushedRoutes = [];
+      final testNavObserver = TestNavigatorObserver();
+      testNavObserver.onReplaced = (route, prevRoute) => pushedRoutes.add(route!);
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump();
+      await pumpSignIn(tester);
+      check(connection.takeRequests()).length.equals(2);
+      checkSignedIn();
+    });
+
+    testWidgets('with an account on the realm, just go to it', (tester) async {
+      final otherPerson = eg.otherAccount.copyWith(realmUrl: realmUrl);
+      final otherRealm = eg.selfAccount.copyWith(id: self.id + 100,
+        realmUrl: Uri.parse('https://druga.chat.kloki.app'));
+      await prepare(tester, accounts: [otherPerson, self, otherRealm]);
+      await openFromPlatform(tester, link());
+      check(connection.takeRequests()).isEmpty();
+      check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+        .accountId.equals(self.id);
+    });
+
+    testWidgets('realm outside Kloki: no request, no manual sign-in', (tester) async {
+      await prepare(tester);
+      await open(tester, link(realm: 'https://chat.zulip.org'));
+      await tester.pump(); // the dialog
+      check(connection.takeRequests()).isEmpty();
+      check(find.text("Couldn't sign in from Kloki")).findsOne();
+      check(find.text('Sign in here')).findsNothing();
+      check(find.text('Back to Kloki GO')).findsOne();
+    });
+
+    testWidgets('expired token: back to Kloki GO', (tester) async {
+      await prepare(tester);
+      connection.prepare(json: serverSettings.toJson());
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad JSON web token'});
+      await open(tester, link());
+      await tester.pump(); // the dialog
+      check(connection.takeRequests()).length.equals(2);
+      check(testBinding.globalStore.accounts).isEmpty();
+      check(find.text("Couldn't sign in from Kloki")).findsOne();
+      check(find.text('Bad JSON web token')).findsNothing();
+
+      await tester.tap(find.text('Back to Kloki GO'));
+      await tester.pump();
+      check(testBinding.takeLaunchUrlCalls()).deepEquals([
+        (url: Uri.parse('klokimobile://'), mode: UrlLaunchMode.externalApplication)]);
+      check(find.text("Couldn't sign in from Kloki")).findsNothing();
+    });
+
+    testWidgets('failed sign-in: sign in here, on the same realm', (tester) async {
+      await prepare(tester);
+      connection.prepare(json: serverSettings.toJson());
+      connection.prepare(httpStatus: 400, json: {
+        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad JSON web token'});
+      await open(tester, link());
+      await tester.pump(); // the dialog
+      pushedRoutes.clear();
+
+      prepareBoringImageHttpClient(); // realm icon
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
+      await tester.tap(find.text('Sign in here'));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>()
+        .has((page) => page.serverSettings.realmUrl, 'realmUrl').equals(realmUrl);
+    });
+
+    testWidgets('server unreachable: sign in here, with the realm filled in', (tester) async {
+      await prepare(tester);
+      connection.prepare(httpException: Exception('offline'));
+      await open(tester, link());
+      await tester.pump(); // the dialog
+      pushedRoutes.clear();
+
+      await tester.tap(find.text('Sign in here'));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>()
+        .has((page) => page.initialServerUrl, 'initialServerUrl').equals(realmUrl);
     });
   });
 
