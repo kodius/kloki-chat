@@ -152,7 +152,11 @@ class AvatarShape extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         clipBehavior: Clip.antiAlias,
-        child: child));
+        // A soft disc while the image loads, so the presence dot isn't alone.
+        child: ColoredBox(
+          color: Theme.of(context).extension<DesignVariables>()?.bgSearchInput
+            ?? const Color(0x00000000),
+          child: child)));
 
     if (userIdForPresence != null) {
       final presenceCircleSize = size / 4; // TODO(design) is this right?
