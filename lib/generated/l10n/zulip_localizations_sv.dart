@@ -14,7 +14,7 @@ class ZulipLocalizationsSv extends ZulipLocalizations {
   ZulipLocalizationsSv([String locale = 'sv']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'About Kloki Chat';
 
   @override
   String get aboutPageAppVersion => 'App version';
@@ -86,7 +86,7 @@ class ZulipLocalizationsSv extends ZulipLocalizations {
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'To upload an image, please grant Kloki Chat additional permissions in Settings.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subscribe';
@@ -1430,7 +1430,7 @@ class ZulipLocalizationsSv extends ZulipLocalizations {
   String get scrollToBottomTooltip => 'Scroll to bottom';
 
   @override
-  String get zulipAppTitle => 'Zulip';
+  String get zulipAppTitle => 'Kloki Chat';
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';

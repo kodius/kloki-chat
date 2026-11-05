@@ -14,20 +14,20 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   ZulipLocalizationsHr([String locale = 'hr']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'O aplikaciji Kloki Chat';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'Verzija aplikacije';
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'Podaci o verziji aplikacije nisu pronađeni.';
 
   @override
   String get aboutPageReleaseNotes => 'Release notes';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'Licence otvorenog koda';
 
   @override
   String get chooseAccountPageTitle => 'Choose account';
@@ -86,7 +86,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'Za slanje slike dopustite aplikaciji Kloki Chat dodatna dopuštenja u Postavkama.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subscribe';
@@ -1430,7 +1430,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get scrollToBottomTooltip => 'Scroll to bottom';
 
   @override
-  String get zulipAppTitle => 'Zulip';
+  String get zulipAppTitle => 'Kloki Chat';
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';

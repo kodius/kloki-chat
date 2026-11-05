@@ -171,7 +171,7 @@ abstract class ZulipLocalizations {
   /// Title for About Zulip page.
   ///
   /// In en, this message translates to:
-  /// **'About Zulip'**
+  /// **'About Kloki Chat'**
   String get aboutPageTitle;
 
   /// Label for Zulip app version in About Zulip page
@@ -303,7 +303,7 @@ abstract class ZulipLocalizations {
   /// Message for dialog asking the user to grant permissions for camera access.
   ///
   /// In en, this message translates to:
-  /// **'To upload an image, please grant Zulip additional permissions in Settings.'**
+  /// **'To upload an image, please grant Kloki Chat additional permissions in Settings.'**
   String get permissionsDeniedCameraAccess;
 
   /// Label in the channel action sheet for subscribing to the channel.
@@ -2501,7 +2501,7 @@ abstract class ZulipLocalizations {
   /// The name of Zulip. This should be either 'Zulip' or a transliteration.
   ///
   /// In en, this message translates to:
-  /// **'Zulip'**
+  /// **'Kloki Chat'**
   String get zulipAppTitle;
 
   /// Header text shown when a channel has no topics.

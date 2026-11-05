@@ -1,5 +1,5 @@
 {
-  "aboutPageTitle": "About Zulip",
+  "aboutPageTitle": "About Kloki Chat",
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -88,7 +88,7 @@
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
-  "permissionsDeniedCameraAccess": "To upload an image, please grant Zulip additional permissions in Settings.",
+  "permissionsDeniedCameraAccess": "To upload an image, please grant Kloki Chat additional permissions in Settings.",
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -1717,7 +1717,7 @@
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
   },
-  "zulipAppTitle": "Zulip",
+  "zulipAppTitle": "Kloki Chat",
   "@zulipAppTitle": {
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },

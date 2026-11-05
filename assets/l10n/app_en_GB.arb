@@ -13,6 +13,6 @@
   },
   "aboutPageAppVersion": "App Version",
   "aboutPageOpenSourceLicenses": "Open-source licences",
-  "aboutPageTitle": "About Zulip",
+  "aboutPageTitle": "About Kloki Chat",
   "topicValidationErrorMandatoryButEmpty": "Topics are required in this organisation."
 }

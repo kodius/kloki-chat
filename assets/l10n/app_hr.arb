@@ -1,4 +1,9 @@
 {
+  "aboutPageTitle": "O aplikaciji Kloki Chat",
+  "aboutPageAppVersion": "Verzija aplikacije",
+  "aboutPageAppVersionUnknown": "Podaci o verziji aplikacije nisu pronađeni.",
+  "aboutPageOpenSourceLicenses": "Licence otvorenog koda",
+  "permissionsDeniedCameraAccess": "Za slanje slike dopustite aplikaciji Kloki Chat dodatna dopuštenja u Postavkama.",
   "klokiSignInTitle": "Prijava u chat ide kroz Kloki",
   "klokiSignInDescription": "Prijavite se istom prijavom kao u Kloki. Računi u chatu dolaze iz Klokija i nemaju vlastitu lozinku.",
   "klokiSignInButton": "Prijavi se kroz Kloki",

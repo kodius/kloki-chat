@@ -86,7 +86,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'To upload an image, please grant Kloki Chat additional permissions in Settings.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subscribe';
@@ -1430,7 +1430,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get scrollToBottomTooltip => 'Scroll to bottom';
 
   @override
-  String get zulipAppTitle => 'Zulip';
+  String get zulipAppTitle => 'Kloki Chat';
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
