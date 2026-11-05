@@ -19,11 +19,10 @@ import 'package:zulip/widgets/banner.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
+import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
-import 'package:zulip/widgets/subscription_list.dart';
-import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -44,21 +43,18 @@ void main () {
   late FakeApiConnection connection;
 
   late Route<dynamic>? topRoute;
-  late Route<dynamic>? previousTopRoute;
   late List<Route<dynamic>> pushedRoutes;
   late Route<dynamic>? lastPoppedRoute;
 
   final testNavObserver = TestNavigatorObserver()
     ..onChangedTop = ((current, previous) {
         topRoute = current;
-        previousTopRoute = previous;
       })
     ..onPushed = ((route, prevRoute) => pushedRoutes.add(route))
     ..onPopped = ((route, prevRoute) => lastPoppedRoute = route);
 
   setUp(() {
     topRoute = null;
-    previousTopRoute = null;
     pushedRoutes = [];
     lastPoppedRoute = null;
   });
@@ -78,7 +74,7 @@ void main () {
   }
 
   void checkOnLoadingPage() {
-    check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
+    check(find.byType(KlokiLoader).hitTestable()).findsOne();
     check(find.byType(ChooseAccountPage)).findsNothing();
     check(find.byType(HomePage)).findsNothing();
   }
@@ -87,7 +83,7 @@ void main () {
     ModalRoute.of(tester.element(finder));
 
   void checkOnHomePage(WidgetTester tester, {required Account expectedAccount}) {
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(KlokiLoader)).findsNothing();
     check(find.byType(ChooseAccountPage)).findsNothing();
     check(find.byType(HomePage).hitTestable()).findsOne();
     check(getRouteOf(tester, find.byType(HomePage)))
@@ -170,27 +166,27 @@ void main () {
       check(findSearchButton).findsNothing();
     });
 
-    testWidgets("view switches when labels are tapped", (tester) async {
+    testWidgets('only the chosen tab shows its label', (tester) async {
       await prepare(tester);
+      check(findInBottomNav(find.text('Inbox'))).findsOne();
+      check(findInBottomNav(find.text('Channels'))).findsNothing();
 
-      check(find.descendant(
-        of: find.byType(ZulipAppBar),
-        matching: find.text('Inbox'))).findsOne();
-
-      await tester.tap(findInBottomNav(find.text('Channels')));
+      await tester.tap(findInBottomNav(find.byIcon(ZulipIcons.hash_italic)));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
-
-      await tester.tap(findInBottomNav(find.text('DMs')));
-      await tester.pump();
-      check(find.descendant(
-        of: find.byType(ZulipAppBar),
-        matching: find.text('Direct messages'))).findsOne();
+      check(findInBottomNav(find.text('Channels'))).findsOne();
+      check(findInBottomNav(find.text('Inbox'))).findsNothing();
     });
 
-    testWidgets('combined feed', (tester) async {
+    testWidgets('unchosen tabs are named to screen readers', (tester) async {
+      await prepare(tester);
+      check(find.bySemanticsLabel('Channels')).findsOne();
+      check(find.bySemanticsLabel('DMs')).findsOne();
+    });
+
+    testWidgets('combined feed is a tab', (tester) async {
       await prepare(tester);
       pushedRoutes.clear();
 
@@ -198,209 +194,69 @@ void main () {
         foundOldest: true, messages: []).toJson());
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
+      check(pushedRoutes).isEmpty();
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text('Feed'))).findsOne();
+      check(tester.widget<MessageListPage>(find.byType(MessageListPage)))
         .initNarrow.equals(const CombinedFeedNarrow());
       await tester.pump(Duration.zero); // message-list fetch
     });
+
+    testWidgets('combined feed not fetched until its tab is shown', (tester) async {
+      await prepare(tester);
+      check(find.byType(MessageListPage)).findsNothing();
+      check(connection.takeRequests()).isEmpty();
+    });
   });
 
-  group('menu', () {
-    final designVariables = DesignVariables.light;
-
-    final inboxMenuIconFinder = find.byIcon(ZulipIcons.inbox);
-    final channelsMenuIconFinder = find.byIcon(ZulipIcons.hash_italic);
-    final combinedFeedMenuIconFinder = find.byIcon(ZulipIcons.message_feed);
-
-    Future<void> tapOpenMenuAndAwait(WidgetTester tester) async {
-      final topRouteBeforePress = topRoute;
+  group('menu tab', () {
+    Future<void> openMenuTab(WidgetTester tester) async {
+      // A phone-height screen, so the whole menu fits.
+      tester.view.physicalSize = const Size(400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await tester.tap(find.byIcon(ZulipIcons.menu));
       await tester.pump();
-      final topRouteAfterPress = topRoute;
-      check(topRouteAfterPress).isA<ModalBottomSheetRoute<void>>();
-      await tester.pump((topRouteAfterPress as ModalBottomSheetRoute<void>).transitionDuration);
-
-      // This was the only change during the interaction.
-      check(topRouteBeforePress).identicalTo(previousTopRoute);
-
-      // We got to the sheet by pushing, not popping or something else.
-      check(pushedRoutes.last).identicalTo(topRouteAfterPress);
-
-      check(find.byType(BottomSheet)).findsOne();
+      await tester.pump(const Duration(milliseconds: 400)); // entrance
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.text('Menu'))).findsOne();
     }
 
-    /// Taps the [buttonFinder] button and awaits the bottom sheet's exit.
-    ///
-    /// Includes a check that the bottom sheet is gone.
-    /// Also awaits the transition to a new pushed route, if one is pushed.
-    ///
-    /// [buttonFinder] will be run only in the bottom sheet's subtree;
-    /// it doesn't need its own `find.descendant` logic.
-    Future<void> tapButtonAndAwaitTransition(WidgetTester tester, Finder buttonFinder) async {
-      final topRouteBeforePress = topRoute;
-      check(topRouteBeforePress).isA<ModalBottomSheetRoute<void>>();
-      final numPushedRoutesBeforePress = pushedRoutes.length;
-      await tester.tap(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: buttonFinder));
-      await tester.pump(Duration.zero);
-
-      final newPushedRoute = pushedRoutes.skip(numPushedRoutesBeforePress)
-        .singleOrNull;
-
-      final sheetPopDuration = (topRouteBeforePress as ModalBottomSheetRoute<void>)
-        .reverseTransitionDuration;
-      // TODO not sure why a 1ms fudge is needed; investigate.
-      await tester.pump(sheetPopDuration + Duration(milliseconds: 1));
-      check(find.byType(BottomSheet)).findsNothing();
-
-      if (newPushedRoute != null) {
-        final pushDuration = (newPushedRoute as TransitionRoute).transitionDuration;
-        if (pushDuration > sheetPopDuration) {
-          await tester.pump(pushDuration - sheetPopDuration);
-        }
-      }
-
-      // We dismissed the sheet by popping, not pushing or replacing.
-      check(topRouteBeforePress as Route<dynamic>?)
-        ..not((it) => it.identicalTo(topRoute))
-        ..identicalTo(lastPoppedRoute);
-    }
-
-    void checkIconSelected(WidgetTester tester, Finder finder) {
-      final widget = tester.widget(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: finder));
-      check(widget).isA<Icon>().color.isNotNull()
-        .isSameColorAs(designVariables.iconSelected);
-    }
-
-    void checkIconNotSelected(WidgetTester tester, Finder finder) {
-      final widget = tester.widget(find.descendant(
-        of: find.byType(BottomSheet),
-        matching: finder));
-      check(widget).isA<Icon>().color.isNotNull()
-        .isSameColorAs(designVariables.icon);
-    }
-
-    testWidgets('buttons are 44px tall', (tester) async {
-      prepareBoringImageHttpClient();
-      await prepare(tester);
-
-      await tapOpenMenuAndAwait(tester);
-      checkIconSelected(tester, inboxMenuIconFinder);
-      checkIconNotSelected(tester, channelsMenuIconFinder);
-
-      final inboxElement = tester.element(
-        find.ancestor(of: inboxMenuIconFinder, matching: find.bySubtype<MenuButton>()));
-      check((inboxElement.renderObject as RenderBox)).size.height.equals(44);
-
-      final channelsElement = tester.element(
-        find.ancestor(of: inboxMenuIconFinder, matching: find.bySubtype<MenuButton>()));
-      check((channelsElement.renderObject as RenderBox)).size.height.equals(44);
-
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
-      prepareBoringImageHttpClient();
-      await prepare(tester);
-
-      await tapOpenMenuAndAwait(tester);
-      checkIconSelected(tester, inboxMenuIconFinder);
-      checkIconNotSelected(tester, channelsMenuIconFinder);
-      await tapButtonAndAwaitTransition(tester, find.text('Close'));
-
-      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+    Future<void> tapRowAndAwaitPush(WidgetTester tester, Finder finder) async {
+      await tester.tap(finder);
       await tester.pump();
+      final route = pushedRoutes.last as TransitionRoute<dynamic>;
+      await tester.pump(route.transitionDuration);
+    }
 
-      await tapOpenMenuAndAwait(tester);
-      checkIconNotSelected(tester, inboxMenuIconFinder);
-      checkIconSelected(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('navigation bar menu buttons control navigation states', (tester) async {
+    testWidgets('a tab, not a sheet', (tester) async {
       prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       await prepare(tester);
-
-      await tapOpenMenuAndAwait(tester);
-      checkIconSelected(tester, inboxMenuIconFinder);
-      checkIconNotSelected(tester, channelsMenuIconFinder);
-      check(find.byType(InboxPageBody)).findsOne();
-      check(find.byType(SubscriptionListPageBody)).findsNothing();
-
-      await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
-      check(find.byType(InboxPageBody)).findsNothing();
-      check(find.byType(SubscriptionListPageBody)).findsOne();
-
-      await tapOpenMenuAndAwait(tester);
-      checkIconNotSelected(tester, inboxMenuIconFinder);
-      checkIconSelected(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
-      prepareBoringImageHttpClient();
-      await prepare(tester);
-      await tapOpenMenuAndAwait(tester);
-      await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('close button dismisses the menu', (tester) async {
-      prepareBoringImageHttpClient();
-      await prepare(tester);
-      await tapOpenMenuAndAwait(tester);
-      await tapButtonAndAwaitTransition(tester, find.text('Close'));
-      debugNetworkImageHttpClientProvider = null;
-    });
-
-    testWidgets('menu buttons dismiss the menu', (tester) async {
-      prepareBoringImageHttpClient();
-      addTearDown(testBinding.reset);
-      topRoute = null;
-      previousTopRoute = null;
-      pushedRoutes = [];
-      lastPoppedRoute = null;
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-
-      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      final connection = store.connection as FakeApiConnection;
-      await tester.pump();
-
-      await tapOpenMenuAndAwait(tester);
-
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [eg.streamMessage()]).toJson());
-      await tapButtonAndAwaitTransition(tester, combinedFeedMenuIconFinder);
-
-      // When we go back to the home page, the menu sheet should be gone.
-      final topBeforePop = topRoute;
-      check(topBeforePop).isNotNull().isA<MaterialAccountWidgetRoute>()
-        .page.isA<MessageListPage>().initNarrow.equals(CombinedFeedNarrow());
-      (await ZulipApp.navigator).pop();
-      await tester.pump((topBeforePop as TransitionRoute).reverseTransitionDuration);
-
+      pushedRoutes.clear();
+      await openMenuTab(tester);
+      check(pushedRoutes).isEmpty();
       check(find.byType(BottomSheet)).findsNothing();
-      debugNetworkImageHttpClientProvider = null;
+      check(find.text(eg.selfUser.fullName)).findsAny();
     });
 
-    testWidgets('_MainMenuHeader', (tester) async {
+    testWidgets('switch account', (tester) async {
       prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       await prepare(tester);
-      await tapOpenMenuAndAwait(tester);
-      await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
+      await openMenuTab(tester);
+      await tapRowAndAwaitPush(tester, find.byIcon(ZulipIcons.arrow_left_right));
       check(find.byType(ChooseAccountPage)).findsOne();
-      debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('_StarredMessagesButton', (tester) async {
+    testWidgets('starred messages', (tester) async {
       prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
 
-      final findButton = find.byWidgetPredicate((widget) =>
-        widget is MenuButton && widget.icon == ZulipIcons.star);
+      final findRow = find.ancestor(
+        of: find.byIcon(ZulipIcons.star), matching: find.byType(InkWell));
 
       await prepare(tester);
       final message = eg.streamMessage();
@@ -408,8 +264,8 @@ void main () {
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
 
-      await tapOpenMenuAndAwait(tester);
-      check(find.descendant(of: findButton, matching: find.text('1'))).findsOne();
+      await openMenuTab(tester);
+      check(find.descendant(of: findRow, matching: find.text('1'))).findsOne();
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true,
@@ -417,30 +273,26 @@ void main () {
           Message.fromJson((deepToJson(message) as Map<String, dynamic>)
                               ..['flags'] = ['starred'])
         ]).toJson());
-      await tapButtonAndAwaitTransition(tester, findButton);
-      check(find.byType(MessageListPage)).findsOne();
-      check(find.text('Starred messages')).findsOne();
-      debugNetworkImageHttpClientProvider = null;
+      await tapRowAndAwaitPush(tester, findRow);
+      check(find.text('Starred messages')).findsAny();
     });
 
-    testWidgets('_MyProfileButton', (tester) async {
+    testWidgets('my profile', (tester) async {
       prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       await prepare(tester);
-      await tapOpenMenuAndAwait(tester);
-      await tapButtonAndAwaitTransition(tester, find.text('My profile'));
+      await openMenuTab(tester);
+      await tapRowAndAwaitPush(tester, find.text('My profile'));
       check(find.byType(ProfilePage)).findsOne();
-      check(find.text(eg.selfUser.fullName)).findsAny();
-      debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('_AboutZulipButton', (tester) async {
+    testWidgets('about', (tester) async {
       prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       await prepare(tester);
-      await tapOpenMenuAndAwait(tester);
-      await tester.ensureVisible(find.byIcon(ZulipIcons.info));
-      await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.info));
+      await openMenuTab(tester);
+      await tapRowAndAwaitPush(tester, find.byIcon(ZulipIcons.info));
       check(find.byType(AboutZulipPage)).findsOne();
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -450,7 +302,7 @@ void main () {
 
     void checkOnChooseAccountPage() {
       // Ignore the possible loading page in the background.
-      check(find.byType(CircularProgressIndicator).hitTestable()).findsNothing();
+      check(find.byType(KlokiLoader).hitTestable()).findsNothing();
       check(find.byType(ChooseAccountPage)).findsOne();
       check(find.byType(HomePage)).findsNothing();
     }
@@ -458,8 +310,7 @@ void main () {
     Future<void> prepare(WidgetTester tester) async {
       addTearDown(testBinding.reset);
       topRoute = null;
-      previousTopRoute = null;
-      pushedRoutes = [];
+        pushedRoutes = [];
       lastPoppedRoute = null;
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await testBinding.globalStore.add(
@@ -566,7 +417,7 @@ void main () {
 
       // User cannot go back because the navigator stack
       // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+      check(getRouteOf(tester, find.byType(KlokiLoader)))
         .isNotNull().isFirst.isTrue();
 
       await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
@@ -586,7 +437,7 @@ void main () {
       await chooseAccountWithEmail(tester, eg.otherAccount.email);
       // User cannot go back because the navigator stack
       // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+      check(getRouteOf(tester, find.byType(KlokiLoader)))
         .isA<MaterialAccountWidgetRoute>()
           ..isFirst.isTrue()
           ..accountId.equals(eg.otherAccount.id);
@@ -597,7 +448,7 @@ void main () {
       await chooseAccountWithEmail(tester, thirdAccount.email);
       // User cannot go back because the navigator stack
       // was cleared after choosing an account.
-      check(getRouteOf(tester, find.byType(CircularProgressIndicator)))
+      check(getRouteOf(tester, find.byType(KlokiLoader)))
         .isA<MaterialAccountWidgetRoute>()
           ..isFirst.isTrue()
           ..accountId.equals(thirdAccount.id);
@@ -727,16 +578,17 @@ void main () {
     }
 
     Future<void> switchToAccount(WidgetTester tester, Account account) async {
+      // Open the menu tab, then its switch-account row,
+      // on a phone-height screen so the whole menu fits.
+      tester.view.physicalSize = const Size(400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await tester.tap(find.byIcon(ZulipIcons.menu));
       await tester.pump();
-      final topRouteAfterPress = topRoute as ModalBottomSheetRoute<void>;
-      await tester.pump(topRouteAfterPress.transitionDuration);
-
+      await tester.pump(const Duration(milliseconds: 400)); // entrance
       await tester.tap(find.byIcon(ZulipIcons.arrow_left_right));
-      await tester.pump(Duration.zero);
-
-      final sheetPopDuration = topRouteAfterPress.reverseTransitionDuration;
-      await tester.pump(sheetPopDuration + Duration(milliseconds: 1));
+      await tester.pump();
+      await tester.pump((topRoute as TransitionRoute).transitionDuration);
 
       lastPoppedRoute = null;
       await tester.tap(find.text(account.email));
