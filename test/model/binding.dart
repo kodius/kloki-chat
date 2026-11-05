@@ -19,6 +19,7 @@ import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/kloki.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';
@@ -52,6 +53,8 @@ class TestZulipBinding extends ZulipBinding {
   static TestZulipBinding ensureInitialized() {
     if (_instance == null) {
       TestZulipBinding();
+      // An endless float would keep [WidgetTester.pumpAndSettle] from settling.
+      KlokiIllustration.debugFloat = false;
     }
     return instance;
   }

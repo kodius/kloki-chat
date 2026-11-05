@@ -107,6 +107,12 @@ class KlokiIllustration extends StatefulWidget {
   static const _height = 72.0;
   static const _circleSize = 72.0;
 
+  /// Whether the shapes keep floating after the entrance.
+  ///
+  /// Tests turn this off, so that [WidgetTester.pumpAndSettle] can settle.
+  @visibleForTesting
+  static bool debugFloat = true;
+
   @override
   State<KlokiIllustration> createState() => _KlokiIllustrationState();
 }
@@ -129,7 +135,7 @@ class _KlokiIllustrationState extends State<KlokiIllustration>
       _entrance.value = 1;
     } else {
       _entrance.forward(from: 0);
-      if (!_float.isAnimating) _float.repeat();
+      if (KlokiIllustration.debugFloat && !_float.isAnimating) _float.repeat();
     }
   }
 
