@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kloki Chat store screenshots</title>
+<style>
+  @font-face { font-family: Raleway; src: url('../../assets/Raleway/RalewayVF.ttf'); font-weight: 100 900; }
+  @font-face { font-family: 'Source Sans 3'; src: url('../../assets/Source_Sans_3/SourceSans3VF-Upright.otf'); font-weight: 200 900; }
+
+  :root {
+    --primary: #493DCC;
+    --primary-2: #706ED8;
+    --ink: #17152E;
+    --page: #F4F3FA;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+    font-family: 'Source Sans 3', system-ui, sans-serif; }
+
+  /* ---------- preview chrome ---------- */
+  .bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: center; padding: 14px 16px; background: rgba(244,243,250,.9);
+    backdrop-filter: blur(12px); border-bottom: 1px solid #e2e0f0; }
+  .bar h1 { font: 800 20px Raleway; margin: 0 12px 0 0; }
+  .seg { display: inline-flex; background: #fff; border: 1px solid #dcd9ef; border-radius: 999px; padding: 3px; }
+  .seg button { border: 0; background: none; padding: 7px 14px; border-radius: 999px;
+    font: 600 14px 'Source Sans 3'; color: #55527a; cursor: pointer; }
+  .seg button.on { background: var(--primary); color: #fff; }
+  .note { font-size: 14px; color: #6b6890; }
+  .grid { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px 16px 48px; }
+  .cell { display: flex; flex-direction: column; gap: 8px; }
+  .cell .label { font: 600 13px 'Source Sans 3'; color: #6b6890; }
+  .scaler { overflow: hidden; border-radius: 18px; box-shadow: 0 10px 30px rgba(40,30,120,.12); }
+  .scaler > .frame { transform-origin: 0 0; }
+
+  /* ---------- the frame (drawn at full store size) ---------- */
+  .frame { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+  .frame.light { background:
+      radial-gradient(60% 40% at 85% 8%, rgba(112,110,216,.28), transparent 70%),
+      radial-gradient(50% 35% at 5% 40%, rgba(73,61,204,.16), transparent 70%),
+      linear-gradient(180deg, #F6F5FF 0%, #E9E6FF 100%); color: var(--ink); }
+  .frame.dark { background:
+      radial-gradient(60% 40% at 85% 8%, rgba(112,110,216,.45), transparent 70%),
+      radial-gradient(50% 35% at 0% 45%, rgba(73,61,204,.35), transparent 70%),
+      linear-gradient(180deg, #1C1A33 0%, #121124 100%); color: #fff; }
+  .frame.brand { background:
+      radial-gradient(60% 40% at 90% 5%, rgba(255,255,255,.22), transparent 70%),
+      linear-gradient(160deg, #706ED8 0%, #493DCC 55%, #3A2FB0 100%); color: #fff; }
+
+  .brandline { display: flex; align-items: center; gap: .32em; font: 800 1em Raleway; }
+  .brandline svg { width: 1.25em; height: 1.25em; }
+  .headline { font-family: Raleway; font-weight: 800; letter-spacing: -.01em; text-align: center;
+    line-height: 1.08; margin: 0; }
+  .sub { text-align: center; line-height: 1.3; margin: 0; opacity: .78; font-weight: 500; }
+  .frame.light .headline em { color: var(--primary); font-style: normal; }
+  .frame.dark .headline em { color: #A9A7FF; font-style: normal; }
+  .frame.brand .headline em { color: #FFE58A; font-style: normal; }
+
+  .phone { position: absolute; left: 50%; transform: translateX(-50%); background: #0E0D16;
+    box-shadow: 0 60px 120px rgba(30,20,110,.35), inset 0 0 0 3px #2b2a38; }
+  .frame.dark .phone { box-shadow: 0 60px 140px rgba(0,0,0,.6), inset 0 0 0 3px #3a3950; }
+  .screen { position: absolute; overflow: hidden; background: #fff; }
+  .screen img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .status { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center;
+    justify-content: space-between; font-family: -apple-system, 'SF Pro Text', 'Source Sans 3', sans-serif;
+    font-weight: 600; }
+  .status .icons { display: flex; align-items: center; }
+  .island { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 999px; }
+  .homebar { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 999px; }
+  .chip { display: inline-flex; align-items: center; gap: .4em; padding: .35em .9em .35em .45em; border-radius: 999px;
+    font: 700 1em Raleway; white-space: nowrap; }
+  .chip svg { width: 1.3em; height: 1.3em; }
+  .frame.light .chip { background: rgba(73,61,204,.1); color: var(--primary); }
+  .frame.dark .chip, .frame.brand .chip { background: rgba(255,255,255,.14); color: #fff; }
+
+  /* feature graphic */
+  .feature { position: relative; overflow: hidden; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+<div class="bar" id="bar">
+  <h1>Kloki Chat · store screenshots</h1>
+  <div class="seg" id="platform">
+    <button data-v="ios" class="on">App Store 6.9″</button>
+    <button data-v="play">Google Play</button>
+  </div>
+  <div class="seg" id="lang">
+    <button data-v="en" class="on">English</button>
+    <button data-v="hr">Hrvatski</button>
+  </div>
+  <span class="note" id="sizeNote"></span>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const MARK = `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="currentColor"/>
+  <circle cx="24" cy="24" r="14.5" fill="#fff"/><path d="M17.5 24.5l4.5 4.5 9-10" fill="none"
+  stroke="#493DCC" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const SIZES = {
+  ios:  { w: 1290, h: 2796, label: 'iPhone 6.9″ · 1290 × 2796 px (Apple accepts it for the 6.9″ slot)' },
+  play: { w: 1080, h: 1920, label: 'Google Play phone · 1080 × 1920 px (9:16) · plus 1024 × 500 feature graphic' },
+};
+
+// Each frame: theme, screen, caption.
+const FRAMES = [
+  { theme: 'brand', screen: 'welcome_light',
+    en: { h: 'Your team\'s chat,<br><em>signed in with Kloki</em>', s: 'One account for work and chat. No extra passwords.' },
+    hr: { h: 'Chat tvog tima,<br><em>uz Kloki prijavu</em>', s: 'Jedan račun za posao i chat. Bez novih lozinki.' } },
+  { theme: 'light', screen: 'inbox_light',
+    en: { h: 'Nothing unread<br><em>slips by</em>', s: 'Your inbox gathers every unread conversation in one place.' },
+    hr: { h: 'Ništa nepročitano<br><em>ne promakne</em>', s: 'Inbox skuplja sve nepročitane razgovore na jednom mjestu.' } },
+  { theme: 'light', screen: 'chat_light',
+    en: { h: 'Every conversation<br><em>stays on topic</em>', s: 'Topics keep threads tidy, even in the busiest channel.' },
+    hr: { h: 'Svaki razgovor<br><em>ima svoju temu</em>', s: 'Teme drže razgovore urednima i u najživljem kanalu.' } },
+  { theme: 'light', screen: 'channels_light',
+    en: { h: 'A channel<br><em>for every team</em>', s: 'Design, sales, support: everyone in the right room.' },
+    hr: { h: 'Kanal<br><em>za svaki tim</em>', s: 'Dizajn, prodaja, podrška: svatko na pravom mjestu.' } },
+  { theme: 'dark', screen: 'dms_dark',
+    en: { h: 'Direct messages,<br><em>one tap away</em>', s: 'Quick questions go straight to the right person.' },
+    hr: { h: 'Privatne poruke<br><em>na dohvat ruke</em>', s: 'Kratko pitanje ide ravno pravoj osobi.' } },
+  { theme: 'dark', screen: 'chat_dark',
+    en: { h: 'Easy on the eyes,<br><em>day and night</em>', s: 'A calm light and dark theme, made to match Kloki.' },
+    hr: { h: 'Ugodan za oči,<br><em>danju i noću</em>', s: 'Mirna svijetla i tamna tema, u Kloki stilu.' } },
+];
+
+const FEATURE = {
+  en: { h: 'Kloki Chat', s: 'Your team\'s chat, signed in with Kloki' },
+  hr: { h: 'Kloki Chat', s: 'Chat tvog tima, uz Kloki prijavu' },
+};
+
+const params = new URLSearchParams(location.search);
+let platform = params.get('platform') || 'ios';
+let lang = params.get('lang') || 'en';
+const only = params.get('frame');   // render one frame at 1:1, for capture
+
+function statusBar(platform, theme, scale) {
+  const dark = theme === 'dark' || theme === 'brand_dark';
+  const color = dark ? '#fff' : '#000';
+  const fs = 17 * scale;
+  if (platform === 'ios') {
+    return `<div class="status" style="height:${54*scale}px;padding:${4*scale}px ${32*scale}px 0 ${50*scale}px;font-size:${fs}px;color:${color}">
+      <span>9:41</span>
+      <span class="icons" style="gap:${6*scale}px">
+        <svg width="${18*scale}" height="${12*scale}" viewBox="0 0 18 12"><g fill="${color}">
+          <rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/>
+          <rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+        <svg width="${16*scale}" height="${12*scale}" viewBox="0 0 16 12"><path fill="${color}"
+          d="M8 2.2c2.4 0 4.6.9 6.2 2.5l1.2-1.2C13.4 1.5 10.8.4 8 .4S2.6 1.5.6 3.5l1.2 1.2C3.4 3.1 5.6 2.2 8 2.2zm0 3.5c1.4 0 2.8.6 3.8 1.5l1.2-1.2C11.7 4.7 9.9 3.9 8 3.9S4.3 4.7 3 6l1.2 1.2c1-.9 2.4-1.5 3.8-1.5zM8 9.3c-.6 0-1.2.3-1.6.7L8 11.6 9.6 10c-.4-.4-1-.7-1.6-.7z"/></svg>
+        <svg width="${27*scale}" height="${13*scale}" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5"
+          fill="none" stroke="${color}" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2" fill="${color}"/>
+          <path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="${color}" opacity=".45"/></svg>
+      </span></div>
+      <div class="island" style="top:${11*scale}px;width:${124*scale}px;height:${36*scale}px"></div>`;
+  }
+  return `<div class="status" style="height:${44*scale}px;padding:0 ${26*scale}px;font-size:${15*scale}px;color:${color};font-family:Roboto,'Source Sans 3',sans-serif">
+      <span>9:41</span>
+      <span class="icons" style="gap:${6*scale}px">
+        <svg width="${15*scale}" height="${12*scale}" viewBox="0 0 16 12"><path fill="${color}" d="M8 .5C5 .5 2.3 1.6.3 3.4L8 11.5l7.7-8.1C13.7 1.6 11 .5 8 .5z"/></svg>
+        <svg width="${12*scale}" height="${12*scale}" viewBox="0 0 12 12"><path fill="${color}" d="M12 0v12H0z"/></svg>
+        <svg width="${8*scale}" height="${13*scale}" viewBox="0 0 8 13"><rect x="2.5" y="0" width="3" height="1.5" fill="${color}"/><rect x="0" y="1.5" width="8" height="11.5" rx="1.2" fill="${color}"/></svg>
+      </span></div>
+      <div class="island" style="top:${12*scale}px;width:${20*scale}px;height:${20*scale}px"></div>`;
+}
+
+function buildFrame(f, platform, lang) {
+  const { w, h } = SIZES[platform];
+  const copy = f[lang];
+  const u = w / 1290;  // unit, so both sizes share one layout
+  const tall = platform === 'ios';
+  const el = document.createElement('div');
+  el.className = `frame ${f.theme}`;
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+
+  const topPad = (tall ? 170 : 96) * u;
+  const headSize = (tall ? 118 : 104) * u;
+  const subSize = (tall ? 50 : 44) * u;
+
+  // The phone: the screenshot's aspect, sized to fill the space under the caption.
+  const phoneTop = (tall ? 840 : 640) * u;
+  const bezel = 22 * u * (tall ? 1 : .9);
+  const avail = h - phoneTop - (tall ? 60 * u : -200 * u);  // Play: let it run off the bottom
+  const screenH = avail - 2 * bezel;
+  const screenW = screenH * 1290 / 2796;
+  const phoneW = screenW + 2 * bezel, phoneH = screenH + 2 * bezel;
+  const radius = phoneW * 0.155;
+  const scale = screenW / 430;   // screenshot logical px → frame px
+  const darkScreen = f.screen.endsWith('_dark');
+
+  el.innerHTML = `
+    <div style="height:${topPad}px"></div>
+    <div class="chip" style="font-size:${34*u}px;margin-bottom:${44*u}px">${MARK.replace('currentColor', f.theme === 'light' ? '#493DCC' : '#fff')}<span>Kloki Chat</span></div>
+    <h2 class="headline" style="font-size:${headSize}px;padding:0 ${70*u}px">${copy.h}</h2>
+    <p class="sub" style="font-size:${subSize}px;margin-top:${34*u}px;padding:0 ${120*u}px">${copy.s}</p>
+    <div class="phone" style="top:${phoneTop}px;width:${phoneW}px;height:${phoneH}px;border-radius:${radius}px">
+      <div class="screen" style="left:${bezel}px;top:${bezel}px;width:${screenW}px;height:${screenH}px;border-radius:${radius - bezel}px;background:${darkScreen ? '#212121' : '#fff'}">
+        <img src="screens/${f.screen}.png" alt="">
+        ${statusBar(platform, darkScreen ? 'dark' : 'light', scale)}
+        ${platform === 'ios' ? `<div class="homebar" style="bottom:${8*scale}px;width:${140*scale}px;height:${5*scale}px;background:${darkScreen ? '#fff' : '#000'}"></div>` : ''}
+      </div>
+    </div>`;
+  return el;
+}
+
+function buildFeature(lang) {
+  const el = document.createElement('div');
+  el.className = 'feature frame brand';
+  el.style.width = '1024px'; el.style.height = '500px'; el.style.flexDirection = 'row';
+  const c = FEATURE[lang];
+  el.innerHTML = `
+    <div style="padding-left:72px;flex:1;z-index:1">
+      <div class="brandline" style="font-size:30px;margin-bottom:20px">${MARK.replace('currentColor','#fff')}<span>Kloki</span></div>
+      <h2 class="headline" style="font-size:76px;text-align:left">${c.h}</h2>
+      <p class="sub" style="font-size:28px;text-align:left;margin-top:14px;max-width:420px">${c.s}</p>
+    </div>
+    <div style="position:relative;width:440px;height:500px">
+      ${['chat_light','inbox_light'].map((s, i) => `
+        <div class="phone" style="left:${i ? 190 : 50}px;top:${i ? 110 : 50}px;transform:rotate(${i ? 8 : -6}deg);width:250px;height:526px;border-radius:40px">
+          <div class="screen" style="left:9px;top:9px;width:232px;height:508px;border-radius:32px">
+            <img src="screens/${s}.png" alt=""></div></div>`).join('')}
+    </div>`;
+  return el;
+}
+
+function render() {
+  document.querySelectorAll('#platform button').forEach(b => b.classList.toggle('on', b.dataset.v === platform));
+  document.querySelectorAll('#lang button').forEach(b => b.classList.toggle('on', b.dataset.v === lang));
+  document.getElementById('sizeNote').textContent = SIZES[platform].label;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  if (only !== null) {
+    // Capture mode: one frame at full size, nothing else.
+    document.getElementById('bar').remove();
+    grid.style.padding = 0;
+    document.body.style.background = 'transparent';
+    grid.appendChild(only === 'feature' ? buildFeature(lang) : buildFrame(FRAMES[+only], platform, lang));
+    return;
+  }
+
+  const items = FRAMES.map((f, i) => ({ el: buildFrame(f, platform, lang), name: `${i + 1}. ${f.screen.replace('_', ' · ')}`,
+    w: SIZES[platform].w, h: SIZES[platform].h }));
+  if (platform === 'play') items.push({ el: buildFeature(lang), name: 'Feature graphic · 1024 × 500', w: 1024, h: 500 });
+  const targetH = 560;
+  for (const it of items) {
+    const s = it.w === 1024 ? 560 / 1024 : targetH / it.h;
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const box = document.createElement('div');
+    box.className = 'scaler';
+    box.style.width = it.w * s + 'px';
+    box.style.height = it.h * s + 'px';
+    it.el.style.transform = `scale(${s})`;
+    box.appendChild(it.el);
+    cell.appendChild(box);
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = it.name;
+    cell.appendChild(label);
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('platform').addEventListener('click', e => {
+  if (e.target.dataset.v) { platform = e.target.dataset.v; render(); } });
+document.getElementById('lang').addEventListener('click', e => {
+  if (e.target.dataset.v) { lang = e.target.dataset.v; render(); } });
+render();
+</script>
+</body>
+</html>
