@@ -245,7 +245,8 @@ class _InsetDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
-    const SizedBox.shrink();
+    // A persistent header's child must fill its extent.
+    const SizedBox.expand();
 
   @override
   bool shouldRebuild(_InsetDelegate oldDelegate) => extent != oldDelegate.extent;
