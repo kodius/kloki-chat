@@ -53,9 +53,6 @@ void main() {
     doCheck('ElevatedButton',
       button: ElevatedButton(onPressed: () {}, child: const Text(buttonText)));
 
-    doCheck('FilledButton',
-      button: FilledButton(onPressed: () {}, child: const Text(buttonText)));
-
     // IconButton can't have text; skip
 
     doCheck('MenuItemButton',
@@ -77,6 +74,18 @@ void main() {
 
     doCheck('TextButton',
       button: TextButton(onPressed: () {}, child: const Text(buttonText)));
+
+    // FilledButton is the Kloki primary button, in the Kloki heading style.
+    testWidgets('FilledButton', (tester) async {
+      addTearDown(testBinding.reset);
+      await tester.pumpWidget(TestZulipApp(
+        child: FilledButton(onPressed: () {}, child: const Text(buttonText))));
+      await tester.pump();
+      final context = tester.element(find.text(buttonText));
+      check((context.renderObject as RenderParagraph).text.style!)
+        ..fontSize.equals(16)
+        ..fontFamily.equals(kKlokiHeadingFontFamily);
+    });
   });
 
   group('DesignVariables', () {
