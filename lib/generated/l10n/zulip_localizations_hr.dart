@@ -278,16 +278,16 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get messageReportTypeSpam => 'Spam';
 
   @override
-  String get messageReportTypeHarassment => 'Harassment';
+  String get messageReportTypeHarassment => 'Uznemiravanje';
 
   @override
-  String get messageReportTypeInappropriate => 'Inappropriate content';
+  String get messageReportTypeInappropriate => 'Neprikladan sadržaj';
 
   @override
-  String get messageReportTypeNorms => 'Violates community norms';
+  String get messageReportTypeNorms => 'Krši pravila zajednice';
 
   @override
-  String get messageReportTypeOther => 'Other reason';
+  String get messageReportTypeOther => 'Drugi razlog';
 
   @override
   String get reportMessageReasonLabel =>
@@ -661,7 +661,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String messageListGroupYouAndOthers(String others) {
-    return 'You and $others';
+    return 'Vi i $others';
   }
 
   @override
@@ -738,22 +738,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get emptyMessageListSearch => 'Nema rezultata pretrage.';
 
   @override
-  String get messageListGroupYouWithYourself => 'Messages with yourself';
+  String get messageListGroupYouWithYourself => 'Poruke sa sobom';
 
   @override
   String get contentValidationErrorTooLong =>
-      'Message length shouldn\'t be greater than 10000 characters.';
+      'Poruka ne smije biti dulja od 10000 znakova.';
 
   @override
-  String get contentValidationErrorEmpty => 'You have nothing to send!';
+  String get contentValidationErrorEmpty => 'Nemate što poslati!';
 
   @override
   String get contentValidationErrorQuoteAndReplyInProgress =>
-      'Please wait for the quotation to complete.';
+      'Pričekajte da se citat učita.';
 
   @override
   String get contentValidationErrorUploadInProgress =>
-      'Please wait for the upload to complete.';
+      'Pričekajte da se učitavanje završi.';
 
   @override
   String get dialogCancel => 'Cancel';
@@ -777,13 +777,13 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get snackBarDetails => 'Details';
 
   @override
-  String get lightboxCopyLinkTooltip => 'Copy link';
+  String get lightboxCopyLinkTooltip => 'Kopiraj poveznicu';
 
   @override
-  String get lightboxVideoCurrentPosition => 'Current position';
+  String get lightboxVideoCurrentPosition => 'Trenutni položaj';
 
   @override
-  String get lightboxVideoDuration => 'Video duration';
+  String get lightboxVideoDuration => 'Trajanje videozapisa';
 
   @override
   String get loginPageTitle => 'Log in';
@@ -937,21 +937,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get spoilerDefaultHeaderText => 'Spoiler';
 
   @override
-  String get markAllAsReadLabel => 'Mark all messages as read';
+  String get markAllAsReadLabel => 'Označi sve poruke kao pročitane';
 
   @override
   String markAsReadComplete(int num) {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num poruka označeno je kao pročitano.',
+      few: '$num poruke označene su kao pročitane.',
+      one: '$num poruka označena je kao pročitana.',
     );
-    return 'Marked $_temp0 as read.';
+    return '$_temp0';
   }
 
   @override
-  String get markAsReadInProgress => 'Marking messages as read…';
+  String get markAsReadInProgress => 'Označavanje poruka kao pročitanih…';
 
   @override
   String get errorMarkAsReadFailedTitle => 'Mark as read failed';
@@ -961,14 +962,15 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num messages',
-      one: '1 message',
+      other: '$num poruka označeno je kao nepročitano.',
+      few: '$num poruke označene su kao nepročitane.',
+      one: '$num poruka označena je kao nepročitana.',
     );
-    return 'Marked $_temp0 as unread.';
+    return '$_temp0';
   }
 
   @override
-  String get markAsUnreadInProgress => 'Marking messages as unread…';
+  String get markAsUnreadInProgress => 'Označavanje poruka kao nepročitanih…';
 
   @override
   String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
@@ -978,28 +980,30 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: 'Označiti $count+ poruka kao pročitane?',
+      few: 'Označiti $count+ poruke kao pročitane?',
+      one: 'Označiti $count+ poruku kao pročitanu?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Označiti poruke kao pročitane?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'To može obuhvatiti poruke u više razgovora.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton =>
+      'Označi kao pročitano';
 
   @override
-  String get today => 'Today';
+  String get today => 'Danas';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Jučer';
 
   @override
   String get userActiveNow => 'Active now';
@@ -1150,7 +1154,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get pinnedChannelsFolderName => 'Prikvačeni kanali';
 
   @override
-  String get otherChannelsFolderName => 'Other channels';
+  String get otherChannelsFolderName => 'Ostali kanali';
 
   @override
   String get recentDmConversationsPageTitle => 'Privatne poruke';
@@ -1223,10 +1227,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get notifSelfUser => 'You';
 
   @override
-  String get reactedEmojiSelfUser => 'You';
+  String get reactedEmojiSelfUser => 'Vi';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reakcije';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -1238,24 +1242,25 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       otherUsersCount,
       locale: localeName,
-      other: 'You and $otherUsersCount others',
-      one: 'You and 1 other',
+      other: 'Vi i još $otherUsersCount osoba',
+      few: 'Vi i još $otherUsersCount osobe',
+      one: 'Vi i još $otherUsersCount osoba',
     );
     return '$_temp0';
   }
 
   @override
   String onePersonTyping(String typist) {
-    return '$typist is typing…';
+    return '$typist piše…';
   }
 
   @override
   String twoPeopleTyping(String typist, String otherTypist) {
-    return '$typist and $otherTypist are typing…';
+    return '$typist i $otherTypist pišu…';
   }
 
   @override
-  String get manyPeopleTyping => 'Several people are typing…';
+  String get manyPeopleTyping => 'Nekoliko osoba piše…';
 
   @override
   String get wildcardMentionAll => 'all';
@@ -1273,40 +1278,40 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get wildcardMentionTopic => 'topic';
 
   @override
-  String get wildcardMentionChannelDescription => 'Notify channel';
+  String get wildcardMentionChannelDescription => 'Obavijesti kanal';
 
   @override
-  String get wildcardMentionStreamDescription => 'Notify stream';
+  String get wildcardMentionStreamDescription => 'Obavijesti kanal';
 
   @override
-  String get wildcardMentionAllDmDescription => 'Notify recipients';
+  String get wildcardMentionAllDmDescription => 'Obavijesti primatelje';
 
   @override
-  String get wildcardMentionTopicDescription => 'Notify topic';
+  String get wildcardMentionTopicDescription => 'Obavijesti temu';
 
   @override
-  String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
+  String get systemGroupNameEveryoneOnInternet => 'Svi na internetu';
 
   @override
-  String get systemGroupNameEveryone => 'Everyone including guests';
+  String get systemGroupNameEveryone => 'Svi, uključujući goste';
 
   @override
-  String get systemGroupNameMembers => 'Everyone except guests';
+  String get systemGroupNameMembers => 'Svi osim gostiju';
 
   @override
-  String get systemGroupNameFullMembers => 'Full members';
+  String get systemGroupNameFullMembers => 'Punopravni članovi';
 
   @override
-  String get systemGroupNameModerators => 'Moderators';
+  String get systemGroupNameModerators => 'Moderatori';
 
   @override
-  String get systemGroupNameAdministrators => 'Administrators';
+  String get systemGroupNameAdministrators => 'Administratori';
 
   @override
-  String get systemGroupNameOwners => 'Owners';
+  String get systemGroupNameOwners => 'Vlasnici';
 
   @override
-  String get systemGroupNameNobody => 'Nobody';
+  String get systemGroupNameNobody => 'Nitko';
 
   @override
   String get navBarFeedLabel => 'Feed';
@@ -1315,13 +1320,13 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get navBarMenuLabel => 'Izbornik';
 
   @override
-  String get messageIsEditedLabel => 'EDITED';
+  String get messageIsEditedLabel => 'UREĐENO';
 
   @override
-  String get messageIsMovedLabel => 'MOVED';
+  String get messageIsMovedLabel => 'PREMJEŠTENO';
 
   @override
-  String get messageNotSentLabel => 'MESSAGE NOT SENT';
+  String get messageNotSentLabel => 'PORUKA NIJE POSLANA';
 
   @override
   String pollVoterNames(String voterNames) {
@@ -1344,10 +1349,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get openLinksWithInAppBrowser => 'Open links with in-app browser';
 
   @override
-  String get pollWidgetQuestionMissing => 'No question.';
+  String get pollWidgetQuestionMissing => 'Nema pitanja.';
 
   @override
-  String get pollWidgetOptionsMissing => 'This poll has no options yet.';
+  String get pollWidgetOptionsMissing => 'Ova anketa još nema odgovora.';
 
   @override
   String get initialAnchorSettingTitle => 'Open message feeds at';
@@ -1367,25 +1372,25 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get initialAnchorSettingNewestAlways => 'Newest message';
 
   @override
-  String get markReadOnScrollSettingTitle => 'Mark messages as read on scroll';
+  String get markReadOnScrollSettingTitle =>
+      'Označi poruke kao pročitane pri pomicanju';
 
   @override
   String get markReadOnScrollSettingDescription =>
-      'When scrolling through messages, should they automatically be marked as read?';
+      'Trebaju li se poruke automatski označiti kao pročitane dok ih pomičete?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Uvijek';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Nikad';
 
   @override
-  String get markReadOnScrollSettingConversations =>
-      'Only in conversation views';
+  String get markReadOnScrollSettingConversations => 'Samo u prikazu razgovora';
 
   @override
   String get markReadOnScrollSettingConversationsDescription =>
-      'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
+      'Poruke će se automatski označiti kao pročitane samo kad gledate jednu temu ili privatni razgovor.';
 
   @override
   String get experimentalFeatureSettingsPageTitle => 'Experimental features';
@@ -1415,22 +1420,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'There is no account logged in. Please log in to an account and try again.';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'više';
 
   @override
-  String get emojiPickerSearchEmoji => 'Search emoji';
+  String get emojiPickerSearchEmoji => 'Pretraži emojije';
 
   @override
   String get noEarlierMessages => 'No earlier messages';
 
   @override
-  String get revealButtonLabel => 'Reveal message';
+  String get revealButtonLabel => 'Prikaži poruku';
 
   @override
-  String get mutedUser => 'Muted user';
+  String get mutedUser => 'Utišani korisnik';
 
   @override
-  String get scrollToBottomTooltip => 'Scroll to bottom';
+  String get scrollToBottomTooltip => 'Pomakni na dno';
 
   @override
   String get zulipAppTitle => 'Kloki Chat';
