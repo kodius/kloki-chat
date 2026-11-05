@@ -85,6 +85,7 @@
     <button data-v="ios" class="on">App Store</button>
     <button data-v="ipad">iPad</button>
     <button data-v="play">Google Play</button>
+    <button data-v="tablet">Play tablet</button>
   </div>
   <div class="seg" id="lang">
     <button data-v="en" class="on">English</button>
@@ -103,6 +104,7 @@ const SIZES = {
   ios:  { w: 1206, h: 2622, label: 'iPhone 6.3″ · 1206 × 2622 px (App Store Connect\'s main iPhone slot)' },
   ipad: { w: 2064, h: 2752, label: 'iPad 13″ · 2064 × 2752 px' },
   play: { w: 1080, h: 1920, label: 'Google Play phone · 1080 × 1920 px (9:16) · plus 1024 × 500 feature graphic' },
+  tablet: { w: 1440, h: 2560, label: 'Google Play 7″ and 10″ tablet · 1440 × 2560 px (9:16)' },
 };
 
 // Each frame: theme, screen, caption.
@@ -177,17 +179,18 @@ function buildFrame(f, platform, lang) {
   el.style.width = w + 'px';
   el.style.height = h + 'px';
 
-  const ipad = platform === 'ipad';
-  const topPad = (ipad ? 150 : tall ? 170 : 96) * u;
-  const headSize = (ipad ? 74 : tall ? 118 : 104) * u;
-  const subSize = (ipad ? 32 : tall ? 50 : 44) * u;
+  const tablet = platform === 'tablet';
+  const ipad = platform === 'ipad' || tablet;  // Play tablets show the iPad-sized screens
+  const topPad = (tablet ? 170 : ipad ? 150 : tall ? 170 : 96) * u;
+  const headSize = (tablet ? 96 : ipad ? 74 : tall ? 118 : 104) * u;
+  const subSize = (tablet ? 40 : ipad ? 32 : tall ? 50 : 44) * u;
 
   // The device: the screenshot's aspect, sized to fill the space under the caption.
   const aspect = ipad ? 1032 / 1376 : 1290 / 2796;
   const logicalW = ipad ? 1032 : 430;
-  const phoneTop = (ipad ? 560 : tall ? 840 : 640) * u;
+  const phoneTop = (tablet ? 660 : ipad ? 560 : tall ? 840 : 640) * u;
   const bezel = (ipad ? 18 : 22) * u * (platform === 'play' ? .9 : 1);
-  const avail = h - phoneTop - (ipad ? 110 * u : tall ? 60 * u : -200 * u);  // Play: let it run off the bottom
+  const avail = h - phoneTop - (tablet ? 260 * u : ipad ? 110 * u : tall ? 60 * u : -200 * u);  // Play: let it run off the bottom
   const screenH = avail - 2 * bezel;
   const screenW = screenH * aspect;
   const phoneW = screenW + 2 * bezel, phoneH = screenH + 2 * bezel;
@@ -205,7 +208,7 @@ function buildFrame(f, platform, lang) {
       <div class="screen" style="left:${bezel}px;top:${bezel}px;width:${screenW}px;height:${screenH}px;border-radius:${radius - bezel}px;background:${darkScreen ? '#212121' : '#fff'}">
         <img src="screens/${screenFile}.png" alt="">
         ${statusBar(platform, darkScreen ? 'dark' : 'light', scale)}
-        ${platform !== 'play' ? `<div class="homebar" style="bottom:${8*scale}px;width:${140*scale}px;height:${5*scale}px;background:${darkScreen ? '#fff' : '#000'}"></div>` : ''}
+        ${platform !== 'play' && !tablet ? `<div class="homebar" style="bottom:${8*scale}px;width:${140*scale}px;height:${5*scale}px;background:${darkScreen ? '#fff' : '#000'}"></div>` : ''}
       </div>
     </div>`;
   return el;
