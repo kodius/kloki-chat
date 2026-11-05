@@ -253,6 +253,10 @@ enum IntGlobalSetting {
 ///
 /// From UI code, use [GlobalStoreWidget.settingsOf] to get hold of
 /// an appropriate instance of this class.
+/// Hosts of the Kloki web app, whose links Kloki GO takes over
+/// (see [GlobalSettingsStore.getUrlLaunchMode]).
+const klokiWebHosts = {'kloki.app', 'dev.kloki.app'};
+
 class GlobalSettingsStore extends ChangeNotifier {
   GlobalSettingsStore({
     required this._backend,
@@ -322,7 +326,16 @@ class GlobalSettingsStore extends ChangeNotifier {
 
   /// The launch mode to use with `url_launcher`,
   /// based on the user's choice in [browserPreference].
+  ///
+  /// Kloki web links ([klokiWebHosts]) always open with
+  /// [UrlLaunchMode.externalApplication], whatever the preference: an in-app
+  /// browser never hands a Universal Link / App Link to another app, while the
+  /// system does, so they open in Kloki GO when it is installed and in the
+  /// browser otherwise.
   UrlLaunchMode getUrlLaunchMode(Uri url) {
+    if (url.scheme == 'https' && klokiWebHosts.contains(url.host)) {
+      return UrlLaunchMode.externalApplication;
+    }
     switch (effectiveBrowserPreference) {
       case BrowserPreference.inApp:
         if (!(url.scheme == 'https' || url.scheme == 'http')) {

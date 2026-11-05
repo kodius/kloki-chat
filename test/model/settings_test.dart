@@ -53,6 +53,33 @@ void main() {
       check(globalSettings).getUrlLaunchMode(httpLink).equals(
         UrlLaunchMode.externalApplication);
     });
+
+    for (final preference in [null, ...BrowserPreference.values]) {
+      testAndroidIos('Kloki web links open externally so Kloki GO can take them; preference $preference', () {
+        final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+          browserPreference: preference)).settings;
+        for (final link in [
+          'https://kloki.app/app/core/my-panel/notifications',
+          'https://dev.kloki.app/app/core/my-panel/dashboard',
+        ]) {
+          check(globalSettings).getUrlLaunchMode(Uri.parse(link)).equals(
+            UrlLaunchMode.externalApplication);
+        }
+      });
+    }
+
+    testAndroidIos('realm and look-alike hosts keep the preference', () {
+      final globalSettings = eg.globalStore(globalSettings: GlobalSettingsData(
+        browserPreference: BrowserPreference.inApp)).settings;
+      for (final link in [
+        'https://kodius.chat.kloki.app/#narrow',
+        'https://kloki.app.evil.com/app',
+        'http://kloki.app/app/core/my-panel/dashboard',
+      ]) {
+        check(globalSettings).getUrlLaunchMode(Uri.parse(link)).equals(
+          UrlLaunchMode.inAppBrowserView);
+      }
+    });
   });
 
   group('setThemeSetting', () {
