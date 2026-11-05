@@ -84,6 +84,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// The tabs whose content is scrolled on under the title.
+  final _scrolledUnder = <_HomePageTab>{};
+
+  bool _handleScroll(_HomePageTab tab, ScrollMetrics metrics) {
+    if (metrics.axis != Axis.vertical) return false;
+    // In a reversed list (as for messages) the content above is the extent after.
+    final hidden = metrics.axisDirection == AxisDirection.up
+      ? metrics.extentAfter : metrics.extentBefore;
+    final scrolledUnder = hidden > 0;
+    if (scrolledUnder != _scrolledUnder.contains(tab)) {
+      setState(() {
+        scrolledUnder ? _scrolledUnder.add(tab) : _scrolledUnder.remove(tab);
+      });
+    }
+    return false;
+  }
+
   String get _currentTabTitle {
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch(_tab.value) {
@@ -143,14 +160,20 @@ class _HomePageState extends State<HomePage> {
         centerTitle: false,
         toolbarHeight: 76,
         backgroundColor: frostedTitle ? Colors.transparent : null,
+        // Frosted only once something is under it: the blur would otherwise
+        // pull the content just below it up into the bar.
         flexibleSpace: frostedTitle
-          ? ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: ColoredBox(
-                  color: designVariables.mainBackground.withValues(alpha: 0.6),
-                  // Fill the bar; the app bar lays this out loosely.
-                  child: const SizedBox.expand())))
+          ? AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: !_scrolledUnder.contains(_tab.value)
+                ? const SizedBox.expand()
+                : ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      child: ColoredBox(
+                        color: designVariables.mainBackground.withValues(alpha: 0.6),
+                        // Fill the bar; the app bar lays this out loosely.
+                        child: const SizedBox.expand()))))
           : null,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
@@ -175,7 +198,12 @@ class _HomePageState extends State<HomePage> {
               child: Stack(
                 children: [
                   for (final (tab, body) in pageBodies)
-                    _TabBody(active: tab == _tab.value, child: body),
+                    _TabBody(active: tab == _tab.value,
+                      child: NotificationListener<ScrollMetricsNotification>(
+                        onNotification: (n) => n.depth == 0 && _handleScroll(tab, n.metrics),
+                        child: NotificationListener<ScrollUpdateNotification>(
+                          onNotification: (n) => n.depth == 0 && _handleScroll(tab, n.metrics),
+                          child: body))),
                 ]))),
         ]),
       // The bar floats over the content, which scrolls on under it.
