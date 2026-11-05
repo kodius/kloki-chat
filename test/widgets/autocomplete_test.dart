@@ -359,10 +359,15 @@ void main() {
 
   group('#channel link', () {
     void checkChannelShown(ZulipStream channel, {required bool expected}) {
-      check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
+      // (The option's row can sit inside other rows, like the compose box's.)
+      final finder = find.ancestor(of: find.byIcon(iconDataForStream(channel)),
         matching: find.ancestor(of: find.text(channel.name),
-          matching: find.byType(Row)))
-      ).findsExactly(expected ? 1 : 0);
+          matching: find.byType(Row)));
+      if (expected) {
+        check(finder).findsAtLeast(1);
+      } else {
+        check(finder).findsNothing();
+      }
     }
 
     testWidgets('options appear, disappear, and change correctly', (tester) async {
