@@ -89,25 +89,25 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Za slanje slike dopustite aplikaciji Kloki Chat dodatna dopuštenja u Postavkama.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'Pretplati se';
 
   @override
   String get subscribeFailedTitle => 'Failed to subscribe';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+  String get actionSheetOptionMarkChannelAsRead => 'Označi kanal kao pročitan';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Kopiraj poveznicu na kanal';
 
   @override
-  String get actionSheetOptionListOfTopics => 'List of topics';
+  String get actionSheetOptionListOfTopics => 'Popis tema';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Feed kanala';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Otkaži pretplatu';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
@@ -125,10 +125,10 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Failed to unsubscribe';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Prikvači na vrh';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => 'Otkvači s vrha';
 
   @override
   String get errorPinChannelFailedTitle => 'Failed to pin channel';
@@ -137,22 +137,22 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Utišaj temu';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Uključi zvuk teme';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Prati temu';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Prestani pratiti temu';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Označi kao riješeno';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Označi kao neriješeno';
 
   @override
   String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
@@ -162,7 +162,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
       'Failed to mark topic as unresolved';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Tko je reagirao';
 
   @override
   String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
@@ -189,65 +189,67 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetOptionViewReadReceipts => 'View read receipts';
+  String get actionSheetOptionViewReadReceipts => 'Tko je pročitao';
 
   @override
-  String get actionSheetReadReceipts => 'Read receipts';
+  String get actionSheetReadReceipts => 'Potvrde čitanja';
 
   @override
   String actionSheetReadReceiptsReadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'This message has been <z-link>read</z-link> by $count people:',
-      one: 'This message has been <z-link>read</z-link> by $count person:',
+      other: 'Ovu poruku je <z-link>pročitalo</z-link> $count osoba:',
+      few: 'Ovu poruku su <z-link>pročitale</z-link> $count osobe:',
+      one: 'Ovu poruku je <z-link>pročitala</z-link> $count osoba:',
     );
     return '$_temp0';
   }
 
   @override
   String get actionSheetReadReceiptsZeroReadCount =>
-      'No one has read this message yet.';
+      'Ovu poruku još nitko nije pročitao.';
 
   @override
   String get actionSheetReadReceiptsErrorReadCount =>
-      'Failed to load read receipts.';
+      'Učitavanje potvrda čitanja nije uspjelo.';
 
   @override
-  String get actionSheetOptionCopyMessageText => 'Copy message text';
+  String get actionSheetOptionCopyMessageText => 'Kopiraj tekst poruke';
 
   @override
-  String get actionSheetOptionCopyMessageLink => 'Copy link to message';
+  String get actionSheetOptionCopyMessageLink => 'Kopiraj poveznicu na poruku';
 
   @override
-  String get actionSheetOptionMarkAsUnread => 'Mark as unread from here';
+  String get actionSheetOptionMarkAsUnread => 'Označi kao nepročitano odavde';
 
   @override
-  String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+  String get actionSheetOptionHideMutedMessage =>
+      'Ponovno sakrij utišanu poruku';
 
   @override
-  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+  String get actionSheetOptionHideLinkPreviews => 'Sakrij preglede poveznica';
 
   @override
-  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+  String get actionSheetOptionShowLinkPreviews => 'Prikaži preglede poveznica';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => 'Podijeli';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Citiraj poruku';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'Označi zvjezdicom';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage => 'Ukloni zvjezdicu';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'Uredi poruku';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'Izbriši poruku';
 
   @override
   String get deleteMessageConfirmationDialogTitle => 'Delete message?';
@@ -263,7 +265,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
 
   @override
-  String get actionSheetOptionReportMessage => 'Report message';
+  String get actionSheetOptionReportMessage => 'Prijavi poruku';
 
   @override
   String get reportMessageDialogTitle => 'Report message';
@@ -307,28 +309,28 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorReportMessageFailedTitle => 'Failed to report message';
 
   @override
-  String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
+  String get actionSheetOptionMarkTopicAsRead => 'Označi temu kao pročitanu';
 
   @override
-  String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+  String get actionSheetOptionCopyTopicLink => 'Kopiraj poveznicu na temu';
 
   @override
   String actionSheetTitleDm(String user) {
-    return 'DMs with $user';
+    return 'Poruke s: $user';
   }
 
   @override
-  String get actionSheetTitleSelfDm => 'DMs with yourself';
+  String get actionSheetTitleSelfDm => 'Poruke sa sobom';
 
   @override
-  String get actionSheetTitleGroupDm => 'Group DM';
+  String get actionSheetTitleGroupDm => 'Grupne poruke';
 
   @override
-  String get actionSheetOptionViewProfile => 'View profile';
+  String get actionSheetOptionViewProfile => 'Prikaži profil';
 
   @override
   String get actionSheetOptionMarkDmConversationAsRead =>
-      'Mark conversation as read';
+      'Označi razgovor kao pročitan';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
