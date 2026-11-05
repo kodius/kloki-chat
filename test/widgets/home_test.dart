@@ -23,6 +23,7 @@ import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
+import 'package:zulip/widgets/subscription_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -207,6 +208,59 @@ void main () {
       await prepare(tester);
       check(find.byType(MessageListPage)).findsNothing();
       check(connection.takeRequests()).isEmpty();
+    });
+  });
+
+  group('app bar frost', () {
+    final findFrost = find.descendant(
+      of: find.byType(ZulipAppBar),
+      matching: find.byType(BackdropFilter));
+
+    Future<void> prepareManyChannels(WidgetTester tester) async {
+      await prepare(tester);
+      for (var i = 0; i < 40; i++) {
+        final channel = eg.stream(name: 'channel $i');
+        await store.addStream(channel);
+        await store.addSubscription(eg.subscription(channel));
+      }
+      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+      await tester.pump();
+    }
+
+    Future<void> dragChannels(WidgetTester tester, double dy) async {
+      await tester.drag(find.byType(SubscriptionListPageBody), Offset(0, dy));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250)); // cross-fade
+    }
+
+    testWidgets('no frost on first load', (tester) async {
+      await prepareManyChannels(tester);
+      check(findFrost).findsNothing();
+    });
+
+    testWidgets('frost while content is under the bar, and not after', (tester) async {
+      await prepareManyChannels(tester);
+      await dragChannels(tester, -300);
+      check(findFrost).findsOne();
+
+      await dragChannels(tester, 600);
+      check(findFrost).findsNothing();
+    });
+
+    testWidgets('each tab keeps its own scroll state', (tester) async {
+      await prepareManyChannels(tester);
+      await dragChannels(tester, -300);
+      check(findFrost).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.two_person));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(findFrost).findsNothing();
+
+      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      check(findFrost).findsOne();
     });
   });
 
