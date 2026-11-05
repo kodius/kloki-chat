@@ -42,15 +42,9 @@ void main() {
     check((await Clipboard.getData('text/plain'))!).text.equals('30.0.273');
   });
 
-  testWidgets('tap release notes opens the version-pinned GitHub release', (tester) async {
+  testWidgets('no release notes link', (tester) async {
     await prepare(tester, version: '30.0.273');
-
-    await tester.tap(find.text('Release notes'));
-    await tester.pump(); // onPressed runs in a post-frame callback
-    check(testBinding.takeLaunchUrlCalls()).single.equals((
-      url: Uri.parse('https://github.com/zulip/zulip-flutter/releases/tag/v30.0.273'),
-      mode: .inAppBrowserView,
-    ));
+    check(find.text('Release notes')).findsNothing();
   });
 
   testWidgets('banner in place of the app version, when the version is unknown', (tester) async {
