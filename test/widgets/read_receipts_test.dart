@@ -11,6 +11,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/read_receipts.dart';
@@ -75,7 +76,7 @@ void main() {
 
     check(find.ancestor(of: find.byType(ReadReceipts),
       matching: find.byType(BottomSheet))).findsOne(); // receipts sheet opened
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(KlokiLoader)).findsOne();
     check(find.text('Read receipts')).findsOne();
     check(find.text('Close')).findsOne();
 

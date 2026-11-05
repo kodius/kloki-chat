@@ -10,6 +10,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/kloki.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/topic_list.dart';
@@ -119,10 +120,10 @@ void main() {
       accountId: eg.selfAccount.id,
       child: TopicListPage(channelId: channel.streamId)));
     await tester.pump();
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(KlokiLoader)).findsOne();
 
     await tester.pump(Duration(seconds: 1));
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(KlokiLoader)).findsNothing();
   });
 
   testWidgets('shows empty state when no topics', (tester) async {
