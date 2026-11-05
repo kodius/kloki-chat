@@ -73,6 +73,20 @@ ThemeData zulipThemeData(BuildContext context) {
     iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
       foregroundColor: designVariables.icon,
     )),
+    // Material dialogs (as on Android) as Kloki cards.
+    dialogTheme: DialogThemeData(
+      backgroundColor: designVariables.bgTopBar,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      titleTextStyle: TextStyle(
+        fontFamily: kKlokiHeadingFontFamily,
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: designVariables.title),
+      contentTextStyle: TextStyle(fontSize: 16, height: 1.4,
+        color: designVariables.labelMenuButton)),
+    textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
+      foregroundColor: designVariables.fabBg)),
     filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
       backgroundColor: designVariables.fabBg,
       foregroundColor: Colors.white,
