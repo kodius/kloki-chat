@@ -1571,6 +1571,8 @@ abstract class _ComposeBoxBody extends StatelessWidget {
               decoration: BoxDecoration(
                 color: designVariables.bgSearchInput,
                 borderRadius: BorderRadius.circular(22)),
+              // The input's edge shadows are square; keep them in the pill.
+              clipBehavior: Clip.antiAlias,
               child: buildContentInput())),
             if (sendButton != null) ...[
               const SizedBox(width: 8),
