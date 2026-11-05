@@ -1176,7 +1176,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // have state that needs to be preserved have not been given keys
         // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
-          final messageId = (key as ValueKey<int>).value;
+          // Outbox items have their own keys, not message IDs.
+          if (key is! ValueKey<int>) return null;
+          final messageId = key.value;
           final itemIndex = model.findItemWithMessageId(messageId);
           if (itemIndex == -1) return null;
           final childIndex = totalItems - 1 - (itemIndex + bottomItems);
@@ -1216,7 +1218,9 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         // have state that needs to be preserved have not been given keys
         // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
-          final messageId = (key as ValueKey<int>).value;
+          // Outbox items have their own keys, not message IDs.
+          if (key is! ValueKey<int>) return null;
+          final messageId = key.value;
           final itemIndex = model.findItemWithMessageId(messageId);
           if (itemIndex == -1) return null;
           final childIndex = itemIndex - topItems;
@@ -1324,6 +1328,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       case MessageListOutboxMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
+          // Keep the item's state (like its arrival animation) as its state changes.
+          key: ValueKey(('outbox', data.message.localMessageId)),
           narrow: widget.narrow,
           header: header,
           isLastInFeed: isLastInFeed,
