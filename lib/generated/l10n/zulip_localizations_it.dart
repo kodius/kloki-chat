@@ -827,7 +827,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'This is the address you would use to open the chat in a browser.';
 
   @override
   String get loginRealmUrlHelpButton => 'Aiuto';

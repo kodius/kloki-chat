@@ -1550,44 +1550,44 @@ void main() {
 
       test('eventually report NetworkException with NetworkExceptionKind.other', () {
         checkLateReported(prepareNetworkExceptionOther).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('eventually report Server5xxException', () {
         checkLateReported(prepareServer5xxException).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('report MalformedServerResponseException', () {
         checkReported(prepareMalformedServerResponseException).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('report rate limit: code RATE_LIMIT_HIT', () {
         checkLateReported(prepareRateLimitExceptionCode).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('report rate limit: status 429 ZulipApiException', () {
         checkLateReported(prepareRateLimitExceptionStatus).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('report rate limit: status 429 MalformedServerResponseException', () {
         checkLateReported(prepareRateLimitExceptionMalformed).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('report generic ZulipApiException', () {
         checkReported(prepareZulipApiExceptionBadRequest).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to the chat server. Retrying…\n"
+          "Error connecting to the chat server at");
       });
 
       test('ignore expired queue', () {

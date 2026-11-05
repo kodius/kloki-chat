@@ -508,11 +508,11 @@
       "message": {"type": "String", "example": "Invalid format"}
     }
   },
-  "errorConnectingToServerShort": "Error connecting to Zulip. Retrying…",
+  "errorConnectingToServerShort": "Error connecting to the chat server. Retrying…",
   "@errorConnectingToServerShort": {
     "description": "Short error message for a generic unknown error connecting to the server."
   },
-  "errorConnectingToServerDetails": "Error connecting to Zulip at {serverUrl}. Will retry:\n\n{error}",
+  "errorConnectingToServerDetails": "Error connecting to the chat server at {serverUrl}. Will retry:\n\n{error}",
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
     "placeholders": {
@@ -825,7 +825,7 @@
   "@emptyMessageListSelfDmHeader": {
     "description": "Placeholder for the self-DM page when there are no messages."
   },
-  "emptyMessageListSelfDmMessage": "Use this space for personal notes, or to test out Zulip features.",
+  "emptyMessageListSelfDmMessage": "Use this space for personal notes, or to test out Kloki Chat features.",
   "@emptyMessageListSelfDmMessage": {
     "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
   },
@@ -969,11 +969,11 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginRealmUrlLabel": "Your Zulip organization URL",
+  "loginRealmUrlLabel": "Your organization URL",
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
   },
-  "loginRealmUrlHelperText": "This is the address you would use to open Zulip in a browser.",
+  "loginRealmUrlHelperText": "This is the address you would use to open the chat in a browser.",
   "@loginRealmUrlHelperText": {
     "description": "Helper text below the Zulip organization URL entry field on the login page."
   },

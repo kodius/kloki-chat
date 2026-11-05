@@ -434,11 +434,11 @@ class ZulipLocalizationsLv extends ZulipLocalizations {
 
   @override
   String get errorConnectingToServerShort =>
-      'Error connecting to Zulip. Retrying…';
+      'Error connecting to the chat server. Retrying…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Error connecting to the chat server at $serverUrl. Will retry:\n\n$error';
   }
 
   @override
@@ -687,7 +687,7 @@ class ZulipLocalizationsLv extends ZulipLocalizations {
 
   @override
   String get emptyMessageListSelfDmMessage =>
-      'Use this space for personal notes, or to test out Zulip features.';
+      'Use this space for personal notes, or to test out Kloki Chat features.';
 
   @override
   String emptyMessageListDm(String person) {
@@ -803,11 +803,11 @@ class ZulipLocalizationsLv extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Add an account';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel => 'Your organization URL';
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'This is the address you would use to open the chat in a browser.';
 
   @override
   String get loginRealmUrlHelpButton => 'Help';

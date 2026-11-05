@@ -713,7 +713,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get emptyMessageListSelfDmMessage =>
-      'Use this space for personal notes, or to test out Zulip features.';
+      'Use this space for personal notes, or to test out Kloki Chat features.';
 
   @override
   String emptyMessageListDm(String person) {
@@ -829,11 +829,11 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Dodaj račun';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel => 'Your organization URL';
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'This is the address you would use to open the chat in a browser.';
 
   @override
   String get loginRealmUrlHelpButton => 'Help';

@@ -865,13 +865,13 @@ abstract class ZulipLocalizations {
   /// Short error message for a generic unknown error connecting to the server.
   ///
   /// In en, this message translates to:
-  /// **'Error connecting to Zulip. Retrying…'**
+  /// **'Error connecting to the chat server. Retrying…'**
   String get errorConnectingToServerShort;
 
   /// Dialog error message for a generic unknown error connecting to the server with details.
   ///
   /// In en, this message translates to:
-  /// **'Error connecting to Zulip at {serverUrl}. Will retry:\n\n{error}'**
+  /// **'Error connecting to the chat server at {serverUrl}. Will retry:\n\n{error}'**
   String errorConnectingToServerDetails(String serverUrl, String error);
 
   /// Error title on failing to handle a Zulip server event.
@@ -1295,7 +1295,7 @@ abstract class ZulipLocalizations {
   /// Extra detail in the placeholder for the self-DM page when there are no messages.
   ///
   /// In en, this message translates to:
-  /// **'Use this space for personal notes, or to test out Zulip features.'**
+  /// **'Use this space for personal notes, or to test out Kloki Chat features.'**
   String get emptyMessageListSelfDmMessage;
 
   /// Placeholder for a 1:1 DM page when there are no messages.
@@ -1493,13 +1493,13 @@ abstract class ZulipLocalizations {
   /// Label in login page for Zulip realm/org URL entry.
   ///
   /// In en, this message translates to:
-  /// **'Your Zulip organization URL'**
+  /// **'Your organization URL'**
   String get loginRealmUrlLabel;
 
   /// Helper text below the Zulip organization URL entry field on the login page.
   ///
   /// In en, this message translates to:
-  /// **'This is the address you would use to open Zulip in a browser.'**
+  /// **'This is the address you would use to open the chat in a browser.'**
   String get loginRealmUrlHelperText;
 
   /// Tooltip for the 'help' icon button for the org-URL input in the login flow.

@@ -818,11 +818,11 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Додати обліковий запис';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel => 'Your organization URL';
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'This is the address you would use to open the chat in a browser.';
 
   @override
   String get loginRealmUrlHelpButton => 'Help';
