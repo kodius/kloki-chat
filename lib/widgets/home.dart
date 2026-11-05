@@ -232,8 +232,14 @@ class _TabBodyState extends State<_TabBody> with SingleTickerProviderStateMixin 
     super.dispose();
   }
 
+  /// Whether this tab has been shown; until then its body isn't built,
+  /// so e.g. the Feed tab doesn't fetch messages nobody has asked for.
+  late bool _everShown = widget.active;
+
   @override
   Widget build(BuildContext context) {
+    if (widget.active) _everShown = true;
+    if (!_everShown) return const SizedBox.shrink();
     return Offstage(
       offstage: !widget.active,
       // Stop the hidden tab's animations; showing it again restarts them,
