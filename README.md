@@ -1,4 +1,33 @@
-# Zulip Flutter
+# Kloki Chat
+
+Kloki Chat is the mobile app for the chat in Kloki,
+for Android and iOS.
+It's a fork of [zulip-flutter][], the official Zulip app,
+and talks to the Kloki chat servers (`<slug>.chat.kloki.app`),
+which run Kodius's fork of the Zulip server.
+
+It replaces Konvo, the earlier Kodius app,
+which was a fork of the React Native [zulip-mobile][].
+Kloki Chat keeps Konvo's store listings
+(`konvo.kodius.com` on both stores),
+so updating Konvo brings in Kloki Chat.
+The chat is a separate app, not a screen in Kloki GO:
+Kloki GO opens it with a sign-in link
+(see [docs/konvo/kloki-login.md](docs/konvo/kloki-login.md)).
+
+The Kloki-specific docs are in [docs/konvo/](docs/konvo/):
+* [Signing in with Kloki](docs/konvo/kloki-login.md)
+* [Releasing Kloki Chat](docs/konvo/release.md)
+* [Store screenshots](docs/konvo/store-screenshots.md)
+
+The rest of this README, and the other docs,
+are from upstream zulip-flutter.
+
+[zulip-flutter]: https://github.com/zulip/zulip-flutter
+[zulip-mobile]: https://github.com/zulip/zulip-mobile
+
+
+# Zulip Flutter (upstream)
 
 The official Zulip app for Android and iOS, built with Flutter.
 

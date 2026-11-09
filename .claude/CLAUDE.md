@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Zulip Flutter — the official Zulip mobile app for Android and iOS, built with Flutter/Dart. Uses the latest Flutter from Flutter's `main` channel (not stable/beta).
+Kloki Chat — the Kloki chat app for Android and iOS, a fork of Zulip Flutter (the official Zulip mobile app), built with Flutter/Dart. It replaced Konvo, the earlier React Native fork of zulip-mobile. Kloki-specific docs are in `docs/konvo/`; see the top of `README.md`. Uses the latest Flutter from Flutter's `main` channel (not stable/beta).
 
 ## Common commands
 
