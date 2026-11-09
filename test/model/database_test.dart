@@ -379,6 +379,7 @@ void main() {
         'visitFirstUnread': null, // v7
         'markReadOnScroll': null, // v8
         'legacyUpgradeState': 'noLegacy', // v9
+        'klokiSession': null, // v17
       });
       await after.close();
     });
@@ -511,6 +512,8 @@ void main() {
     // v15 covered by "existing Account row" above
 
     // v16 covered by "existing Account row" above
+
+    // v17 covered by "existing GlobalSettings row" above
   });
 }
 

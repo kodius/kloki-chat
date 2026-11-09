@@ -7,9 +7,12 @@ import '../model/settings.dart';
 import 'store.dart';
 import 'theme.dart';
 
-/// The organization the sign-in page starts with,
-/// as typed in its organization input.
-const kKlokiDefaultOrganization = 'kodius';
+/// Kloki's sign-in for the chat, on the web.
+///
+/// Without a `realm` parameter it signs in to the realm
+/// of the company active in Kloki,
+/// and the `zulip://login` redirect says which realm that is.
+final kKlokiChatSignInUrl = Uri.parse('https://kloki.app/app/auth/chat');
 
 /// The [ExternalAuthenticationMethod.name] of the Kloki sign-in
 /// on chat.kloki.app realms.

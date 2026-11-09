@@ -17,12 +17,10 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/server_support.dart';
 import '../model/store.dart';
-import 'actions.dart';
 import 'app.dart';
 import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
-import 'icons.dart';
 import 'input.dart';
 import 'kloki.dart';
 import 'page.dart';
@@ -165,9 +163,11 @@ Future<GetServerSettingsResult?> _fetchServerSettingsOrShowError(
 
 /// The first page for adding an account: sign in to the Kloki chat.
 ///
-/// Signing in through Kloki or as a guest goes to the realm
-/// of the organization typed in (see [parseKlokiOrganization]).
-/// Another server can still be chosen, through [AddAccountPage].
+/// Signing in through Kloki goes to the realm of the company
+/// active in Kloki (see [KlokiLinkSignIn.beginWebSignIn]),
+/// so nobody types their organization.
+/// A guest, or someone after another Kloki realm,
+/// names it on [AddAccountPage].
 class KlokiSignInPage extends StatefulWidget {
   const KlokiSignInPage({super.key});
 
@@ -180,26 +180,7 @@ class KlokiSignInPage extends StatefulWidget {
 }
 
 class _KlokiSignInPageState extends State<KlokiSignInPage>
-    with SingleTickerProviderStateMixin, _WebAuthMixin<KlokiSignInPage> {
-  bool _inProgress = false;
-
-  final _organization = TextEditingController(text: kKlokiDefaultOrganization);
-
-  /// Whether to show that the organization input names no realm.
-  bool _showOrganizationError = false;
-
-  GetServerSettingsResult? _serverSettings;
-
-  @override
-  GetServerSettingsResult? get webAuthServerSettings => _serverSettings;
-
-  @override
-  set webAuthInProgress(bool value) {
-    setState(() {
-      _inProgress = value;
-    });
-  }
-
+    with SingleTickerProviderStateMixin {
   late final AnimationController _entrance = AnimationController(
     vsync: this, duration: const Duration(milliseconds: 1600));
 
@@ -216,44 +197,7 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
   @override
   void dispose() {
     _entrance.dispose();
-    _organization.dispose();
     super.dispose();
-  }
-
-  /// Open Kloki's sign-in in the browser; or for a guest,
-  /// the password form.
-  Future<void> _continue({required bool guest}) async {
-    final realmUrl = parseKlokiOrganization(_organization.text);
-    if (realmUrl == null) {
-      setState(() {
-        _showOrganizationError = true;
-      });
-      return;
-    }
-    setState(() {
-      _inProgress = true;
-    });
-    try {
-      final serverSettings = await _fetchServerSettingsOrShowError(
-        context, realmUrl);
-      if (serverSettings == null || !mounted) return;
-      final klokiMethod = serverSettings.externalAuthenticationMethods
-        .where((method) => method.name == kKlokiAuthMethodName)
-        .firstOrNull;
-      if (guest || klokiMethod == null) {
-        unawaited(Navigator.push(context,
-          LoginPage.buildRoute(serverSettings: serverSettings, klokiGuest: guest)));
-        return;
-      }
-      _serverSettings = serverSettings;
-      await beginWebAuth(klokiMethod);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _inProgress = false;
-        });
-      }
-    }
   }
 
   /// Fade and slide [child] in, over the part of the entrance
@@ -309,31 +253,6 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
               child: KlokiWelcomeHero(entrance: _entrance)))));
     }
 
-    final organizationText = _organization.text.trim();
-    final organization = _KlokiField(
-      label: zulipLocalizations.klokiOrganizationLabel,
-      field: TextField(
-        controller: _organization,
-        enabled: !_inProgress,
-        keyboardType: TextInputType.url,
-        autocorrect: false,
-        scrollPadding: _KlokiField.scrollPadding,
-        textInputAction: TextInputAction.go,
-        onChanged: (_) => setState(() {
-          _showOrganizationError = false;
-        }),
-        onSubmitted: (_) => _continue(guest: false),
-        style: filledInputTextStyle(designVariables),
-        decoration: _KlokiField.decoration(designVariables,
-          hintText: zulipLocalizations.klokiOrganizationHint,
-        ).copyWith(
-          suffixText: organizationText.isEmpty || organizationText.contains(RegExp(r'[.:/]'))
-            ? null : '.chat.kloki.app',
-          suffixStyle: TextStyle(color: designVariables.loginOrDividerText),
-          errorText: _showOrganizationError
-            ? zulipLocalizations.klokiOrganizationInvalid : null,
-          errorMaxLines: 3)));
-
     final title = Text(zulipLocalizations.klokiWelcomeTitle,
       textAlign: TextAlign.center,
       style: TextStyle(
@@ -358,7 +277,8 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
         _KlokiTextLink(
           label: zulipLocalizations.klokiGuestSignIn,
           muted: true,
-          onPressed: _inProgress ? null : () => _continue(guest: true)),
+          onPressed: () => Navigator.push(context,
+            AddAccountPage.buildRoute(klokiGuest: true))),
         _KlokiTextLink(
           label: zulipLocalizations.klokiOtherServer,
           muted: true,
@@ -385,7 +305,7 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
               child: LayoutBuilder(builder: (context, constraints) {
                 // About the height of everything but the hero;
                 // a wrong guess only means some scrolling, or some space.
-                const contentHeight = 520.0;
+                const contentHeight = 420.0;
                 return SingleChildScrollView(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -402,12 +322,9 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
                             const SizedBox(height: 12),
                             _appear(0.45, 0.85, description),
                             const SizedBox(height: 24),
-                            _appear(0.5, 0.9, organization),
-                            const SizedBox(height: 20),
                             _appear(0.55, 0.95, _KlokiPrimaryButton(
                               label: zulipLocalizations.klokiSignInButton,
-                              inProgress: _inProgress,
-                              onPressed: _inProgress ? null : () => _continue(guest: false))),
+                              onPressed: () => KlokiLinkSignIn.beginWebSignIn(context))),
                             const SizedBox(height: 8),
                             _appear(0.65, 1, links),
                           ]),
@@ -416,22 +333,31 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
   }
 }
 
+/// Sign in to a Kloki realm named by its organization,
+/// for a guest or for a realm other than the active company's.
+///
+/// Only realms on Kloki's chat servers are accepted
+/// (see [parseKlokiOrganization]).
 class AddAccountPage extends StatefulWidget {
-  const AddAccountPage({super.key, this.initialServerUrl});
+  const AddAccountPage({super.key, this.initialServerUrl, this.klokiGuest = false});
 
-  static Route<void> buildRoute({Uri? initialServerUrl}) {
+  static Route<void> buildRoute({Uri? initialServerUrl, bool klokiGuest = false}) {
     return _LoginSequenceRoute(
-      page: AddAccountPage(initialServerUrl: initialServerUrl));
+      page: AddAccountPage(initialServerUrl: initialServerUrl, klokiGuest: klokiGuest));
   }
 
-  /// The server URL to start the input with, if any.
+  /// The realm to start the input with, if any.
   final Uri? initialServerUrl;
 
-  /// The hint text to show in the "Zulip server URL" input.
-  ///
-  /// Kodius's own realm, so the example is one of Kloki's
-  /// and never points to an unknown site.
-  static const _serverUrlHint = 'kodius.chat.kloki.app';
+  /// Whether this is the guest sign-in,
+  /// going on to the password form.
+  final bool klokiGuest;
+
+  /// The hint in the organization input: Kodius's own realm,
+  /// so the example is one of Kloki's.
+  static const _organizationHint = 'kodius';
+
+  static const _realmHostSuffix = '.chat.kloki.app';
 
   @override
   State<AddAccountPage> createState() => _AddAccountPageState();
@@ -440,21 +366,18 @@ class AddAccountPage extends StatefulWidget {
 class _AddAccountPageState extends State<AddAccountPage> {
   bool _inProgress = false;
 
-  final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
-  late ServerUrlParseResult _parseResult;
+  late final _controller = TextEditingController(
+    text: _initialText(widget.initialServerUrl));
 
-  void _serverUrlChanged() {
-    setState(() {
-      _parseResult = _controller.tryParse();
-    });
-  }
+  /// Whether to show that the input names no Kloki realm.
+  bool _showError = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller.text = widget.initialServerUrl?.toString() ?? '';
-    _parseResult = _controller.tryParse();
-    _controller.addListener(_serverUrlChanged);
+  static String _initialText(Uri? realm) {
+    if (realm == null) return '';
+    final host = realm.host;
+    return host.endsWith(AddAccountPage._realmHostSuffix)
+      ? host.substring(0, host.length - AddAccountPage._realmHostSuffix.length)
+      : realm.toString();
   }
 
   @override
@@ -463,31 +386,31 @@ class _AddAccountPageState extends State<AddAccountPage> {
     super.dispose();
   }
 
-  void _onSubmitted(BuildContext context) async {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final url = _parseResult.url;
-    final error = _parseResult.error;
-    if (error != null) {
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorLoginInvalidInputTitle,
-        message: error.message(zulipLocalizations));
+  void _onSubmitted() async {
+    final url = parseKlokiOrganization(_controller.text);
+    if (url == null) {
+      setState(() {
+        _showError = true;
+      });
       return;
     }
-    assert(url != null);
 
     setState(() {
       _inProgress = true;
     });
     try {
-      final serverSettings = await _fetchServerSettingsOrShowError(context, url!);
-      if (serverSettings == null || !context.mounted) return;
+      final serverSettings = await _fetchServerSettingsOrShowError(context, url);
+      if (serverSettings == null || !mounted) return;
 
       unawaited(Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings)));
+        LoginPage.buildRoute(serverSettings: serverSettings,
+          klokiGuest: widget.klokiGuest)));
     } finally {
-      setState(() {
-        _inProgress = false;
-      });
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+        });
+      }
     }
   }
 
@@ -496,63 +419,67 @@ class _AddAccountPageState extends State<AddAccountPage> {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    final error = _parseResult.error;
-    final errorText = error == null || error.shouldDeferFeedback()
-      ? null
-      : error.message(zulipLocalizations);
+    final text = _controller.text.trim();
 
     return _KlokiLoginScaffold(
       inProgress: _inProgress,
       children: [
-        const _KlokiIconTile(icon: Icons.dns_outlined),
-        _KlokiTitle(zulipLocalizations.klokiOtherServer),
-        _KlokiText(zulipLocalizations.loginRealmUrlHelperText),
+        _KlokiIconTile(icon: widget.klokiGuest
+          ? Icons.person_outline : Icons.dns_outlined),
+        _KlokiTitle(widget.klokiGuest
+          ? zulipLocalizations.klokiGuestSignIn
+          : zulipLocalizations.klokiOtherServer),
+        _KlokiText(widget.klokiGuest
+          ? zulipLocalizations.klokiGuestSignInDescription
+          : zulipLocalizations.loginRealmUrlHelperText),
         const SizedBox(height: 32),
-        // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
         _KlokiField(
-          label: zulipLocalizations.loginRealmUrlLabel,
+          label: zulipLocalizations.klokiOrganizationLabel,
           field: TextField(
             controller: _controller,
-            onSubmitted: (value) => _onSubmitted(context),
+            enabled: !_inProgress,
+            // Focused, so the fixed .chat.kloki.app shows from the start.
+            autofocus: true,
+            onChanged: (_) => setState(() {
+              _showError = false;
+            }),
+            onSubmitted: (_) => _onSubmitted(),
             keyboardType: TextInputType.url,
             autocorrect: false,
             scrollPadding: _KlokiField.scrollPadding,
             textInputAction: TextInputAction.go,
-            onEditingComplete: () {
-              // Repeat default implementation by clearing IME compose session…
-              _controller.clearComposing();
-              // …but leave out unfocusing the input in case more editing is needed.
-            },
             style: filledInputTextStyle(designVariables),
             decoration: _KlokiField.decoration(designVariables,
-              hintText: AddAccountPage._serverUrlHint,
-              suffixIcon: ZulipIconButton(
-                icon: ZulipIcons.help,
-                tooltip: zulipLocalizations.loginRealmUrlHelpButton,
-                onPressed: () => PlatformActions.launchUrl(context,
-                  Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url')),
-                size: .large,
-                backgroundWhenPressed: false),
-            ).copyWith(errorText: errorText, errorMaxLines: 3))),
+              hintText: AddAccountPage._organizationHint,
+            ).copyWith(
+              // A pasted host or link already says where it goes.
+              suffixText: text.contains(RegExp(r'[.:/]'))
+                ? null : AddAccountPage._realmHostSuffix,
+              suffixStyle: TextStyle(color: designVariables.loginOrDividerText),
+              errorText: _showError
+                ? zulipLocalizations.klokiOrganizationInvalid : null,
+              errorMaxLines: 3))),
         const SizedBox(height: 28),
         _KlokiPrimaryButton(
           label: zulipLocalizations.dialogContinue,
           inProgress: _inProgress,
-          onPressed: !_inProgress && errorText == null
-            ? () => _onSubmitted(context)
-            : null),
+          onPressed: _inProgress || text.isEmpty ? null : _onSubmitted),
       ]);
   }
 }
 
 /// Signing in through a browser, ending in a zulip://login URL;
-/// shared by [LoginPage] and [KlokiSignInPage].
+/// for [LoginPage].
 mixin _WebAuthMixin<T extends StatefulWidget> on State<T> {
   /// The state that began the latest web auth, to handle its result.
   static _WebAuthMixin? _pending;
 
-  /// The server signed in to; null before it's known.
-  GetServerSettingsResult? get webAuthServerSettings;
+  /// The server to add the account on, for the realm
+  /// the zulip://login URL came from.
+  ///
+  /// Throws if that's not a realm this sign-in may end at;
+  /// null if an error has already been shown.
+  Future<GetServerSettingsResult?> webAuthServerSettingsFor(Uri realm);
 
   set webAuthInProgress(bool value);
 
@@ -577,12 +504,13 @@ mixin _WebAuthMixin<T extends StatefulWidget> on State<T> {
     try {
       await ZulipBinding.instance.closeInAppWebView();
 
-      final serverSettings = webAuthServerSettings;
-      if (_otp == null || serverSettings == null) throw Error();
+      if (_otp == null) throw Error();
       final payload = WebAuthPayload.parse(url);
-      if (payload.realm.origin != serverSettings.realmUrl.origin) throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
-      await tryInsertAccountAndNavigate(
+      final serverSettings = await webAuthServerSettingsFor(payload.realm);
+      if (serverSettings == null || !mounted) return;
+      await _insertAccountAndNavigate(context,
+        serverSettings: serverSettings,
         userId: payload.userId,
         email: payload.email,
         apiKey: apiKey,
@@ -605,12 +533,15 @@ mixin _WebAuthMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
-  Future<void> beginWebAuth(ExternalAuthenticationMethod method) async {
+  /// Open [loginUrl] in the browser, with a fresh one-time pad.
+  Future<void> beginWebAuth(Uri loginUrl) async {
     __otp = generateOtp();
     _pending = this;
     try {
-      final url = webAuthServerSettings!.realmUrl.resolve(method.loginUrl)
-        .replace(queryParameters: {'mobile_flow_otp': _otp!});
+      final url = loginUrl.replace(queryParameters: {
+        ...loginUrl.queryParameters,
+        'mobile_flow_otp': _otp!,
+      });
 
       // Could set [_inProgress]… but we'd need to unset it if the web-auth
       // attempt is aborted (by the user closing the browser, for example),
@@ -647,19 +578,11 @@ mixin _WebAuthMixin<T extends StatefulWidget> on State<T> {
         message: message);
     }
   }
-
-  Future<void> tryInsertAccountAndNavigate({
-    required String email,
-    required String apiKey,
-    required int userId,
-  }) => _tryInsertAccountAndNavigate(context,
-    serverSettings: webAuthServerSettings!,
-    email: email, apiKey: apiKey, userId: userId);
 }
 
 /// Add the account signed in to, and go to its home page;
 /// shared by every way of signing in.
-Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
+Future<void> _insertAccountAndNavigate(BuildContext context, {
   required GetServerSettingsResult serverSettings,
   required String email,
   required String apiKey,
@@ -713,8 +636,11 @@ Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
 
 enum _KlokiLinkFailureAction { backToKlokiGo, tryManually }
 
-/// Signing in from a link Kloki GO opens, `konvo://kloki-login?…`;
-/// see [KlokiLoginLink].
+/// Signing in from a link `konvo://kloki-login?…`; see [KlokiLoginLink].
+///
+/// Kloki GO opens such a link, and so does Kloki's web sign-in
+/// that [beginWebSignIn] starts; that one also carries the Kloki session,
+/// which this keeps (see [GlobalSettingsStore.klokiSession]).
 ///
 /// With an account on the link's realm already, for the same person,
 /// this just goes to it.
@@ -726,10 +652,40 @@ abstract final class KlokiLinkSignIn {
   /// The scheme of Kloki GO, to go back to after a failure.
   static final klokiGoUrl = Uri.parse('klokimobile://');
 
+  /// The pad sent to Kloki's web sign-in, to open the session it sends back.
+  static String? _webSignInOtp;
+
+  @visibleForTesting
+  static void debugReset() {
+    _webSignInOtp = null;
+  }
+
+  /// Sign in through Kloki in the browser, to the realm of the company
+  /// active in Kloki ([kKlokiChatSignInUrl] without a realm).
+  ///
+  /// Kloki sends the browser back to the app with a sign-in link,
+  /// carrying the Kloki session sealed with a fresh one-time pad.
+  static Future<void> beginWebSignIn(BuildContext context) async {
+    final otp = _webSignInOtp = _otp;
+    final url = kKlokiChatSignInUrl.replace(queryParameters: {
+      ...kKlokiChatSignInUrl.queryParameters,
+      'kloki_chat_otp': otp,
+    });
+    try {
+      await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
+    } catch (e) {
+      assert(debugLog(e.toString()));
+      if (!context.mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
+        message: zulipLocalizations.errorWebAuthOperationalError);
+    }
+  }
+
   static Future<void> handleUrl(Uri url) async {
     final context = (await ZulipApp.navigator).context;
     if (!context.mounted) return;
-    final globalStore = GlobalStoreWidget.of(context);
 
     final KlokiLoginLink link;
     try {
@@ -739,6 +695,32 @@ abstract final class KlokiLinkSignIn {
       return;
     }
 
+    final sealedSession = link.sealedSession;
+    final webSignInOtp = _webSignInOtp;
+    if (sealedSession != null && webSignInOtp != null) {
+      // Back from Kloki's web sign-in.
+      _webSignInOtp = null;
+      unawaited(ZulipBinding.instance.closeInAppWebView());
+      try {
+        await GlobalStoreWidget.of(context).settings
+          .setKlokiSession(openKlokiSession(sealedSession, webSignInOtp));
+      } on FormatException {
+        // Signing in to the chat doesn't need it.
+      }
+      if (!context.mounted) return;
+    }
+
+    await signIn(context, link, onFailure: (serverSettings) =>
+      _showFailure(context, realm: link.realm, serverSettings: serverSettings));
+  }
+
+  /// Sign in to [link]'s realm, or go to the account already there.
+  ///
+  /// On failure, calls [onFailure] with the realm's settings if they came.
+  static Future<void> signIn(BuildContext context, KlokiLoginLink link, {
+    required Future<void> Function(GetServerSettingsResult? serverSettings) onFailure,
+  }) async {
+    final globalStore = GlobalStoreWidget.of(context);
     final existing = _existingAccount(globalStore, link);
     if (existing != null) {
       HomePage.navigate(context, accountId: existing.id);
@@ -769,14 +751,13 @@ abstract final class KlokiLinkSignIn {
       if (payload.realm.origin != link.realm.origin) throw Error();
       final apiKey = payload.decodeApiKey(otp);
       if (!context.mounted) return;
-      await _tryInsertAccountAndNavigate(context,
+      await _insertAccountAndNavigate(context,
         serverSettings: serverSettings,
         email: payload.email, apiKey: apiKey, userId: payload.userId);
     } catch (e) {
       assert(debugLog(e.toString()));
       if (!context.mounted) return;
-      unawaited(_showFailure(context,
-        realm: link.realm, serverSettings: serverSettings));
+      unawaited(onFailure(serverSettings));
     }
   }
 
@@ -880,7 +861,10 @@ class _LoginPageState extends State<LoginPage> with _WebAuthMixin<LoginPage> {
   late bool _showGuestForm = widget.klokiGuest;
 
   @override
-  GetServerSettingsResult? get webAuthServerSettings => widget.serverSettings;
+  Future<GetServerSettingsResult?> webAuthServerSettingsFor(Uri realm) async {
+    if (realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
+    return widget.serverSettings;
+  }
 
   @override
   set webAuthInProgress(bool value) {
@@ -895,13 +879,15 @@ class _LoginPageState extends State<LoginPage> with _WebAuthMixin<LoginPage> {
     .firstOrNull;
 
   Future<void> _beginWebAuth(ExternalAuthenticationMethod method) =>
-    beginWebAuth(method);
+    beginWebAuth(widget.serverSettings.realmUrl.resolve(method.loginUrl));
 
   Future<void> _tryInsertAccountAndNavigate({
     required String email,
     required String apiKey,
     required int userId,
-  }) => tryInsertAccountAndNavigate(email: email, apiKey: apiKey, userId: userId);
+  }) => _insertAccountAndNavigate(context,
+    serverSettings: widget.serverSettings,
+    email: email, apiKey: apiKey, userId: userId);
 
   /// The sign-in page of a server with the Kloki sign-in,
   /// following the one on chat.kloki.app.

@@ -1799,5 +1799,49 @@
   "klokiLinkTryManually": "Sign in here",
   "@klokiLinkTryManually": {
     "description": "Button in the error dialog of a failed sign-in from Kloki GO, opening this app's sign-in for the same server."
+  },
+  "klokiOrganizationsTitle": "Organizations",
+  "@klokiOrganizationsTitle": {
+    "description": "Title of the page, and label of the menu item, for switching the chat between the person's companies in Kloki."
+  },
+  "klokiOrganizationsSignInPrompt": "Sign in through Kloki to switch between your companies' chats here.",
+  "@klokiOrganizationsSignInPrompt": {
+    "description": "Shown on the organizations page before the app has a Kloki session."
+  },
+  "klokiOrganizationsOnlyOne": "You're in just one company in Kloki.",
+  "@klokiOrganizationsOnlyOne": {
+    "description": "Shown on the organizations page when the person has only one company."
+  },
+  "klokiOrganizationsLoadFailed": "Couldn't load your companies.",
+  "@klokiOrganizationsLoadFailed": {
+    "description": "Shown on the organizations page when the list of companies couldn't be loaded."
+  },
+  "klokiOrganizationsRetry": "Try again",
+  "@klokiOrganizationsRetry": {
+    "description": "Button to load the list of companies again."
+  },
+  "klokiOrganizationNoChat": "{company} has no chat in Kloki.",
+  "@klokiOrganizationNoChat": {
+    "description": "Error when switching to a company without a chat.",
+    "placeholders": {
+      "company": {
+        "type": "String",
+        "example": "Kodius"
+      }
+    }
+  },
+  "klokiOrganizationSwitchFailedTitle": "Couldn't switch",
+  "@klokiOrganizationSwitchFailedTitle": {
+    "description": "Title of the error when switching to another company fails."
+  },
+  "klokiOrganizationSwitchFailed": "Couldn't switch to {company}. Try again later.",
+  "@klokiOrganizationSwitchFailed": {
+    "description": "Error when switching to another company fails.",
+    "placeholders": {
+      "company": {
+        "type": "String",
+        "example": "Kodius"
+      }
+    }
   }
 }

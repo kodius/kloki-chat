@@ -18,6 +18,7 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/banner.dart';
 import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/kloki_organizations.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/kloki.dart';
@@ -310,6 +311,16 @@ void main () {
       await openMenuTab(tester);
       await tapRowAndAwaitPush(tester, find.byIcon(ZulipIcons.arrow_left_right));
       check(find.byType(ChooseAccountPage)).findsOne();
+    });
+
+    testWidgets('organizations', (tester) async {
+      prepareBoringImageHttpClient();
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
+      await prepare(tester);
+      await openMenuTab(tester);
+      check(find.text(eg.initialSnapshot().realmName)).findsAny();
+      await tapRowAndAwaitPush(tester, find.byIcon(ZulipIcons.globe));
+      check(find.byType(KlokiOrganizationsPage)).findsOne();
     });
 
     testWidgets('starred messages', (tester) async {
@@ -647,6 +658,8 @@ void main () {
       await tester.tap(find.byIcon(ZulipIcons.menu));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400)); // entrance
+      await tester.ensureVisible(find.byIcon(ZulipIcons.arrow_left_right));
+      await tester.pump();
       await tester.tap(find.byIcon(ZulipIcons.arrow_left_right));
       await tester.pump();
       await tester.pump((topRoute as TransitionRoute).transitionDuration);

@@ -425,6 +425,21 @@ class GlobalSettingsStore extends ChangeNotifier {
     await _update(GlobalSettingsCompanion(legacyUpgradeState: Value(value)));
   }
 
+  /// The Kloki session (Kloki's auth token) Kloki Chat signed in with,
+  /// if any.
+  ///
+  /// Kloki's web sign-in hands it to the app, sealed
+  /// (see `openKlokiSession`), so the app can list the person's companies
+  /// and switch its chat between them without the browser.
+  /// It's Kloki's own login, valid for weeks:
+  /// cleared when Kloki refuses it, or when the last account is logged out.
+  String? get klokiSession => _data.klokiSession;
+
+  /// Set [klokiSession], persistently for future runs of the app.
+  Future<void> setKlokiSession(String? value) async {
+    await _update(GlobalSettingsCompanion(klokiSession: Value(value)));
+  }
+
   /// The user's choice of the given bool-valued setting, or our default for it.
   ///
   /// See also [setBool].

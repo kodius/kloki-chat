@@ -8,31 +8,55 @@ their accounts come from Kloki, and they sign in through it.
 
 ## The first screen
 
-`KlokiSignInPage` (in `lib/widgets/login.dart`) asks for the
-organization, starting with `kodius` (`kKlokiDefaultOrganization`
-in `lib/widgets/kloki.dart`).
-It takes the realm's slug, its host, or any link on it,
-such as the link in a guest's invitation;
-`parseKlokiOrganization` (in `lib/api/model/web_auth.dart`)
-turns that into the realm, and refuses anything
-not under `*.chat.kloki.app` or `*.chat.dev.kloki.app`
-before any request.
-Both buttons go to that realm:
+`KlokiSignInPage` (in `lib/widgets/login.dart`) asks for nothing:
 
-* **Sign in through Kloki**: fetches the server's settings,
-  finds the Kloki entry among its external authentication methods,
-  and opens it in the browser.
-  The browser comes back to the app with the API key,
-  as for any Zulip web sign-in.
-* **Guest sign-in**: opens the password form
-  on the same server, for guests the company invited
-  who have no Kloki account.
-  It's also how the App Store and Google Play reviewers sign in.
-* **Sign in to another server**: opens the stock Zulip
-  `AddAccountPage`, for any other Zulip server.
+* **Sign in through Kloki**: opens Kloki's
+  `https://kloki.app/app/auth/chat?kloki_chat_otp=<pad>`
+  (`kKlokiChatSignInUrl` in `lib/widgets/kloki.dart`,
+  `KlokiLinkSignIn.beginWebSignIn`) in the browser.
+  Kloki signs the person in if needed;
+  then its `/api/chat-app-handoff` asks boro for the token
+  of the company active in Kloki (`POST /api/chat/login-token`
+  without `realm`) and redirects to
+  `konvo://kloki-login?realm=…&token=…&session=…`:
+  Kloki GO's sign-in link (below), plus the Kloki session
+  (Kloki's own 30-day auth token), sealed with the pad.
+  The app opens the session (`openKlokiSession`
+  in `lib/api/model/web_auth.dart`; the web's `sealForApp`
+  seals it the same way), keeps it
+  (`GlobalSettingsStore.klokiSession`, cleared when Kloki refuses it
+  or the last account is logged out),
+  and signs in with the token as from Kloki GO.
+  A session in a link the app didn't ask for is ignored.
+* **Guest sign-in** and **Sign in to another server**: open
+  `AddAccountPage`, which asks for the organization,
+  shown with a fixed `.chat.kloki.app` after it.
+  It takes the realm's slug, its host, or any link on it,
+  such as the link in a guest's invitation;
+  `parseKlokiOrganization` (in `lib/api/model/web_auth.dart`)
+  turns that into the realm, and refuses anything
+  not under `*.chat.kloki.app` or `*.chat.dev.kloki.app`
+  before any request, so no other Zulip server can be added.
+  From the guest link it goes on to the password form,
+  for guests the company invited who have no Kloki account;
+  it's also how the App Store and Google Play reviewers sign in.
+  Otherwise it goes to the realm's `LoginPage`.
 
 If the server has no Kloki method,
-the app falls back to the password form.
+`LoginPage` falls back to the password form.
+
+## Switching between companies
+
+The main menu's **Organizations** (`KlokiOrganizationsPage`
+in `lib/widgets/kloki_organizations.dart`) lists the person's companies
+with the Kloki session (`GET https://api.kloki.app/api/users/profiles`;
+an empty list means just the one), the session's own marked.
+Picking another switches the session to that profile
+(`POST /api/users/switch-profile`), gets the chat token for it
+(`POST /api/chat/login-token`), and signs in as from Kloki GO's link:
+to the account already here for that realm, or a new one,
+without the browser.
+Without a session, the page offers signing in through Kloki.
 
 ## On the login page
 

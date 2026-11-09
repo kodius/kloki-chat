@@ -1523,4 +1523,33 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String get klokiLinkTryManually => 'Pokušaj ručno';
+
+  @override
+  String get klokiOrganizationsTitle => 'Organizacije';
+
+  @override
+  String get klokiOrganizationsSignInPrompt =>
+      'Prijavite se kroz Kloki da biste ovdje prelazili između chatova svojih tvrtki.';
+
+  @override
+  String get klokiOrganizationsOnlyOne => 'U Klokiju ste samo u jednoj tvrtki.';
+
+  @override
+  String get klokiOrganizationsLoadFailed => 'Tvrtke se nisu mogle učitati.';
+
+  @override
+  String get klokiOrganizationsRetry => 'Pokušaj ponovno';
+
+  @override
+  String klokiOrganizationNoChat(String company) {
+    return '$company nema chat u Klokiju.';
+  }
+
+  @override
+  String get klokiOrganizationSwitchFailedTitle => 'Prelazak nije uspio';
+
+  @override
+  String klokiOrganizationSwitchFailed(String company) {
+    return 'Prelazak na $company nije uspio. Pokušajte kasnije.';
+  }
 }

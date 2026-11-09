@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/core.dart';
+import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
@@ -87,8 +88,10 @@ void main() {
 
   group('AddAccountPage', () {
     late FakeApiConnection connection;
+    late TestNavigatorObserver testNavObserver;
     List<Route<dynamic>> pushedRoutes = [];
-    List<Route<dynamic>> poppedRoutes = [];
+
+    final realmUrl = Uri.parse('https://firma.chat.kloki.app');
 
     List<Route<dynamic>> takePushedRoutes() {
       final routes = pushedRoutes.toList();
@@ -96,37 +99,37 @@ void main() {
       return routes;
     }
 
-    Future<void> prepare(WidgetTester tester) async {
+    Future<void> prepare(WidgetTester tester, {String link = 'Sign in to another server'}) async {
       addTearDown(testBinding.reset);
 
       pushedRoutes = [];
-      poppedRoutes = [];
-      final testNavObserver = TestNavigatorObserver();
+      testNavObserver = TestNavigatorObserver();
       testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
-      testNavObserver.onReplaced = (route, prevRoute) {
-        poppedRoutes.add(prevRoute!);
-        pushedRoutes.add(route!);
-      };
+      testNavObserver.onReplaced = (route, prevRoute) => pushedRoutes.add(route!);
 
       await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
       await tester.pump();
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
       await tester.pump(const Duration(seconds: 2)); // entrance animation
-      await tester.ensureVisible(find.text('Sign in to another server'));
-      await tester.tap(find.text('Sign in to another server'));
+      await tester.ensureVisible(find.text(link));
+      await tester.tap(find.text(link));
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
       await testNavObserver.pumpPastTransition(tester);
-    }
 
-    Future<void> attempt(WidgetTester tester,
-        Uri realmUrl, Map<String, Object?> responseJson) async {
-      await tester.enterText(find.byType(TextField), realmUrl.toString());
       testBinding.globalStore.useCachedApiConnections = true;
       connection = testBinding.globalStore.apiConnection(
-        realmUrl: realmUrl,
-        zulipFeatureLevel: null);
-      connection.prepare(json: responseJson);
+        realmUrl: realmUrl, zulipFeatureLevel: null);
+    }
+
+    Future<void> attempt(WidgetTester tester, String text, {
+      Map<String, Object?>? json,
+      ZulipApiException? apiException,
+    }) async {
+      await tester.enterText(find.byType(TextField), text);
+      await tester.pump();
+      if (json != null || apiException != null) {
+        connection.prepare(json: json, apiException: apiException);
+      }
       await tester.tap(find.text('Continue'));
       await tester.pump(Duration.zero);
     }
@@ -134,24 +137,70 @@ void main() {
     testWidgets('happy path', (tester) async {
       await prepare(tester);
 
-      final serverSettings = eg.serverSettings();
-
-      await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+      final serverSettings = eg.serverSettings(realmUrl: realmUrl);
+      await tester.enterText(find.byType(TextField), 'firma');
+      await tester.pump();
+      check(find.text('.chat.kloki.app')).findsOne();
+      await attempt(tester, 'firma', json: serverSettings.toJson());
       checkNoDialog(tester);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        .url.equals(realmUrl.resolve('/api/v1/server_settings'));
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<LoginPage>()
-        .serverSettings.realmUrl.equals(serverSettings.realmUrl);
+        ..serverSettings.realmUrl.equals(realmUrl)
+        ..has((page) => page.klokiGuest, 'klokiGuest').isFalse();
+    });
+
+    testWidgets('guest sign-in from a pasted invitation link', (tester) async {
+      await prepare(tester, link: 'Guest sign-in');
+
+      await attempt(tester,
+        ' https://firma.chat.kloki.app/join/abcdefghijklmnopqrstuvwx/ ',
+        json: eg.serverSettings(realmUrl: realmUrl,
+          externalAuthenticationMethods: [klokiAuthMethod]).toJson());
+      check(connection.takeRequests()).single.isA<http.Request>()
+        .url.equals(realmUrl.resolve('/api/v1/server_settings'));
+      check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<LoginPage>()
+        ..serverSettings.realmUrl.equals(realmUrl)
+        ..has((page) => page.klokiGuest, 'klokiGuest').isTrue();
+      await testNavObserver.pumpPastTransition(tester);
+      check(findPasswordInput).findsOne();
+      check(find.text('Back to signing in through Kloki')).findsNothing();
+    });
+
+    testWidgets('no request for a server outside Kloki', (tester) async {
+      await prepare(tester);
+
+      await attempt(tester, 'chat.zulip.org');
+      check(find.textContaining('Enter the organization')).findsOne();
+      check(connection.takeRequests()).isEmpty();
+      check(takePushedRoutes()).isEmpty();
+
+      await tester.enterText(find.byType(TextField), 'firma');
+      await tester.pump();
+      check(find.textContaining('Enter the organization')).findsNothing();
+    });
+
+    testWidgets('organization not found', (tester) async {
+      await prepare(tester);
+
+      await attempt(tester, 'firma',
+        apiException: eg.apiBadRequest(message: 'Invalid subdomain'));
+      checkErrorDialog(tester,
+        expectedTitle: 'Organization not found',
+        expectedMessage: "There's no chat at $realmUrl. Check the organization's name.");
+      check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
 
     testWidgets('Server too old, well-formed response', (tester) async {
       await prepare(tester);
 
-      final serverSettings = eg.serverSettings(
+      final serverSettings = eg.serverSettings(realmUrl: realmUrl,
         zulipFeatureLevel: 1, zulipVersion: '3.0');
 
-      await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+      await attempt(tester, 'firma', json: serverSettings.toJson());
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
+        expectedMessage: '$realmUrl is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
@@ -159,17 +208,17 @@ void main() {
     testWidgets('Server too old, malformed response', (tester) async {
       await prepare(tester);
 
-      final serverSettings = eg.serverSettings(
+      final serverSettings = eg.serverSettings(realmUrl: realmUrl,
         zulipFeatureLevel: 1, zulipVersion: '3.0');
       final serverSettingsMalformedJson =
         serverSettings.toJson()..['push_notifications_enabled'] = 'abcd';
       check(() => GetServerSettingsResult.fromJson(serverSettingsMalformedJson))
         .throws<void>();
 
-      await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
+      await attempt(tester, 'firma', json: serverSettingsMalformedJson);
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
+        expectedMessage: '$realmUrl is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
@@ -177,7 +226,7 @@ void main() {
     testWidgets('Malformed response, server not too old', (tester) async {
       await prepare(tester);
 
-      final serverSettings = eg.serverSettings(
+      final serverSettings = eg.serverSettings(realmUrl: realmUrl,
         zulipVersion: eg.recentZulipVersion,
         zulipFeatureLevel: eg.recentZulipFeatureLevel);
       final serverSettingsMalformedJson =
@@ -185,35 +234,22 @@ void main() {
       check(() => GetServerSettingsResult.fromJson(serverSettingsMalformedJson))
         .throws<void>();
 
-      await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
+      await attempt(tester, 'firma', json: serverSettingsMalformedJson);
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: 'Failed to connect to server:\n${serverSettings.realmUrl}');
+        expectedMessage: 'Failed to connect to server:\n$realmUrl');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
-    });
-
-    testWidgets('help icon button launches the server-URL doc', (tester) async {
-      await prepare(tester);
-
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byTooltip(zulipLocalizations.loginRealmUrlHelpButton));
-      await tester.pump();
-
-      check(testBinding.takeLaunchUrlCalls()).deepEquals([(
-        url: Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url'),
-        mode: UrlLaunchMode.inAppBrowserView)]);
     });
 
     // TODO other errors
   });
 
   group('KlokiSignInPage', () {
-    late FakeApiConnection connection;
     late TestNavigatorObserver testNavObserver;
     late List<Route<dynamic>> pushedRoutes;
 
-    final realmUrl = Uri.parse('https://kodius.chat.kloki.app');
+    final realmUrl = Uri.parse('https://firma.chat.kloki.app');
     final serverSettings = eg.serverSettings(
       realmUrl: realmUrl,
       externalAuthenticationMethods: [klokiAuthMethod]);
@@ -235,40 +271,74 @@ void main() {
       await tester.pump(const Duration(seconds: 2)); // entrance animation
 
       testBinding.globalStore.useCachedApiConnections = true;
-      connection = testBinding.globalStore.apiConnection(
-        realmUrl: realmUrl, zulipFeatureLevel: null);
     }
 
-    testWidgets('sign in through Kloki: browser, then into the app', (tester) async {
-      await prepare(tester);
+    FakeApiConnection connectionFor(Uri realmUrl) => testBinding.globalStore
+      .apiConnection(realmUrl: realmUrl, zulipFeatureLevel: null);
+
+    const session = 'kloki.session.jwt-that-is-longer-than-one-sha256-block';
+
+    Future<void> signInThroughKloki(WidgetTester tester) async {
       LoginPage.debugOtpOverride = otp;
       addTearDown(() => LoginPage.debugOtpOverride = null);
-
-      connection.prepare(json: serverSettings.toJson());
+      addTearDown(KlokiLinkSignIn.debugReset);
+      await tester.ensureVisible(find.text('Sign in through Kloki'));
       await tester.tap(find.text('Sign in through Kloki'));
       await tester.pump(Duration.zero);
-      check(connection.takeRequests()).single.isA<http.Request>()
-        ..method.equals('GET')
-        ..url.equals(realmUrl.resolve('/api/v1/server_settings'));
-      final expectedUrl = realmUrl.resolve(klokiAuthMethod.loginUrl)
-        .replace(queryParameters: {'mobile_flow_otp': otp});
+    }
+
+    /// Kloki's web sign-in sends the browser back with this link.
+    Future<void> returnFromBrowser(WidgetTester tester, {String? sealedSession}) async {
+      final url = Uri(scheme: 'konvo', host: 'kloki-login', queryParameters: {
+        'realm': realmUrl.toString(),
+        'token': 'jwt',
+        'session': sealedSession ?? debugSealKlokiSession(session, otp),
+      });
+      final ByteData message = const JSONMethodCodec().encodeMethodCall(
+        MethodCall('pushRouteInformation', {'location': url.toString()}));
+      // Not awaited: signing in makes requests,
+      // which take the test clock moving.
+      // Moved without a frame, so the home page isn't built.
+      unawaited(tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/navigation', message, null));
+      await tester.binding.delayed(Duration.zero);
+      await tester.binding.delayed(Duration.zero);
+    }
+
+    void prepareSignIn(FakeApiConnection connection) {
+      connection.prepare(json: serverSettings.toJson());
+      connection.prepare(httpStatus: 302, headers: {'location': Uri(
+        scheme: 'zulip', host: 'login', queryParameters: {
+          'otp_encrypted_api_key': debugEncodeApiKey(eg.selfAccount.apiKey, otp),
+          'email': eg.selfAccount.email,
+          'user_id': eg.selfAccount.userId.toString(),
+          'realm': realmUrl.toString(),
+        }).toString()});
+    }
+
+    testWidgets('no organization input', (tester) async {
+      await prepare(tester);
+      check(find.byType(TextField)).findsNothing();
+    });
+
+    testWidgets('sign in through Kloki: browser, then the app keeps the session', (tester) async {
+      await prepare(tester);
+      final connection = connectionFor(realmUrl);
+
+      await signInThroughKloki(tester);
+      check(connection.takeRequests()).isEmpty();
+      final expectedUrl = kKlokiChatSignInUrl
+        .replace(queryParameters: {'kloki_chat_otp': otp});
       check(testBinding.takeLaunchUrlCalls())
         .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
       // No page in between; closing the browser leaves this page.
       check(pushedRoutes).isEmpty();
 
-      final url = Uri(scheme: 'zulip', host: 'login', queryParameters: {
-        'otp_encrypted_api_key': debugEncodeApiKey(eg.selfAccount.apiKey, otp),
-        'email': eg.selfAccount.email,
-        'user_id': eg.selfAccount.userId.toString(),
-        'realm': realmUrl.toString(),
-      });
-      final ByteData message = const JSONMethodCodec().encodeMethodCall(
-        MethodCall('pushRouteInformation', {'location': url.toString()}));
-      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
-        'flutter/navigation', message, null);
-
+      prepareSignIn(connection);
+      await returnFromBrowser(tester);
       check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
+      check(testBinding.globalStore.settings.klokiSession).equals(session);
+      check(connection.takeRequests()).length.equals(2);
       final account = testBinding.globalStore.accounts.single;
       check(account)
         ..realmUrl.equals(realmUrl)
@@ -278,113 +348,40 @@ void main() {
         ..page.isA<HomePage>();
     });
 
-    testWidgets('guest sign-in shows the password form', (tester) async {
+    testWidgets('no session from a link this app did not ask for', (tester) async {
+      await prepare(tester);
+      LoginPage.debugOtpOverride = otp;
+      addTearDown(() => LoginPage.debugOtpOverride = null);
+      final connection = connectionFor(realmUrl);
+
+      prepareSignIn(connection);
+      await returnFromBrowser(tester);
+      check(testBinding.takeCloseInAppWebViewCallCount()).equals(0);
+      check(testBinding.globalStore.settings.klokiSession).isNull();
+      check(testBinding.globalStore.accounts).length.equals(1);
+    });
+
+    testWidgets('a session sealed with another pad is not kept', (tester) async {
+      await prepare(tester);
+      final connection = connectionFor(realmUrl);
+
+      await signInThroughKloki(tester);
+      testBinding.takeLaunchUrlCalls();
+      prepareSignIn(connection);
+      await returnFromBrowser(tester,
+        sealedSession: debugSealKlokiSession(session, 'ab' * 32));
+      check(testBinding.globalStore.settings.klokiSession).not((it) => it.equals(session));
+      check(testBinding.globalStore.accounts).length.equals(1);
+    });
+
+    testWidgets('guest sign-in asks for the organization', (tester) async {
       await prepare(tester);
 
-      connection.prepare(json: serverSettings.toJson());
       await tester.ensureVisible(find.text('Guest sign-in'));
       await tester.tap(find.text('Guest sign-in'));
-      await tester.pump(Duration.zero);
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>();
-      await testNavObserver.pumpPastTransition(tester);
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>()
+        .has((page) => page.klokiGuest, 'klokiGuest').isTrue();
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
-      check(findPasswordInput).findsOne();
-      check(find.text('Back to signing in through Kloki')).findsNothing();
-    });
-
-    testWidgets('no Kloki sign-in when the server cannot be reached', (tester) async {
-      await prepare(tester);
-
-      connection.prepare(httpException: Exception('offline'));
-      await tester.ensureVisible(find.text('Sign in through Kloki'));
-      await tester.tap(find.text('Sign in through Kloki'));
-      await tester.pump(Duration.zero);
-      checkErrorDialog(tester,
-        expectedTitle: 'Could not connect',
-        expectedMessage: 'Failed to connect to server:\n$realmUrl');
-      check(pushedRoutes).single.isA<DialogRoute<void>>();
-      check(testBinding.takeLaunchUrlCalls()).isEmpty();
-    });
-
-    group('organization', () {
-      final firmaRealmUrl = Uri.parse('https://firma.chat.kloki.app');
-
-      FakeApiConnection firmaConnection() => testBinding.globalStore.apiConnection(
-        realmUrl: firmaRealmUrl, zulipFeatureLevel: null);
-
-      testWidgets('start with Kodius', (tester) async {
-        await prepare(tester);
-        check(find.widgetWithText(TextField, kKlokiDefaultOrganization)).findsOne();
-      });
-
-      testWidgets('sign in through Kloki to the organization typed in', (tester) async {
-        await prepare(tester);
-        LoginPage.debugOtpOverride = otp;
-        addTearDown(() => LoginPage.debugOtpOverride = null);
-        final connection = firmaConnection();
-
-        await tester.enterText(find.byType(TextField), 'firma');
-        connection.prepare(json: eg.serverSettings(realmUrl: firmaRealmUrl,
-          externalAuthenticationMethods: [klokiAuthMethod]).toJson());
-        await tester.ensureVisible(find.text('Sign in through Kloki'));
-        await tester.tap(find.text('Sign in through Kloki'));
-        await tester.pump(Duration.zero);
-        check(connection.takeRequests()).single.isA<http.Request>()
-          .url.equals(firmaRealmUrl.resolve('/api/v1/server_settings'));
-        final expectedUrl = firmaRealmUrl.resolve(klokiAuthMethod.loginUrl)
-          .replace(queryParameters: {'mobile_flow_otp': otp});
-        check(testBinding.takeLaunchUrlCalls())
-          .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
-      });
-
-      testWidgets('guest sign-in from a pasted invitation link', (tester) async {
-        await prepare(tester);
-        final connection = firmaConnection();
-
-        await tester.enterText(find.byType(TextField),
-          ' https://firma.chat.kloki.app/join/abcdefghijklmnopqrstuvwx/ ');
-        connection.prepare(json: eg.serverSettings(realmUrl: firmaRealmUrl,
-          externalAuthenticationMethods: [klokiAuthMethod]).toJson());
-        await tester.ensureVisible(find.text('Guest sign-in'));
-        await tester.tap(find.text('Guest sign-in'));
-        await tester.pump(Duration.zero);
-        check(connection.takeRequests()).single.isA<http.Request>()
-          .url.equals(firmaRealmUrl.resolve('/api/v1/server_settings'));
-        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>()
-          .serverSettings.realmUrl.equals(firmaRealmUrl);
-      });
-
-      testWidgets('organization not found', (tester) async {
-        await prepare(tester);
-        final connection = firmaConnection();
-
-        await tester.enterText(find.byType(TextField), 'firma');
-        connection.prepare(apiException: eg.apiBadRequest(message: 'Invalid subdomain'));
-        await tester.ensureVisible(find.text('Sign in through Kloki'));
-        await tester.tap(find.text('Sign in through Kloki'));
-        await tester.pump(Duration.zero);
-        checkErrorDialog(tester,
-          expectedTitle: 'Organization not found',
-          expectedMessage: "There's no chat at $firmaRealmUrl. Check the organization's name.");
-        check(testBinding.takeLaunchUrlCalls()).isEmpty();
-      });
-
-      testWidgets('no request for a server outside Kloki', (tester) async {
-        await prepare(tester);
-
-        await tester.enterText(find.byType(TextField), 'chat.zulip.org');
-        await tester.ensureVisible(find.text('Sign in through Kloki'));
-        await tester.tap(find.text('Sign in through Kloki'));
-        await tester.pump();
-        check(find.textContaining('Enter the organization')).findsOne();
-        check(connection.takeRequests()).isEmpty();
-        check(testBinding.takeLaunchUrlCalls()).isEmpty();
-        check(pushedRoutes).isEmpty();
-
-        await tester.enterText(find.byType(TextField), 'firma');
-        await tester.pump();
-        check(find.textContaining('Enter the organization')).findsNothing();
-      });
     });
 
     testWidgets('another server opens AddAccountPage', (tester) async {
@@ -392,8 +389,8 @@ void main() {
 
       await tester.ensureVisible(find.text('Sign in to another server'));
       await tester.tap(find.text('Sign in to another server'));
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
-      check(connection.takeRequests()).isEmpty();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<AddAccountPage>()
+        .has((page) => page.klokiGuest, 'klokiGuest').isFalse();
     });
   });
 

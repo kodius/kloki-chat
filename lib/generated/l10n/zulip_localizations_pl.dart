@@ -1517,4 +1517,34 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get klokiLinkTryManually => 'Sign in here';
+
+  @override
+  String get klokiOrganizationsTitle => 'Organizations';
+
+  @override
+  String get klokiOrganizationsSignInPrompt =>
+      'Sign in through Kloki to switch between your companies\' chats here.';
+
+  @override
+  String get klokiOrganizationsOnlyOne =>
+      'You\'re in just one company in Kloki.';
+
+  @override
+  String get klokiOrganizationsLoadFailed => 'Couldn\'t load your companies.';
+
+  @override
+  String get klokiOrganizationsRetry => 'Try again';
+
+  @override
+  String klokiOrganizationNoChat(String company) {
+    return '$company has no chat in Kloki.';
+  }
+
+  @override
+  String get klokiOrganizationSwitchFailedTitle => 'Couldn\'t switch';
+
+  @override
+  String klokiOrganizationSwitchFailed(String company) {
+    return 'Couldn\'t switch to $company. Try again later.';
+  }
 }

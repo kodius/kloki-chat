@@ -367,6 +367,38 @@ class ApiConnection {
       httpStatus == 200 ? null : json);
   }
 
+  /// Make a request to an API other than Zulip's (Kloki's),
+  /// without Zulip's auth, and read the response as JSON of any type.
+  ///
+  /// The status is returned with it, not checked;
+  /// a body that isn't JSON comes back as null.
+  /// Throws [NetworkException] if the request or response fails to arrive.
+  Future<({int httpStatus, Object? json})> sendForJson(String routeName,
+      http.BaseRequest request) async {
+    assert(_isOpen);
+    assert(debugLog("${request.method} ${request.url}"));
+    addUserAgent(request);
+
+    final http.StreamedResponse response;
+    try {
+      response = await _client.send(request);
+    } catch (e) {
+      _throwNetworkException(routeName, e);
+    }
+
+    Object? json;
+    try {
+      json = await jsonUtf8Decoder.bind(response.stream).single;
+    } on http.ClientException catch (e) {
+      _throwNetworkException(routeName, e);
+    } on IOException catch (e) {
+      _throwNetworkException(routeName, e);
+    } on FormatException {
+      // Not JSON; the caller decides from the status.
+    }
+    return (httpStatus: response.statusCode, json: json);
+  }
+
   /// Run [body] with a trigger that fires after [timeout],
   /// for constructing an [http.Abortable] request.
   ///

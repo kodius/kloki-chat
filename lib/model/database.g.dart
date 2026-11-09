@@ -68,6 +68,17 @@ class $GlobalSettingsTable extends GlobalSettings
       ).withConverter<LegacyUpgradeState?>(
         $GlobalSettingsTable.$converterlegacyUpgradeStaten,
       );
+  static const VerificationMeta _klokiSessionMeta = const VerificationMeta(
+    'klokiSession',
+  );
+  @override
+  late final GeneratedColumn<String> klokiSession = GeneratedColumn<String>(
+    'kloki_session',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     themeSetting,
@@ -75,12 +86,32 @@ class $GlobalSettingsTable extends GlobalSettings
     visitFirstUnread,
     markReadOnScroll,
     legacyUpgradeState,
+    klokiSession,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'global_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GlobalSettingsData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('kloki_session')) {
+      context.handle(
+        _klokiSessionMeta,
+        klokiSession.isAcceptableOrUnknown(
+          data['kloki_session']!,
+          _klokiSessionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
@@ -121,6 +152,10 @@ class $GlobalSettingsTable extends GlobalSettings
               data['${effectivePrefix}legacy_upgrade_state'],
             ),
           ),
+      klokiSession: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kloki_session'],
+      ),
     );
   }
 
@@ -178,12 +213,17 @@ class GlobalSettingsData extends DataClass
   final VisitFirstUnreadSetting? visitFirstUnread;
   final MarkReadOnScrollSetting? markReadOnScroll;
   final LegacyUpgradeState? legacyUpgradeState;
+
+  /// The Kloki session Kloki Chat signed in with, if any;
+  /// see [GlobalSettingsStore.klokiSession].
+  final String? klokiSession;
   const GlobalSettingsData({
     this.themeSetting,
     this.browserPreference,
     this.visitFirstUnread,
     this.markReadOnScroll,
     this.legacyUpgradeState,
+    this.klokiSession,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -221,6 +261,9 @@ class GlobalSettingsData extends DataClass
         ),
       );
     }
+    if (!nullToAbsent || klokiSession != null) {
+      map['kloki_session'] = Variable<String>(klokiSession);
+    }
     return map;
   }
 
@@ -241,6 +284,9 @@ class GlobalSettingsData extends DataClass
       legacyUpgradeState: legacyUpgradeState == null && nullToAbsent
           ? const Value.absent()
           : Value(legacyUpgradeState),
+      klokiSession: klokiSession == null && nullToAbsent
+          ? const Value.absent()
+          : Value(klokiSession),
     );
   }
 
@@ -261,6 +307,7 @@ class GlobalSettingsData extends DataClass
           .fromJson(serializer.fromJson<String?>(json['markReadOnScroll'])),
       legacyUpgradeState: $GlobalSettingsTable.$converterlegacyUpgradeStaten
           .fromJson(serializer.fromJson<String?>(json['legacyUpgradeState'])),
+      klokiSession: serializer.fromJson<String?>(json['klokiSession']),
     );
   }
   @override
@@ -290,6 +337,7 @@ class GlobalSettingsData extends DataClass
           legacyUpgradeState,
         ),
       ),
+      'klokiSession': serializer.toJson<String?>(klokiSession),
     };
   }
 
@@ -299,6 +347,7 @@ class GlobalSettingsData extends DataClass
     Value<VisitFirstUnreadSetting?> visitFirstUnread = const Value.absent(),
     Value<MarkReadOnScrollSetting?> markReadOnScroll = const Value.absent(),
     Value<LegacyUpgradeState?> legacyUpgradeState = const Value.absent(),
+    Value<String?> klokiSession = const Value.absent(),
   }) => GlobalSettingsData(
     themeSetting: themeSetting.present ? themeSetting.value : this.themeSetting,
     browserPreference: browserPreference.present
@@ -313,6 +362,7 @@ class GlobalSettingsData extends DataClass
     legacyUpgradeState: legacyUpgradeState.present
         ? legacyUpgradeState.value
         : this.legacyUpgradeState,
+    klokiSession: klokiSession.present ? klokiSession.value : this.klokiSession,
   );
   GlobalSettingsData copyWithCompanion(GlobalSettingsCompanion data) {
     return GlobalSettingsData(
@@ -331,6 +381,9 @@ class GlobalSettingsData extends DataClass
       legacyUpgradeState: data.legacyUpgradeState.present
           ? data.legacyUpgradeState.value
           : this.legacyUpgradeState,
+      klokiSession: data.klokiSession.present
+          ? data.klokiSession.value
+          : this.klokiSession,
     );
   }
 
@@ -341,7 +394,8 @@ class GlobalSettingsData extends DataClass
           ..write('browserPreference: $browserPreference, ')
           ..write('visitFirstUnread: $visitFirstUnread, ')
           ..write('markReadOnScroll: $markReadOnScroll, ')
-          ..write('legacyUpgradeState: $legacyUpgradeState')
+          ..write('legacyUpgradeState: $legacyUpgradeState, ')
+          ..write('klokiSession: $klokiSession')
           ..write(')'))
         .toString();
   }
@@ -353,6 +407,7 @@ class GlobalSettingsData extends DataClass
     visitFirstUnread,
     markReadOnScroll,
     legacyUpgradeState,
+    klokiSession,
   );
   @override
   bool operator ==(Object other) =>
@@ -362,7 +417,8 @@ class GlobalSettingsData extends DataClass
           other.browserPreference == this.browserPreference &&
           other.visitFirstUnread == this.visitFirstUnread &&
           other.markReadOnScroll == this.markReadOnScroll &&
-          other.legacyUpgradeState == this.legacyUpgradeState);
+          other.legacyUpgradeState == this.legacyUpgradeState &&
+          other.klokiSession == this.klokiSession);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
@@ -371,6 +427,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
   final Value<VisitFirstUnreadSetting?> visitFirstUnread;
   final Value<MarkReadOnScrollSetting?> markReadOnScroll;
   final Value<LegacyUpgradeState?> legacyUpgradeState;
+  final Value<String?> klokiSession;
   final Value<int> rowid;
   const GlobalSettingsCompanion({
     this.themeSetting = const Value.absent(),
@@ -378,6 +435,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
     this.legacyUpgradeState = const Value.absent(),
+    this.klokiSession = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GlobalSettingsCompanion.insert({
@@ -386,6 +444,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     this.visitFirstUnread = const Value.absent(),
     this.markReadOnScroll = const Value.absent(),
     this.legacyUpgradeState = const Value.absent(),
+    this.klokiSession = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<GlobalSettingsData> custom({
@@ -394,6 +453,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Expression<String>? visitFirstUnread,
     Expression<String>? markReadOnScroll,
     Expression<String>? legacyUpgradeState,
+    Expression<String>? klokiSession,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -403,6 +463,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       if (markReadOnScroll != null) 'mark_read_on_scroll': markReadOnScroll,
       if (legacyUpgradeState != null)
         'legacy_upgrade_state': legacyUpgradeState,
+      if (klokiSession != null) 'kloki_session': klokiSession,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -413,6 +474,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
     Value<VisitFirstUnreadSetting?>? visitFirstUnread,
     Value<MarkReadOnScrollSetting?>? markReadOnScroll,
     Value<LegacyUpgradeState?>? legacyUpgradeState,
+    Value<String?>? klokiSession,
     Value<int>? rowid,
   }) {
     return GlobalSettingsCompanion(
@@ -421,6 +483,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
       visitFirstUnread: visitFirstUnread ?? this.visitFirstUnread,
       markReadOnScroll: markReadOnScroll ?? this.markReadOnScroll,
       legacyUpgradeState: legacyUpgradeState ?? this.legacyUpgradeState,
+      klokiSession: klokiSession ?? this.klokiSession,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -461,6 +524,9 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
         ),
       );
     }
+    if (klokiSession.present) {
+      map['kloki_session'] = Variable<String>(klokiSession.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -475,6 +541,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingsData> {
           ..write('visitFirstUnread: $visitFirstUnread, ')
           ..write('markReadOnScroll: $markReadOnScroll, ')
           ..write('legacyUpgradeState: $legacyUpgradeState, ')
+          ..write('klokiSession: $klokiSession, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2136,6 +2203,7 @@ typedef $$GlobalSettingsTableCreateCompanionBuilder =
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
       Value<LegacyUpgradeState?> legacyUpgradeState,
+      Value<String?> klokiSession,
       Value<int> rowid,
     });
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
@@ -2145,6 +2213,7 @@ typedef $$GlobalSettingsTableUpdateCompanionBuilder =
       Value<VisitFirstUnreadSetting?> visitFirstUnread,
       Value<MarkReadOnScrollSetting?> markReadOnScroll,
       Value<LegacyUpgradeState?> legacyUpgradeState,
+      Value<String?> klokiSession,
       Value<int> rowid,
     });
 
@@ -2198,6 +2267,11 @@ class $$GlobalSettingsTableFilterComposer
     column: $table.legacyUpgradeState,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnFilters<String> get klokiSession => $composableBuilder(
+    column: $table.klokiSession,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$GlobalSettingsTableOrderingComposer
@@ -2231,6 +2305,11 @@ class $$GlobalSettingsTableOrderingComposer
 
   ColumnOrderings<String> get legacyUpgradeState => $composableBuilder(
     column: $table.legacyUpgradeState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get klokiSession => $composableBuilder(
+    column: $table.klokiSession,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2271,6 +2350,11 @@ class $$GlobalSettingsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<LegacyUpgradeState?, String>
   get legacyUpgradeState => $composableBuilder(
     column: $table.legacyUpgradeState,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get klokiSession => $composableBuilder(
+    column: $table.klokiSession,
     builder: (column) => column,
   );
 }
@@ -2321,6 +2405,7 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<LegacyUpgradeState?> legacyUpgradeState =
                     const Value.absent(),
+                Value<String?> klokiSession = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion(
                 themeSetting: themeSetting,
@@ -2328,6 +2413,7 @@ class $$GlobalSettingsTableTableManager
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
                 legacyUpgradeState: legacyUpgradeState,
+                klokiSession: klokiSession,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2341,6 +2427,7 @@ class $$GlobalSettingsTableTableManager
                     const Value.absent(),
                 Value<LegacyUpgradeState?> legacyUpgradeState =
                     const Value.absent(),
+                Value<String?> klokiSession = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GlobalSettingsCompanion.insert(
                 themeSetting: themeSetting,
@@ -2348,6 +2435,7 @@ class $$GlobalSettingsTableTableManager
                 visitFirstUnread: visitFirstUnread,
                 markReadOnScroll: markReadOnScroll,
                 legacyUpgradeState: legacyUpgradeState,
+                klokiSession: klokiSession,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -40,6 +40,11 @@ class GlobalSettings extends Table {
   Column<String> get legacyUpgradeState => textEnum<LegacyUpgradeState>()
     .nullable()();
 
+  /// The Kloki session Kloki Chat signed in with, if any;
+  /// see [GlobalSettingsStore.klokiSession].
+  Column<String> get klokiSession => text()
+    .nullable()();
+
   // If adding a new column to this table, consider whether [BoolGlobalSettings]
   // or [IntGlobalSettings] can do the job instead (by adding a value to the
   // [BoolGlobalSetting] or [IntGlobalSetting] enum).
@@ -230,7 +235,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Fix resulting analyzer errors; in particular,
   //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 16; // See note.
+  static const int latestSchemaVersion = 17; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -340,6 +345,9 @@ class AppDatabase extends _$AppDatabase {
     },
     from15To16: (m, schema) async {
       await m.addColumn(schema.accounts, schema.accounts.possibleLegacyPushToken);
+    },
+    from16To17: (m, schema) async {
+      await m.addColumn(schema.globalSettings, schema.globalSettings.klokiSession);
     },
   );
 

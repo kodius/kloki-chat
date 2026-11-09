@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:checks/checks.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
@@ -58,6 +60,70 @@ void main() {
         await check(postKlokiJwtLogin(connection,
           token: 'jwt-token', mobileFlowOtp: otp))
           .throws<MalformedServerResponseException>();
+      });
+    });
+  });
+
+  group('Kloki API', () {
+    const session = 'kloki-session';
+
+    test('getKlokiProfiles', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(body: jsonEncode([
+          {'id': '7', 'company_name': 'Kodius', 'company_id': '1'},
+          {'id': '9', 'company_name': 'Firma', 'company_id': '2'},
+        ]));
+        final result = await getKlokiProfiles(connection, session: session);
+        check(result.map((p) => (p.userId, p.companyName)))
+          .deepEquals([('7', 'Kodius'), ('9', 'Firma')]);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/users/profiles')
+          ..headers['Authorization'].equals('Bearer $session');
+      });
+    });
+
+    test('switchKlokiProfile', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {'auth_token': 'profile-session', 'id': 9});
+        final result = await switchKlokiProfile(connection,
+          session: session, userId: '9');
+        check(result).equals('profile-session');
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/users/switch-profile')
+          ..headers['Authorization'].equals('Bearer $session')
+          ..body.equals(jsonEncode({'user_id': '9'}));
+      });
+    });
+
+    test('postKlokiChatLoginToken', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {
+          'token': 'jwt', 'login_url': 'https://firma.chat.kloki.app/accounts/login/jwt/',
+          'realm_url': 'https://firma.chat.kloki.app', 'next': '/'});
+        final result = await postKlokiChatLoginToken(connection, session: session);
+        check(result.token).equals('jwt');
+        check(result.realmUrl).equals(Uri.parse('https://firma.chat.kloki.app'));
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/chat/login-token');
+      });
+    });
+
+    test('refusal, with Kloki\'s error code', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(httpStatus: 403, json: {'error_code': 'chat_not_connected'});
+        await check(postKlokiChatLoginToken(connection, session: session))
+          .throws<KlokiApiException>((it) => it
+            ..has((e) => e.httpStatus, 'httpStatus').equals(403)
+            ..has((e) => e.code, 'code').equals('chat_not_connected')
+            ..has((e) => e.sessionRefused, 'sessionRefused').isFalse());
+
+        connection.prepare(httpStatus: 401, json: {'message': 'Unauthorized'});
+        await check(getKlokiProfiles(connection, session: session))
+          .throws<KlokiApiException>((it) => it
+            .has((e) => e.sessionRefused, 'sessionRefused').isTrue());
       });
     });
   });

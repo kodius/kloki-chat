@@ -30,6 +30,7 @@ import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
 import 'kloki.dart';
+import 'kloki_organizations.dart';
 import 'user.dart';
 
 enum _HomePageTab {
@@ -607,6 +608,7 @@ class _MenuPageBody extends StatelessWidget {
         const SizedBox(height: 16),
         KlokiStaggered.at(begin: 0.1, child: _MenuPageCard(children: [
           row(const _SettingsButton()),
+          row(const _KlokiOrganizationsButton()),
           row(const _SwitchAccountButton()),
           row(const _AboutZulipButton()),
         ])),
@@ -671,6 +673,35 @@ class _MenuPageRow extends StatelessWidget {
           Icon(ZulipIcons.chevron_right, size: 18,
             color: designVariables.loginOrDividerText),
         ])));
+  }
+}
+
+/// Switch the chat between the person's companies in Kloki.
+class _KlokiOrganizationsButton extends MenuButton {
+  const _KlokiOrganizationsButton();
+
+  @override
+  IconData get icon => ZulipIcons.globe;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.klokiOrganizationsTitle;
+  }
+
+  @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 140),
+      child: Text(store.realmName,
+        maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 15,
+          color: DesignVariables.of(context).loginOrDividerText)));
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    Navigator.push(context, KlokiOrganizationsPage.buildRoute(context));
   }
 }
 

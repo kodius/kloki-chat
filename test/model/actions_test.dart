@@ -137,6 +137,23 @@ void main() {
       check(connection.isOpen).isFalse();
     }));
 
+    test('drop the Kloki session with the last account', () => awaitFakeAsync((async) async {
+      await prepare();
+      final otherAccount = eg.account(user: eg.otherUser);
+      await testBinding.globalStore.add(otherAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setKlokiSession('kloki-session');
+
+      final future1 = logOutAccount(testBinding.globalStore, otherAccount.id);
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      await future1;
+      check(testBinding.globalStore.settings.klokiSession).equals('kloki-session');
+
+      final future2 = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      await future2;
+      check(testBinding.globalStore.settings.klokiSession).isNull();
+    }));
+
     test('unregister token, if possibleLegacyPushToken', () => awaitFakeAsync((async) async {
       await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);

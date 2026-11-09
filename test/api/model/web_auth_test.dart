@@ -107,6 +107,24 @@ void main() {
         .throws<FormatException>();
     });
 
+    test('session, sealed, from Kloki\'s web sign-in', () {
+      check(KlokiLoginLink.parse(link()).sealedSession).isNull();
+      final url = link().replace(queryParameters: {
+        ...link().queryParameters, 'session': 'abcd'});
+      check(KlokiLoginLink.parse(url).sealedSession).equals('abcd');
+    });
+
+    test('forRealm', () {
+      check(KlokiLoginLink.forRealm(
+          realm: Uri.parse('https://Firma.chat.kloki.app/'), token: 'jwt'))
+        ..realm.equals(Uri.parse('https://firma.chat.kloki.app'))
+        ..token.equals('jwt');
+      check(() => KlokiLoginLink.forRealm(
+        realm: Uri.parse('https://chat.zulip.org'), token: 'jwt')).throws<FormatException>();
+      check(() => KlokiLoginLink.forRealm(
+        realm: Uri.parse('https://firma.chat.kloki.app'), token: '')).throws<FormatException>();
+    });
+
     test('allowedRealmOf with a bad token', () {
       check(KlokiLoginLink.allowedRealmOf(link(token: null)))
         .equals(Uri.parse('https://firma.chat.kloki.app'));
@@ -153,6 +171,28 @@ void main() {
       ]) {
         check(because: input, parseKlokiOrganization(input)).isNull();
       }
+    });
+  });
+
+  group('openKlokiSession', () {
+    const otp = '186f6d085a5621ebaf1ccfc05033e8acba57dae03f061705ac1e58c402c30a31';
+    const session = 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo3fQ.sig-longer-than-one-block';
+
+    test('opens what Kloki\'s web sign-in seals', () {
+      // The same vector as `sealForApp`'s test in Kloki's web app
+      // (apps/users/__tests__/chat-app-handoff.test.ts).
+      check(openKlokiSession(
+        'd326136e9a315696b41dbafd447da312102f1736a48da88dbb98459f55dde1f3'
+        '0dd578b5ac180258241a15941bde6029907a5c668baf8d0209d75feb2681f8580e',
+        otp)).equals(session);
+      check(debugSealKlokiSession(session, otp)).equals(
+        'd326136e9a315696b41dbafd447da312102f1736a48da88dbb98459f55dde1f3'
+        '0dd578b5ac180258241a15941bde6029907a5c668baf8d0209d75feb2681f8580e');
+    });
+
+    test('throws for what isn\'t hex', () {
+      check(() => openKlokiSession('zz', otp)).throws<FormatException>();
+      check(() => openKlokiSession('abcd', 'not hex')).throws<FormatException>();
     });
   });
 

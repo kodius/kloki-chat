@@ -21,6 +21,11 @@ Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
   }
 
   await globalStore.removeAccount(accountId);
+
+  // With no chat account left, nothing here stands for the Kloki login.
+  if (globalStore.accounts.isEmpty && globalStore.settings.klokiSession != null) {
+    await globalStore.settings.setKlokiSession(null);
+  }
 }
 
 /// Tell the server this (account on this) device is going away,

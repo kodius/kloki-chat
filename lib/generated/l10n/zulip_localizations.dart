@@ -2617,6 +2617,54 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Sign in here'**
   String get klokiLinkTryManually;
+
+  /// Title of the page, and label of the menu item, for switching the chat between the person's companies in Kloki.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizations'**
+  String get klokiOrganizationsTitle;
+
+  /// Shown on the organizations page before the app has a Kloki session.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in through Kloki to switch between your companies\' chats here.'**
+  String get klokiOrganizationsSignInPrompt;
+
+  /// Shown on the organizations page when the person has only one company.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in just one company in Kloki.'**
+  String get klokiOrganizationsOnlyOne;
+
+  /// Shown on the organizations page when the list of companies couldn't be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your companies.'**
+  String get klokiOrganizationsLoadFailed;
+
+  /// Button to load the list of companies again.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get klokiOrganizationsRetry;
+
+  /// Error when switching to a company without a chat.
+  ///
+  /// In en, this message translates to:
+  /// **'{company} has no chat in Kloki.'**
+  String klokiOrganizationNoChat(String company);
+
+  /// Title of the error when switching to another company fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t switch'**
+  String get klokiOrganizationSwitchFailedTitle;
+
+  /// Error when switching to another company fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t switch to {company}. Try again later.'**
+  String klokiOrganizationSwitchFailed(String company);
 }
 
 class _ZulipLocalizationsDelegate

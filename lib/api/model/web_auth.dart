@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 /// The authentication information contained in the zulip:// redirect URL.
@@ -70,11 +71,18 @@ class WebAuthPayload {
 ///
 /// The token is the 60-second JWT Kloki issues for one realm and one person.
 /// The app posts it to the realm itself; see `postKlokiJwtLogin`.
+///
+/// From Kloki's web sign-in, which Kloki Chat starts,
+/// the link also carries the Kloki session, sealed
+/// with the app's one-time pad; see [openKlokiSession].
 class KlokiLoginLink {
   final Uri realm;
   final String token;
 
-  KlokiLoginLink._({required this.realm, required this.token});
+  /// The Kloki session, sealed; see [openKlokiSession].
+  final String? sealedSession;
+
+  KlokiLoginLink._({required this.realm, required this.token, this.sealedSession});
 
   /// The token's `email` claim, if it can be read.
   ///
@@ -131,6 +139,16 @@ class KlokiLoginLink {
     return Uri(scheme: 'https', host: host);
   }
 
+  /// A sign-in to [realm] with [token], as from Kloki's API
+  /// (see `postKlokiChatLoginToken`).
+  ///
+  /// Throws [FormatException] if [realm] isn't a Kloki realm.
+  factory KlokiLoginLink.forRealm({required Uri realm, required String token}) {
+    final allowed = allowedRealm(realm);
+    if (allowed == null || token.isEmpty) throw const FormatException();
+    return KlokiLoginLink._(realm: allowed, token: token);
+  }
+
   /// Throws [FormatException] if [url] isn't a sign-in link
   /// to an allowed realm, with a token.
   factory KlokiLoginLink.parse(Uri url) {
@@ -140,7 +158,8 @@ class KlokiLoginLink {
     if (realm == null || token == null || token.isEmpty) {
       throw const FormatException();
     }
-    return KlokiLoginLink._(realm: realm, token: token);
+    return KlokiLoginLink._(realm: realm, token: token,
+      sealedSession: url.queryParameters['session']);
   }
 }
 
@@ -163,11 +182,57 @@ Uri? parseKlokiOrganization(String input) {
 /// A realm subdomain: lowercase letters, digits, inner hyphens.
 final _klokiRealmSubdomain = RegExp(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$');
 
+/// The Kloki session in [sealed], as Kloki's web sign-in seals it
+/// with the one-time pad [otp] the app sent.
+///
+/// Sealed is hex: the session's UTF-8 bytes, XOR the keystream
+/// SHA-256(pad ‖ block index as 4 bytes, big-endian), block after block.
+/// The same as `sealForApp` in Kloki's web app
+/// (apps/users/features/chat/helpers/app-handoff.ts).
+///
+/// Throws [FormatException] if either isn't hex, or the result isn't UTF-8.
+String openKlokiSession(String sealed, String otp) {
+  final List<int> sealedBytes;
+  final List<int> pad;
+  try {
+    sealedBytes = hex.decode(sealed);
+    pad = hex.decode(otp);
+  } on Object {
+    throw const FormatException();
+  }
+  final out = Uint8List(sealedBytes.length);
+  for (var block = 0; block * 32 < sealedBytes.length; block++) {
+    final index = ByteData(4)..setUint32(0, block);
+    final stream = sha256.convert([...pad, ...index.buffer.asUint8List()]).bytes;
+    for (var i = 0; i < 32 && block * 32 + i < sealedBytes.length; i++) {
+      out[block * 32 + i] = sealedBytes[block * 32 + i] ^ stream[i];
+    }
+  }
+  return utf8.decode(out);
+}
+
 String generateOtp() {
   final rand = Random.secure();
   final Uint8List bytes = Uint8List.fromList(
     List.generate(32, (_) => rand.nextInt(256)));
   return hex.encode(bytes);
+}
+
+/// For tests, seal [session] as Kloki's web sign-in does;
+/// see [openKlokiSession].
+@visibleForTesting
+String debugSealKlokiSession(String session, String otp) {
+  final data = utf8.encode(session);
+  final pad = hex.decode(otp);
+  final out = Uint8List(data.length);
+  for (var block = 0; block * 32 < data.length; block++) {
+    final index = ByteData(4)..setUint32(0, block);
+    final stream = sha256.convert([...pad, ...index.buffer.asUint8List()]).bytes;
+    for (var i = 0; i < 32 && block * 32 + i < data.length; i++) {
+      out[block * 32 + i] = data[block * 32 + i] ^ stream[i];
+    }
+  }
+  return hex.encode(out);
 }
 
 /// For tests, create an OTP-encrypted API key.
