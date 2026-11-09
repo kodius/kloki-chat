@@ -493,6 +493,17 @@
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
+  "errorLoginRealmNotFoundTitle": "Organization not found",
+  "@errorLoginRealmNotFoundTitle": {
+    "description": "Error title when the server has no organization at the address entered."
+  },
+  "errorLoginRealmNotFound": "There's no chat at {url}. Check the organization's name.",
+  "@errorLoginRealmNotFound": {
+    "description": "Error message when the server has no organization at the address entered.",
+    "placeholders": {
+      "url": {"type": "String", "example": "https://company.chat.kloki.app"}
+    }
+  },
   "errorMessageDoesNotSeemToExist": "That message does not seem to exist.",
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."
@@ -1752,6 +1763,18 @@
   "klokiOtherServer": "Sign in to another server",
   "@klokiOtherServer": {
     "description": "Link to entering the URL of a chat server other than Kloki's."
+  },
+  "klokiOrganizationLabel": "Organization",
+  "@klokiOrganizationLabel": {
+    "description": "Label of the input for the organization (the company's chat) to sign in to, through Kloki or as a guest."
+  },
+  "klokiOrganizationHint": "company",
+  "@klokiOrganizationHint": {
+    "description": "Placeholder in the organization input: an example name of a company's chat. Lowercase, no spaces."
+  },
+  "klokiOrganizationInvalid": "Enter the organization's name from its chat address (company in company.chat.kloki.app), or paste a link from the chat.",
+  "@klokiOrganizationInvalid": {
+    "description": "Error under the organization input when it names no Kloki chat."
   },
   "klokiWelcomeTitle": "Your team's chat",
   "@klokiWelcomeTitle": {

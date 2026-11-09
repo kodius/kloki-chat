@@ -844,6 +844,18 @@ abstract class ZulipLocalizations {
   /// **'Could not connect'**
   String get errorCouldNotConnectTitle;
 
+  /// Error title when the server has no organization at the address entered.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization not found'**
+  String get errorLoginRealmNotFoundTitle;
+
+  /// Error message when the server has no organization at the address entered.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no chat at {url}. Check the organization\'s name.'**
+  String errorLoginRealmNotFound(String url);
+
   /// Error message when loading a message that does not exist.
   ///
   /// In en, this message translates to:
@@ -2551,6 +2563,24 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to another server'**
   String get klokiOtherServer;
+
+  /// Label of the input for the organization (the company's chat) to sign in to, through Kloki or as a guest.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get klokiOrganizationLabel;
+
+  /// Placeholder in the organization input: an example name of a company's chat. Lowercase, no spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'company'**
+  String get klokiOrganizationHint;
+
+  /// Error under the organization input when it names no Kloki chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the organization\'s name from its chat address (company in company.chat.kloki.app), or paste a link from the chat.'**
+  String get klokiOrganizationInvalid;
 
   /// Title of the welcome page, before signing in through Kloki.
   ///

@@ -1,14 +1,23 @@
 # Signing in with Kloki
 
-Kloki Chat's chat runs on a Zulip server at
-`https://kodius.chat.kloki.app` (see `kKlokiChatRealmUrl`
-in `lib/widgets/kloki.dart`).
+Kloki's chat runs on a Zulip server
+with one realm per company, at `https://<slug>.chat.kloki.app`
+(dev `https://<slug>.chat.dev.kloki.app`).
 People don't have a chat password:
 their accounts come from Kloki, and they sign in through it.
 
 ## The first screen
 
-`KlokiSignInPage` (in `lib/widgets/login.dart`) offers:
+`KlokiSignInPage` (in `lib/widgets/login.dart`) asks for the
+organization, starting with `kodius` (`kKlokiDefaultOrganization`
+in `lib/widgets/kloki.dart`).
+It takes the realm's slug, its host, or any link on it,
+such as the link in a guest's invitation;
+`parseKlokiOrganization` (in `lib/api/model/web_auth.dart`)
+turns that into the realm, and refuses anything
+not under `*.chat.kloki.app` or `*.chat.dev.kloki.app`
+before any request.
+Both buttons go to that realm:
 
 * **Sign in through Kloki**: fetches the server's settings,
   finds the Kloki entry among its external authentication methods,

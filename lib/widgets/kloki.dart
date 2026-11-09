@@ -7,8 +7,9 @@ import '../model/settings.dart';
 import 'store.dart';
 import 'theme.dart';
 
-/// The chat realm Konvo signs in to through Kloki by default.
-final kKlokiChatRealmUrl = Uri.parse('https://kodius.chat.kloki.app');
+/// The organization the sign-in page starts with,
+/// as typed in its organization input.
+const kKlokiDefaultOrganization = 'kodius';
 
 /// The [ExternalAuthenticationMethod.name] of the Kloki sign-in
 /// on chat.kloki.app realms.

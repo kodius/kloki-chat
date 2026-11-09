@@ -111,8 +111,14 @@ class KlokiLoginLink {
     final realmStr = url.queryParameters['realm'];
     if (realmStr == null) return null;
     final realm = Uri.tryParse(realmStr);
-    if (realm == null
-        || realm.scheme != 'https'
+    if (realm == null) return null;
+    return allowedRealm(realm);
+  }
+
+  /// [realm] as a URL with only scheme and host,
+  /// if it is a Kloki realm; else null.
+  static Uri? allowedRealm(Uri realm) {
+    if (realm.scheme != 'https'
         || realm.userInfo.isNotEmpty
         || realm.hasPort) {
       return null;
@@ -137,6 +143,25 @@ class KlokiLoginLink {
     return KlokiLoginLink._(realm: realm, token: token);
   }
 }
+
+/// The Kloki realm for what someone typed as their organization:
+/// the realm's subdomain (`firma` for `https://firma.chat.kloki.app`),
+/// its host, or any URL on it, such as a link from an invitation.
+///
+/// Null if the input names no realm under
+/// [KlokiLoginLink.allowedRealmHostSuffixes].
+Uri? parseKlokiOrganization(String input) {
+  final text = input.trim().toLowerCase();
+  if (_klokiRealmSubdomain.hasMatch(text)) {
+    return Uri(scheme: 'https', host: '$text.chat.kloki.app');
+  }
+  final url = Uri.tryParse(text.contains('://') ? text : 'https://$text');
+  if (url == null) return null;
+  return KlokiLoginLink.allowedRealm(url);
+}
+
+/// A realm subdomain: lowercase letters, digits, inner hyphens.
+final _klokiRealmSubdomain = RegExp(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$');
 
 String generateOtp() {
   final rand = Random.secure();

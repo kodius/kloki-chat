@@ -428,6 +428,14 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get errorCouldNotConnectTitle => 'Povezivanje nije uspjelo';
 
   @override
+  String get errorLoginRealmNotFoundTitle => 'Organizacija ne postoji';
+
+  @override
+  String errorLoginRealmNotFound(String url) {
+    return 'Na $url nema chata. Provjerite naziv organizacije.';
+  }
+
+  @override
   String get errorMessageDoesNotSeemToExist =>
       'Čini se da ta poruka ne postoji.';
 
@@ -1485,6 +1493,16 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String get klokiOtherServer => 'Prijava na drugi server';
+
+  @override
+  String get klokiOrganizationLabel => 'Organizacija';
+
+  @override
+  String get klokiOrganizationHint => 'tvrtka';
+
+  @override
+  String get klokiOrganizationInvalid =>
+      'Upišite naziv organizacije iz adrese chata (tvrtka u tvrtka.chat.kloki.app) ili zalijepite poveznicu iz chata.';
 
   @override
   String get klokiWelcomeTitle => 'Chat cijelog tima';

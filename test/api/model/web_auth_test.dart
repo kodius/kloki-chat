@@ -113,6 +113,49 @@ void main() {
     });
   });
 
+  group('parseKlokiOrganization', () {
+    final firma = Uri.parse('https://firma.chat.kloki.app');
+
+    test('subdomain', () {
+      check(parseKlokiOrganization('firma')).equals(firma);
+      check(parseKlokiOrganization(' Firma-2 ')).equals(
+        Uri.parse('https://firma-2.chat.kloki.app'));
+    });
+
+    test('host or URL, reduced to the realm', () {
+      for (final input in [
+        'firma.chat.kloki.app',
+        'https://firma.chat.kloki.app',
+        'https://Firma.chat.kloki.app/join/abcdefghijklmnopqrstuvwx/',
+        'https://firma.chat.kloki.app/#narrow/channel/1-general',
+      ]) {
+        check(because: input, parseKlokiOrganization(input)).equals(firma);
+      }
+    });
+
+    test('dev realm', () {
+      check(parseKlokiOrganization('firma.chat.dev.kloki.app'))
+        .equals(Uri.parse('https://firma.chat.dev.kloki.app'));
+    });
+
+    test('null for no Kloki realm', () {
+      for (final input in [
+        '',
+        '-firma',
+        'firma-',
+        'fir ma',
+        'chat.zulip.org',
+        'chat.kloki.app',
+        'kloki.app',
+        'http://firma.chat.kloki.app',
+        'firma.chat.kloki.app.evil.example',
+        'https://firma.chat.kloki.app:8443',
+      ]) {
+        check(because: input, parseKlokiOrganization(input)).isNull();
+      }
+    });
+  });
+
   group('generateOtp', () {
     test('smoke, and check all 256 byte values are used', () {
       // This is a probabilistic test.  We've chosen `n` so that when the test

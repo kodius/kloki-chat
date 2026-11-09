@@ -213,8 +213,9 @@ void main() {
     late TestNavigatorObserver testNavObserver;
     late List<Route<dynamic>> pushedRoutes;
 
+    final realmUrl = Uri.parse('https://kodius.chat.kloki.app');
     final serverSettings = eg.serverSettings(
-      realmUrl: kKlokiChatRealmUrl,
+      realmUrl: realmUrl,
       externalAuthenticationMethods: [klokiAuthMethod]);
 
     Future<void> prepare(WidgetTester tester) async {
@@ -235,7 +236,7 @@ void main() {
 
       testBinding.globalStore.useCachedApiConnections = true;
       connection = testBinding.globalStore.apiConnection(
-        realmUrl: kKlokiChatRealmUrl, zulipFeatureLevel: null);
+        realmUrl: realmUrl, zulipFeatureLevel: null);
     }
 
     testWidgets('sign in through Kloki: browser, then into the app', (tester) async {
@@ -248,8 +249,8 @@ void main() {
       await tester.pump(Duration.zero);
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('GET')
-        ..url.equals(kKlokiChatRealmUrl.resolve('/api/v1/server_settings'));
-      final expectedUrl = kKlokiChatRealmUrl.resolve(klokiAuthMethod.loginUrl)
+        ..url.equals(realmUrl.resolve('/api/v1/server_settings'));
+      final expectedUrl = realmUrl.resolve(klokiAuthMethod.loginUrl)
         .replace(queryParameters: {'mobile_flow_otp': otp});
       check(testBinding.takeLaunchUrlCalls())
         .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
@@ -260,7 +261,7 @@ void main() {
         'otp_encrypted_api_key': debugEncodeApiKey(eg.selfAccount.apiKey, otp),
         'email': eg.selfAccount.email,
         'user_id': eg.selfAccount.userId.toString(),
-        'realm': kKlokiChatRealmUrl.toString(),
+        'realm': realmUrl.toString(),
       });
       final ByteData message = const JSONMethodCodec().encodeMethodCall(
         MethodCall('pushRouteInformation', {'location': url.toString()}));
@@ -270,7 +271,7 @@ void main() {
       check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
       final account = testBinding.globalStore.accounts.single;
       check(account)
-        ..realmUrl.equals(kKlokiChatRealmUrl)
+        ..realmUrl.equals(realmUrl)
         ..email.equals(eg.selfAccount.email);
       check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
@@ -300,9 +301,90 @@ void main() {
       await tester.pump(Duration.zero);
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: 'Failed to connect to server:\n$kKlokiChatRealmUrl');
+        expectedMessage: 'Failed to connect to server:\n$realmUrl');
       check(pushedRoutes).single.isA<DialogRoute<void>>();
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
+    });
+
+    group('organization', () {
+      final firmaRealmUrl = Uri.parse('https://firma.chat.kloki.app');
+
+      FakeApiConnection firmaConnection() => testBinding.globalStore.apiConnection(
+        realmUrl: firmaRealmUrl, zulipFeatureLevel: null);
+
+      testWidgets('start with Kodius', (tester) async {
+        await prepare(tester);
+        check(find.widgetWithText(TextField, kKlokiDefaultOrganization)).findsOne();
+      });
+
+      testWidgets('sign in through Kloki to the organization typed in', (tester) async {
+        await prepare(tester);
+        LoginPage.debugOtpOverride = otp;
+        addTearDown(() => LoginPage.debugOtpOverride = null);
+        final connection = firmaConnection();
+
+        await tester.enterText(find.byType(TextField), 'firma');
+        connection.prepare(json: eg.serverSettings(realmUrl: firmaRealmUrl,
+          externalAuthenticationMethods: [klokiAuthMethod]).toJson());
+        await tester.ensureVisible(find.text('Sign in through Kloki'));
+        await tester.tap(find.text('Sign in through Kloki'));
+        await tester.pump(Duration.zero);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          .url.equals(firmaRealmUrl.resolve('/api/v1/server_settings'));
+        final expectedUrl = firmaRealmUrl.resolve(klokiAuthMethod.loginUrl)
+          .replace(queryParameters: {'mobile_flow_otp': otp});
+        check(testBinding.takeLaunchUrlCalls())
+          .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
+      });
+
+      testWidgets('guest sign-in from a pasted invitation link', (tester) async {
+        await prepare(tester);
+        final connection = firmaConnection();
+
+        await tester.enterText(find.byType(TextField),
+          ' https://firma.chat.kloki.app/join/abcdefghijklmnopqrstuvwx/ ');
+        connection.prepare(json: eg.serverSettings(realmUrl: firmaRealmUrl,
+          externalAuthenticationMethods: [klokiAuthMethod]).toJson());
+        await tester.ensureVisible(find.text('Guest sign-in'));
+        await tester.tap(find.text('Guest sign-in'));
+        await tester.pump(Duration.zero);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          .url.equals(firmaRealmUrl.resolve('/api/v1/server_settings'));
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>()
+          .serverSettings.realmUrl.equals(firmaRealmUrl);
+      });
+
+      testWidgets('organization not found', (tester) async {
+        await prepare(tester);
+        final connection = firmaConnection();
+
+        await tester.enterText(find.byType(TextField), 'firma');
+        connection.prepare(apiException: eg.apiBadRequest(message: 'Invalid subdomain'));
+        await tester.ensureVisible(find.text('Sign in through Kloki'));
+        await tester.tap(find.text('Sign in through Kloki'));
+        await tester.pump(Duration.zero);
+        checkErrorDialog(tester,
+          expectedTitle: 'Organization not found',
+          expectedMessage: "There's no chat at $firmaRealmUrl. Check the organization's name.");
+        check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      });
+
+      testWidgets('no request for a server outside Kloki', (tester) async {
+        await prepare(tester);
+
+        await tester.enterText(find.byType(TextField), 'chat.zulip.org');
+        await tester.ensureVisible(find.text('Sign in through Kloki'));
+        await tester.tap(find.text('Sign in through Kloki'));
+        await tester.pump();
+        check(find.textContaining('Enter the organization')).findsOne();
+        check(connection.takeRequests()).isEmpty();
+        check(testBinding.takeLaunchUrlCalls()).isEmpty();
+        check(pushedRoutes).isEmpty();
+
+        await tester.enterText(find.byType(TextField), 'firma');
+        await tester.pump();
+        check(find.textContaining('Enter the organization')).findsNothing();
+      });
     });
 
     testWidgets('another server opens AddAccountPage', (tester) async {
@@ -654,7 +736,7 @@ void main() {
           eg.selfAccount);
       });
 
-      testWidgets('account already exists', (tester) async {
+      testWidgets('account already exists: go to it', (tester) async {
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
         takeStartingRoutes();
@@ -671,11 +753,36 @@ void main() {
           userId: eg.selfAccount.userId,
         ).toJson());
         await tester.tap(findSubmitButton);
-        await tester.pumpAndSettle();
+        await tester.idle();
+        await tester.pump();
+        checkNoDialog(tester);
+        check(testBinding.globalStore.accounts).single.id.equals(eg.selfAccount.id);
+        check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+          ..accountId.equals(eg.selfAccount.id)
+          ..page.isA<HomePage>();
+      });
+
+      testWidgets('account already exists for the email, not the user: error', (tester) async {
+        final serverSettings = eg.serverSettings();
+        await prepare(tester, serverSettings);
+        takeStartingRoutes();
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+        await tester.enterText(findUsernameInput, eg.selfAccount.email);
+        await tester.enterText(findPasswordInput, 'p455w0rd');
+        testBinding.globalStore.useCachedApiConnections = true;
+        connection.prepare(json: FetchApiKeyResult(
+          apiKey: eg.selfAccount.apiKey,
+          email: eg.selfAccount.email,
+          userId: eg.selfAccount.userId + 1,
+        ).toJson());
+        await tester.tap(findSubmitButton);
+        await tester.idle();
+        await tester.pump();
 
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        await tester.tap(find.byWidget(checkErrorDialog(tester,
-          expectedTitle: zulipLocalizations.errorAccountLoggedInTitle)));
+        checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorAccountLoggedInTitle);
       });
 
       testWidgets('creates account with data from server settings', (tester) async {

@@ -136,9 +136,14 @@ Future<GetServerSettingsResult?> _fetchServerSettingsOrShowError(
   } catch (e) {
     if (!context.mounted) return null;
 
+    String title = zulipLocalizations.errorCouldNotConnectTitle;
     String? message;
     Uri? learnMoreButtonUrl;
     switch (e) {
+      // The server's answer for a subdomain with no realm.
+      case ZulipApiException(httpStatus: 400, code: 'BAD_REQUEST'):
+        title = zulipLocalizations.errorLoginRealmNotFoundTitle;
+        message = zulipLocalizations.errorLoginRealmNotFound(url.toString());
       case ServerVersionNotAllowedException(:final data):
         message = zulipLocalizations.errorServerVersionNotAllowedMessage(
           url.toString(),
@@ -151,7 +156,7 @@ Future<GetServerSettingsResult?> _fetchServerSettingsOrShowError(
         message = zulipLocalizations.errorLoginCouldNotConnect(url.toString());
     }
     showErrorDialog(context: context,
-      title: zulipLocalizations.errorCouldNotConnectTitle,
+      title: title,
       message: message,
       learnMoreButtonUrl: learnMoreButtonUrl);
     return null;
@@ -160,7 +165,8 @@ Future<GetServerSettingsResult?> _fetchServerSettingsOrShowError(
 
 /// The first page for adding an account: sign in to the Kloki chat.
 ///
-/// Signing in through Kloki or as a guest goes to [kKlokiChatRealmUrl].
+/// Signing in through Kloki or as a guest goes to the realm
+/// of the organization typed in (see [parseKlokiOrganization]).
 /// Another server can still be chosen, through [AddAccountPage].
 class KlokiSignInPage extends StatefulWidget {
   const KlokiSignInPage({super.key});
@@ -176,6 +182,11 @@ class KlokiSignInPage extends StatefulWidget {
 class _KlokiSignInPageState extends State<KlokiSignInPage>
     with SingleTickerProviderStateMixin, _WebAuthMixin<KlokiSignInPage> {
   bool _inProgress = false;
+
+  final _organization = TextEditingController(text: kKlokiDefaultOrganization);
+
+  /// Whether to show that the organization input names no realm.
+  bool _showOrganizationError = false;
 
   GetServerSettingsResult? _serverSettings;
 
@@ -205,18 +216,26 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
   @override
   void dispose() {
     _entrance.dispose();
+    _organization.dispose();
     super.dispose();
   }
 
   /// Open Kloki's sign-in in the browser; or for a guest,
   /// the password form.
   Future<void> _continue({required bool guest}) async {
+    final realmUrl = parseKlokiOrganization(_organization.text);
+    if (realmUrl == null) {
+      setState(() {
+        _showOrganizationError = true;
+      });
+      return;
+    }
     setState(() {
       _inProgress = true;
     });
     try {
       final serverSettings = await _fetchServerSettingsOrShowError(
-        context, kKlokiChatRealmUrl);
+        context, realmUrl);
       if (serverSettings == null || !mounted) return;
       final klokiMethod = serverSettings.externalAuthenticationMethods
         .where((method) => method.name == kKlokiAuthMethodName)
@@ -276,16 +295,44 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
       const KlokiThemeToggle(),
     ]);
 
-    final hero = LayoutBuilder(builder: (context, constraints) {
-      // On a short screen (e.g. a phone in landscape) the words come first.
-      if (constraints.maxHeight < 160) return const SizedBox.shrink();
-      return Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: KlokiWelcomeHero(entrance: _entrance))));
-    });
+    Widget hero(double height) {
+      // On a short screen (e.g. a phone in landscape, or with the keyboard up)
+      // the words and the input come first.
+      if (height < 160) return const SizedBox.shrink();
+      return SizedBox(
+        height: height,
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: KlokiWelcomeHero(entrance: _entrance)))));
+    }
+
+    final organizationText = _organization.text.trim();
+    final organization = _KlokiField(
+      label: zulipLocalizations.klokiOrganizationLabel,
+      field: TextField(
+        controller: _organization,
+        enabled: !_inProgress,
+        keyboardType: TextInputType.url,
+        autocorrect: false,
+        scrollPadding: _KlokiField.scrollPadding,
+        textInputAction: TextInputAction.go,
+        onChanged: (_) => setState(() {
+          _showOrganizationError = false;
+        }),
+        onSubmitted: (_) => _continue(guest: false),
+        style: filledInputTextStyle(designVariables),
+        decoration: _KlokiField.decoration(designVariables,
+          hintText: zulipLocalizations.klokiOrganizationHint,
+        ).copyWith(
+          suffixText: organizationText.isEmpty || organizationText.contains(RegExp(r'[.:/]'))
+            ? null : '.chat.kloki.app',
+          suffixStyle: TextStyle(color: designVariables.loginOrDividerText),
+          errorText: _showOrganizationError
+            ? zulipLocalizations.klokiOrganizationInvalid : null,
+          errorMaxLines: 3)));
 
     final title = Text(zulipLocalizations.klokiWelcomeTitle,
       textAlign: TextAlign.center,
@@ -335,20 +382,37 @@ class _KlokiSignInPageState extends State<KlokiSignInPage>
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                _appear(0, 0.4, header),
-                Expanded(child: hero),
-                _appear(0.35, 0.75, title),
-                const SizedBox(height: 12),
-                _appear(0.45, 0.85, description),
-                const SizedBox(height: 32),
-                _appear(0.55, 0.95, _KlokiPrimaryButton(
-                  label: zulipLocalizations.klokiSignInButton,
-                  inProgress: _inProgress,
-                  onPressed: _inProgress ? null : () => _continue(guest: false))),
-                const SizedBox(height: 8),
-                _appear(0.65, 1, links),
-              ]))))));
+              child: LayoutBuilder(builder: (context, constraints) {
+                // About the height of everything but the hero;
+                // a wrong guess only means some scrolling, or some space.
+                const contentHeight = 520.0;
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _appear(0, 0.4, header),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            hero(constraints.maxHeight - contentHeight),
+                            _appear(0.35, 0.75, title),
+                            const SizedBox(height: 12),
+                            _appear(0.45, 0.85, description),
+                            const SizedBox(height: 24),
+                            _appear(0.5, 0.9, organization),
+                            const SizedBox(height: 20),
+                            _appear(0.55, 0.95, _KlokiPrimaryButton(
+                              label: zulipLocalizations.klokiSignInButton,
+                              inProgress: _inProgress,
+                              onPressed: _inProgress ? null : () => _continue(guest: false))),
+                            const SizedBox(height: 8),
+                            _appear(0.65, 1, links),
+                          ]),
+                      ])));
+              }))))));
   }
 }
 
@@ -365,17 +429,9 @@ class AddAccountPage extends StatefulWidget {
 
   /// The hint text to show in the "Zulip server URL" input.
   ///
-  /// If this contains an example value, it must be one that has been reserved
-  /// so that it cannot point to a real Zulip realm (nor any unknown other site).
-  /// The realm name `your-org` under zulipchat.com is reserved for this reason.
-  /// See discussion:
-  ///   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/flutter.3A.20login.20URL/near/1570347
-  // TODO(i18n): In principle this should be translated, because it's trying to
-  //   convey to the user the English phrase "your org".  But doing that is
-  //   tricky because of the need to have the example name reserved.
-  //   Realistically that probably means we'll only ever translate this for
-  //   at most a handful of languages, most likely none.
-  static const _serverUrlHint = 'your-org.zulipchat.com';
+  /// Kodius's own realm, so the example is one of Kloki's
+  /// and never points to an unknown site.
+  static const _serverUrlHint = 'kodius.chat.kloki.app';
 
   @override
   State<AddAccountPage> createState() => _AddAccountPageState();
@@ -628,6 +684,15 @@ Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
     // TODO give feedback to user on other SQL exceptions
   } on AccountAlreadyExistsException {
     if (!context.mounted) {
+      return;
+    }
+    // Signed in again to an account already here: just go to it.
+    final existing = globalStore.accounts
+      .where((account) => account.realmUrl.origin == realmUrl.origin
+        && account.userId == userId)
+      .firstOrNull;
+    if (existing != null) {
+      HomePage.navigate(context, accountId: existing.id);
       return;
     }
     final zulipLocalizations = ZulipLocalizations.of(context);
