@@ -65,6 +65,26 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
+/// The ALL CAPS heading at the top of a [_SettingsCard].
+class _SettingsCardTitle extends StatelessWidget {
+  const _SettingsCardTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      title: Text(text,
+        style: TextStyle(
+          color: DesignVariables.of(context).loginOrDividerText,
+          fontFamily: kKlokiHeadingFontFamily,
+          fontSize: 13,
+          letterSpacing: 0.5,
+        ).merge(weightVariableTextStyle(context, wght: 700))));
+  }
+}
+
 class _ThemeSetting extends StatelessWidget {
   const _ThemeSetting();
 
@@ -82,15 +102,7 @@ class _ThemeSetting extends StatelessWidget {
       onChanged: (newValue) => _handleChange(context, newValue),
       child: Column(
         children: [
-          ListTile(
-            dense: true,
-            title: Text(zulipLocalizations.themeSettingTitle,
-              style: TextStyle(
-                color: DesignVariables.of(context).loginOrDividerText,
-                fontFamily: kKlokiHeadingFontFamily,
-                fontSize: 13,
-                letterSpacing: 0.5,
-              ).merge(weightVariableTextStyle(context, wght: 700)))),
+          _SettingsCardTitle(zulipLocalizations.themeSettingTitle),
           for (final themeSettingOption in [null, ...ThemeSetting.values])
             RadioListTile<ThemeSetting?>.adaptive(
               activeColor: DesignVariables.of(context).fabBg,
