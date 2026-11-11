@@ -1,0 +1,413 @@
+require "fileutils"
+require "tmpdir"
+
+# Run through `scripts/deploy`, which asks what to do and calls these lanes.
+# See docs/konvo/release.md.
+#
+# There is one build and no environments: every build talks to the production
+# Kloki servers. "Internal" and "production" are the same binary, and differ
+# only in who it is handed to:
+#
+#             build                        submit
+#   iOS       TestFlight (internal group)  the same build -> App Store review
+#   Android   Play internal track          the same bundle -> Play production
+#
+# so what ships is always exactly what the team installed and tested.
+
+REPO_ROOT    = File.expand_path("..", __dir__)
+PUBSPEC_PATH = File.join(REPO_ROOT, "pubspec.yaml")
+APP_ID       = "konvo.kodius.com"
+TEAM_ID      = "N53842DU2C"
+
+IOS_WORKSPACE = File.join(REPO_ROOT, "ios", "Runner.xcworkspace")
+IOS_SCHEME    = "Runner"
+IOS_IPA_DIR   = File.join(REPO_ROOT, "build", "ios", "fastlane")
+IOS_IPA_NAME  = "KlokiChat.ipa"
+
+ANDROID_AAB = File.join(REPO_ROOT, "build", "app", "outputs", "bundle", "release", "app-release.aab")
+
+RELEASE_NOTES_DIR = File.join(REPO_ROOT, "release-notes")
+
+# Apple prints up to 4000 characters, Play stops at 500.
+APP_STORE_NOTES_LIMIT = 4000
+PLAY_NOTES_LIMIT      = 500
+
+# Play shows the listing's default language to anyone whose language has no
+# notes of its own. The listing is read at deploy time; this is only what to
+# try when it cannot be.
+PLAY_FALLBACK_LOCALES = ["en-US", "hr"].freeze
+
+# Where an Android build waits to be tested. Play has no TestFlight, so a build
+# sits on a track of its own: installable by the team, invisible to everyone
+# else, and promotable to production later with the same bundle.
+PLAY_HOLDING_TRACK = "internal".freeze
+
+# ─────────────────────────────────────────────────────────────────────────────
+# pubspec.yaml version: `version: 28.1.2+108`, name + build number
+# ─────────────────────────────────────────────────────────────────────────────
+
+def pubspec_version
+  match = File.read(PUBSPEC_PATH).match(/^version: (\S+)\+(\d+)$/)
+  UI.user_error!("Could not parse `version: X.Y.Z+N` in pubspec.yaml") unless match
+  [match[1], match[2].to_i]
+end
+
+def write_pubspec_version(name, number)
+  text = File.read(PUBSPEC_PATH)
+  File.write(PUBSPEC_PATH, text.sub(/^version: \S+$/, "version: #{name}+#{number}"))
+end
+
+# Both stores reject a build number they have already seen. The store is the
+# authority, but pubspec.yaml is never allowed to go backwards either: builds
+# uploaded by hand before this lane existed may be numbered from there.
+def next_build_number(store_latest)
+  _, pubspec_number = pubspec_version
+  [store_latest.to_i, pubspec_number].max + 1
+end
+
+def flutter_build_args(version, build_number)
+  "--release --build-name=#{version} --build-number=#{build_number}"
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Release notes: release-notes/<version>/, see release-notes/README.md
+# ─────────────────────────────────────────────────────────────────────────────
+
+# App Store Connect prints What's New verbatim, so the markdown heading a .md
+# file naturally starts with would ship as "# 28.1".
+def read_release_notes(path)
+  File.read(path)
+      .lines
+      .reject { |line| line.match?(/^\s*#/) }
+      .join
+      .strip
+end
+
+# A locale file (en-US.md, en.md) REPLACES all.md for that locale.
+# A platform file (ios.md, android.md, ios.en-US.md) ADDS its lines after the
+# base it belongs to. Each lane prints which files every locale was built from,
+# `hr <- all.md + ios.md`, so check that line.
+def release_notes_parts(version, locale, platform, dir = RELEASE_NOTES_DIR)
+  folder = File.join(dir, version)
+  lang = locale.split("-").first
+
+  base = ["#{locale}.md", "#{lang}.md", "all.md"].find { |name| File.exist?(File.join(folder, name)) }
+  return nil unless base
+
+  extra_names = base == "all.md" ? ["#{platform}.md"] : ["#{platform}.#{locale}.md", "#{platform}.#{lang}.md"]
+  extra = extra_names.find { |name| File.exist?(File.join(folder, name)) }
+
+  [base, extra].compact.map { |name| File.join(folder, name) }
+end
+
+def release_notes_for(version, locales, platform:, limit:, dir: RELEASE_NOTES_DIR)
+  locales.to_h do |locale|
+    paths = release_notes_parts(version, locale, platform, dir)
+    unless paths
+      UI.user_error!("No release notes for v#{version}. Write #{File.join(dir, version, "all.md")} first.")
+    end
+
+    text = paths.map { |path| read_release_notes(path) }.reject(&:empty?).join("\n")
+    label = paths.map { |path| File.basename(path) }.join(" + ")
+    UI.user_error!("#{label} has no text once headings are stripped") if text.length < 4
+    UI.user_error!("#{label} is #{text.length} characters for #{locale}, the limit here is #{limit}") if text.length > limit
+
+    UI.message("#{locale} <- #{label}")
+    [locale, text]
+  end
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Store lookups
+# ─────────────────────────────────────────────────────────────────────────────
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: ENV.fetch("ASC_KEY_FILEPATH"),
+    in_house: false
+  )
+end
+
+# App Store Connect refuses a What's New text for a locale the listing does not
+# have, so read the locales off the app instead of hardcoding them.
+def app_store_version_locales
+  app = Spaceship::ConnectAPI::App.find(APP_ID)
+  version = app.get_edit_app_store_version || app.get_live_app_store_version
+  locales = version.get_app_store_version_localizations.map(&:locale)
+  locales.empty? ? ["en-US"] : locales
+rescue StandardError => e
+  UI.important("Could not read App Store locales (#{e.message}). Falling back to en-US.")
+  ["en-US"]
+end
+
+# Same for Play. supply has no action for it, so this opens an edit of its own
+# and throws it away again.
+def play_listing_locales(json_key_file)
+  require "supply"
+
+  client = Supply::Client.make_from_config(params: { json_key: json_key_file, timeout: 300 })
+  begin
+    client.begin_edit(package_name: APP_ID)
+    locales = client.listings.map(&:language)
+  ensure
+    client.abort_current_edit if client.current_edit
+  end
+
+  locales.empty? ? PLAY_FALLBACK_LOCALES : locales
+rescue StandardError => e
+  UI.important("Could not read Play listing languages (#{e.message}). Falling back to #{PLAY_FALLBACK_LOCALES.join(', ')}.")
+  PLAY_FALLBACK_LOCALES
+end
+
+def play_version_codes(json_key_file, tracks)
+  tracks.flat_map do |track|
+    begin
+      google_play_track_version_codes(package_name: APP_ID, track: track, json_key: json_key_file)
+    rescue StandardError
+      []
+    end
+  end.map(&:to_i)
+end
+
+# The build waiting on the holding track for this version. Matched by release
+# name, which the build lane sets to the version; a build uploaded by hand in
+# the Console carries Play's own name instead, so fall back to the newest one.
+def play_holding_version_code(json_key_file, version)
+  require "supply"
+
+  client = Supply::Client.make_from_config(params: { json_key: json_key_file, timeout: 300 })
+  begin
+    client.begin_edit(package_name: APP_ID)
+    track = client.tracks(PLAY_HOLDING_TRACK).first
+    releases = track ? Array(track.releases) : []
+  ensure
+    client.abort_current_edit if client.current_edit
+  end
+
+  if releases.empty?
+    UI.user_error!("Nothing on the Play '#{PLAY_HOLDING_TRACK}' track to promote. Build it first.")
+  end
+
+  named = releases.select { |release| release.name.to_s == version }
+  if named.empty?
+    codes = releases.flat_map { |release| Array(release.version_codes) }.map(&:to_i)
+    UI.important("No release on '#{PLAY_HOLDING_TRACK}' is named #{version}. Falling back to the newest, #{codes.max}.")
+    return codes.max
+  end
+
+  named.flat_map { |release| Array(release.version_codes) }.map(&:to_i).max
+end
+
+# supply reads a changelog from <metadata>/<language>/changelogs/<versionCode>.txt,
+# named after a version code only known at deploy time, so the tree is generated
+# from release-notes/ into a temp dir.
+def write_play_changelogs(version, version_code, locales)
+  notes = release_notes_for(version, locales, platform: "android", limit: PLAY_NOTES_LIMIT)
+
+  metadata_path = File.join(Dir.mktmpdir("kloki-chat-play-metadata"), "android")
+  notes.each do |locale, text|
+    changelog_dir = File.join(metadata_path, locale, "changelogs")
+    FileUtils.mkdir_p(changelog_dir)
+    File.write(File.join(changelog_dir, "#{version_code}.txt"), text)
+  end
+
+  metadata_path
+end
+
+def lane_version(options)
+  options[:version] || pubspec_version.first
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# iOS
+# ─────────────────────────────────────────────────────────────────────────────
+
+platform :ios do
+  desc "Build → TestFlight. Internal testers get it automatically; `submit` sends the same build to review."
+  lane :build do |options|
+    version = lane_version(options)
+    api_key = asc_api_key
+
+    store_latest = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: APP_ID,
+      initial_build_number: 0
+    )
+    build_number = next_build_number(store_latest)
+    UI.message("Version: #{version} (#{build_number})")
+    write_pubspec_version(version, build_number)
+
+    # Writes Generated.xcconfig (version, build number, Dart defines) and runs
+    # `pod install`, then leaves archiving and signing to build_app.
+    Dir.chdir(REPO_ROOT) do
+      sh("flutter build ios --config-only #{flutter_build_args(version, build_number)}")
+    end
+
+    # The team comes from ios/Flutter/Zulip.xcconfig. -allowProvisioningUpdates
+    # lets automatic signing create the Distribution profiles for Runner and the
+    # NotificationService extension.
+    build_app(
+      workspace: IOS_WORKSPACE,
+      scheme: IOS_SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+      output_directory: IOS_IPA_DIR,
+      output_name: IOS_IPA_NAME,
+      xcargs: "-allowProvisioningUpdates",
+      export_xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        method: "app-store",
+        signingStyle: "automatic",
+        teamID: TEAM_ID
+      }
+    )
+
+    # Free text arrives in a file, never as a lane option: fastlane splits its
+    # CLI arguments on whitespace.
+    changelog = options[:notes_file] ? File.read(options[:notes_file]).strip : nil
+    testflight_opts = {
+      api_key: api_key,
+      ipa: File.join(IOS_IPA_DIR, IOS_IPA_NAME),
+      app_identifier: APP_ID,
+      skip_waiting_for_build_processing: changelog.nil?,
+      skip_submission: true,
+      distribute_external: false
+    }
+    testflight_opts[:changelog] = changelog if changelog && !changelog.empty?
+    upload_to_testflight(testflight_opts)
+
+    UI.success("Uploaded v#{version} (#{build_number}) to TestFlight")
+    UI.important("pubspec.yaml updated (version: #{version}+#{build_number}). Commit when ready.")
+    UI.important("Apple processes it in 10-20 min. Test it, then `scripts/deploy` -> Submit.")
+  end
+
+  desc "Submit the latest TestFlight build of a version for App Store review. Reads release-notes/<version>/."
+  lane :submit do |options|
+    version = lane_version(options)
+    api_key = asc_api_key
+
+    build_number = latest_testflight_build_number(
+      api_key: api_key,
+      version: version,
+      app_identifier: APP_ID
+    )
+
+    locales = app_store_version_locales
+    release_notes = release_notes_for(version, locales, platform: "ios", limit: APP_STORE_NOTES_LIMIT)
+    UI.message("Submitting v#{version} (#{build_number}) in #{locales.join(', ')}")
+
+    # No metadata folder on purpose: deliver touches only what it is handed
+    # here, so the listing, screenshots and review info on App Store Connect
+    # stay exactly as they are.
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: APP_ID,
+      app_version: version,
+      build_number: build_number.to_s,
+      release_notes: release_notes,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false
+      }
+    )
+
+    UI.success("v#{version} (#{build_number}) submitted for review. Releases automatically once approved.")
+  end
+
+  desc "Print the locales the App Store listing has, one release-notes locale file each."
+  lane :locales do
+    asc_api_key
+    UI.success(app_store_version_locales.join(", "))
+  end
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Android
+# ─────────────────────────────────────────────────────────────────────────────
+
+platform :android do
+  desc "Build → Play internal track. `submit` promotes the same bundle to production."
+  lane :build do |options|
+    version = lane_version(options)
+    json_key_file = ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH")
+
+    store_latest = play_version_codes(json_key_file, ["internal", "alpha", "beta", "production"]).max || 0
+    build_number = next_build_number(store_latest)
+    UI.message("Version: #{version} (#{build_number})")
+    write_pubspec_version(version, build_number)
+
+    # Not --no-pub: without `pub get` a stale plugin registrant may still list
+    # dev-only plugins, and the build fails. -Psigned signs with the upload key
+    # from android/release-keystore.properties.
+    Dir.chdir(REPO_ROOT) do
+      sh("flutter build appbundle -Psigned #{flutter_build_args(version, build_number)}")
+    end
+
+    # `version_name` names the release on the track; `submit` finds the build to
+    # promote by that name.
+    upload_to_play_store(
+      package_name: APP_ID,
+      track: PLAY_HOLDING_TRACK,
+      version_name: version,
+      release_status: "completed",
+      aab: ANDROID_AAB,
+      json_key: json_key_file,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    UI.success("Uploaded v#{version} (#{build_number}) to Play #{PLAY_HOLDING_TRACK}")
+    UI.important("pubspec.yaml updated (version: #{version}+#{build_number}). Commit when ready.")
+    UI.important("Test it, then `scripts/deploy` -> Submit to promote it to production.")
+  end
+
+  desc "Promote the build on the internal track to production. Reads release-notes/<version>/."
+  lane :submit do |options|
+    version = lane_version(options)
+    json_key_file = ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH")
+
+    version_code = play_holding_version_code(json_key_file, version)
+    locales = play_listing_locales(json_key_file)
+    metadata_path = write_play_changelogs(version, version_code, locales)
+    UI.message("Promoting v#{version} (#{version_code}) in #{locales.join(', ')}")
+
+    # No binary: the bundle already on the internal track is the one promoted.
+    # supply promotes it, then patches the What's New onto the production
+    # release, which is why the version code is passed explicitly.
+    upload_to_play_store(
+      package_name: APP_ID,
+      track: PLAY_HOLDING_TRACK,
+      track_promote_to: "production",
+      track_promote_release_status: "completed",
+      version_code: version_code,
+      json_key: json_key_file,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
+      metadata_path: metadata_path,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    UI.success("v#{version} (#{version_code}) promoted to production. Google reviews it, then it rolls out.")
+  end
+
+  desc "Print the languages the Play listing has, one release-notes locale file each."
+  lane :locales do
+    UI.success(play_listing_locales(ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH")).join(", "))
+  end
+end

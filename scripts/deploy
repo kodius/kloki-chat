@@ -1,0 +1,324 @@
+#!/usr/bin/env bash
+#
+# Build and release Kloki Chat to TestFlight / Play, then to the stores.
+# Wraps the lanes in fastlane/Fastfile; see docs/konvo/release.md.
+
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+BOLD="\033[1m"
+DIM="\033[2m"
+CYAN="\033[0;36m"
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+RESET="\033[0m"
+
+die() { echo -e "${RED}ERROR:${RESET} $*" >&2; exit 1; }
+
+pubspec_version_name()   { sed -nE 's/^version: ([^+]+)\+[0-9]+$/\1/p' pubspec.yaml; }
+pubspec_build_number()   { sed -nE 's/^version: [^+]+\+([0-9]+)$/\1/p' pubspec.yaml; }
+
+VERSION_RE='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+bump_patch() {
+  local MAJOR MINOR PATCH
+  IFS=. read -r MAJOR MINOR PATCH <<<"$1"
+  echo "$MAJOR.$MINOR.$(( PATCH + 1 ))"
+}
+
+bump_minor() {
+  local MAJOR MINOR PATCH
+  IFS=. read -r MAJOR MINOR PATCH <<<"$1"
+  echo "$MAJOR.$(( MINOR + 1 )).0"
+}
+
+# Both stores reject a version below the one already published, so catch the
+# typo here rather than half an hour into a build. sort -V knows 28.10 > 28.9.
+version_is_lower() {
+  [[ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -1)" != "$2" ]]
+}
+
+choose_platforms() {
+  echo ""
+  echo -e "${CYAN}Platform?${RESET}"
+  select _CHOICE in "iOS" "Android" "Both"; do
+    case $REPLY in
+      1) PLATFORMS=("ios"); break ;;
+      2) PLATFORMS=("android"); break ;;
+      3) PLATFORMS=("ios" "android"); break ;;
+    esac
+  done
+}
+
+has_platform() { [[ " ${PLATFORMS[*]} " == *" $1 "* ]]; }
+
+confirm() {
+  local ANSWER
+  echo ""
+  read -rp "Proceed? [y/N] " ANSWER
+  [[ "$ANSWER" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+}
+
+# One tag per build, on the commit the binary was built from:
+#   v28.1.2-ios.108       iOS build 108 of 28.1.2
+#   v28.1.2-android.109   Android versionCode 109 of 28.1.2
+# and one per submitted version, v28.1.2, on the same commit.
+tag_build() {
+  local PLATFORM="$1" VERSION="$2" NUMBER="$3"
+  local TAG="v${VERSION}-${PLATFORM}.${NUMBER}"
+  if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+    echo "Tag $TAG already exists, leaving it."
+    return
+  fi
+  git tag -a "$TAG" -m "$PLATFORM build $NUMBER of $VERSION"
+  push_tag "$TAG"
+}
+
+tag_release() {
+  local VERSION="$1" TARGET
+  local TAG="v$VERSION"
+  git rev-parse -q --verify "refs/tags/$TAG" >/dev/null && return
+  # The newest build tag of this version is where the binary came from;
+  # @ may have moved on since the build.
+  TARGET=$(git tag --list "v${VERSION}-*" --sort=-creatordate | head -1)
+  if [[ -z "$TARGET" ]]; then
+    echo -e "${CYAN}No build tag for $VERSION, tagging $TAG at @.${RESET} Move it if the build was older: git tag -f $TAG <commit>"
+    TARGET="@"
+  fi
+  git tag -a "$TAG" "$TARGET" -m "Released $VERSION"
+  push_tag "$TAG"
+}
+
+push_tag() {
+  if git push origin "refs/tags/$1" >/dev/null 2>&1; then
+    echo -e "Tagged ${BOLD}$1${RESET} and pushed."
+  else
+    echo -e "Tagged ${BOLD}$1${RESET}. Push failed, run: git push origin $1"
+  fi
+}
+
+# What one store prints for one version. The lane does the real lookup per
+# locale; this is the preview.
+preview_notes() {
+  local VERSION="$1" PLATFORM="$2" FILE NAME
+  local DIR="release-notes/$VERSION"
+  for FILE in "$DIR"/all.md $(ls "$DIR"/*.md 2>/dev/null | grep -v '/all\.md$'); do
+    [[ -f "$FILE" ]] || continue
+    NAME="$(basename "$FILE")"
+    case "$NAME" in
+      ios.*|android.*) [[ "$NAME" == "$PLATFORM."* ]] || continue ;;
+    esac
+    echo ""
+    echo -e "  ${BOLD}${FILE}${RESET}"
+    sed '/^[[:space:]]*#/d' "$FILE" | sed '/./,$!d' | sed 's/^/    /'
+  done
+}
+
+# Free text reaches fastlane in a file, never as a lane option: fastlane splits
+# its own CLI arguments on whitespace.
+NOTES_FILE=""
+cleanup() { [[ -n "$NOTES_FILE" ]] && rm -f "$NOTES_FILE"; return 0; }
+trap cleanup EXIT
+
+preflight() {
+  command -v fastlane >/dev/null || die "fastlane not found. brew install fastlane"
+  command -v flutter >/dev/null || die "flutter not found on PATH."
+  [[ -f fastlane/.env ]] || die "fastlane/.env is missing. Copy fastlane/.env.example and fill it in."
+  if has_platform android; then
+    [[ -f android/release-keystore.properties ]] \
+      || die "android/release-keystore.properties is missing; the Android build can't be signed."
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Build: TestFlight (internal testers) / Play internal track
+# ─────────────────────────────────────────────────────────────────────────────
+run_build() {
+  choose_platforms
+  preflight
+
+  if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+    echo ""
+    echo -e "${CYAN}The working tree has uncommitted changes.${RESET} They go into the build, but not into the tag."
+    confirm
+  fi
+
+  local CURRENT_VERSION SHIPPED_VERSION=""
+  CURRENT_VERSION=$(pubspec_version_name)
+  [[ "$CURRENT_VERSION" =~ $VERSION_RE ]] \
+    || die "pubspec.yaml version \"$CURRENT_VERSION\" is not X.Y.Z+N. Fix it before deploying."
+
+  local NEXT_PATCH NEXT_MINOR
+  NEXT_PATCH=$(bump_patch "$CURRENT_VERSION")
+  NEXT_MINOR=$(bump_minor "$CURRENT_VERSION")
+
+  echo ""
+  echo -e "${CYAN}Version?${RESET} (now $CURRENT_VERSION)"
+  echo -e "${DIM}Build number goes up on its own, read off the store.${RESET}"
+  select _CHOICE in \
+    "$(printf 'keep    %-9s new build of the same version' "$CURRENT_VERSION")" \
+    "$(printf 'patch   %-9s the usual release' "$NEXT_PATCH")" \
+    "$(printf 'minor   %-9s bigger release' "$NEXT_MINOR")" \
+    "custom"; do
+    case $REPLY in
+      1) SHIPPED_VERSION="$CURRENT_VERSION"; break ;;
+      2) SHIPPED_VERSION="$NEXT_PATCH"; break ;;
+      3) SHIPPED_VERSION="$NEXT_MINOR"; break ;;
+      4)
+        read -rp "Version: " SHIPPED_VERSION || break
+        if [[ ! "$SHIPPED_VERSION" =~ $VERSION_RE ]]; then
+          echo "\"$SHIPPED_VERSION\" is not X.Y.Z."
+          continue
+        fi
+        if version_is_lower "$SHIPPED_VERSION" "$CURRENT_VERSION"; then
+          echo "$SHIPPED_VERSION is below the current $CURRENT_VERSION, both stores would reject it."
+          continue
+        fi
+        break
+        ;;
+    esac
+  done
+  [[ -n "$SHIPPED_VERSION" ]] || { echo "No version chosen. Aborted."; exit 0; }
+
+  local NOTES_ARG=""
+  if has_platform ios; then
+    local WHAT_TO_TEST
+    echo ""
+    echo -e "${CYAN}TestFlight \"What to Test\"?${RESET} ${DIM}(blank to skip; setting it waits for Apple to process the build)${RESET}"
+    read -r WHAT_TO_TEST
+    if [[ -n "$WHAT_TO_TEST" ]]; then
+      NOTES_FILE=$(mktemp "${TMPDIR:-/tmp}/kloki-chat-notes.XXXXXX")
+      printf '%s\n' "$WHAT_TO_TEST" > "$NOTES_FILE"
+      NOTES_ARG="notes_file:$NOTES_FILE"
+    fi
+  fi
+
+  echo ""
+  echo -e "${BOLD}About to run:${RESET}"
+  for P in "${PLATFORMS[@]}"; do
+    local EXTRA=""
+    [[ "$P" == "ios" ]] && EXTRA="$NOTES_ARG"
+    echo -e "  ${GREEN}fastlane $P build version:$SHIPPED_VERSION $EXTRA${RESET}"
+  done
+  echo ""
+  has_platform ios && echo "iOS: uploads to TestFlight. Internal testers get it once Apple has processed it."
+  has_platform android && echo "Android: uploads to Play's internal track. Nothing is public."
+  confirm
+
+  local BUILT=()
+  for P in "${PLATFORMS[@]}"; do
+    echo ""
+    echo -e "${BOLD}▶ fastlane $P build${RESET}"
+    if [[ "$P" == "ios" ]]; then
+      fastlane ios build "version:$SHIPPED_VERSION" ${NOTES_ARG:+"$NOTES_ARG"}
+    else
+      fastlane android build "version:$SHIPPED_VERSION"
+    fi
+    BUILT+=("$P:$(pubspec_build_number)")
+  done
+
+  echo ""
+  echo -e "${GREEN}${BOLD}Done!${RESET}"
+  echo ""
+  local ENTRY
+  for ENTRY in "${BUILT[@]}"; do
+    tag_build "${ENTRY%%:*}" "$SHIPPED_VERSION" "${ENTRY##*:}"
+  done
+
+  echo ""
+  echo -e "Commit the version: ${BOLD}git commit -m 'version: $SHIPPED_VERSION+$(pubspec_build_number)' pubspec.yaml${RESET}"
+
+  local NOTES_PATH="release-notes/${SHIPPED_VERSION}/all.md"
+  if [[ -f "$NOTES_PATH" ]]; then
+    echo -e "${CYAN}Next:${RESET} test the build, then run this again and pick ${BOLD}Submit${RESET} (notes ready in $NOTES_PATH)"
+  else
+    echo -e "${CYAN}Next:${RESET} test the build, write ${BOLD}$NOTES_PATH${RESET}, then run this again and pick ${BOLD}Submit${RESET}"
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Submit: a build already uploaded by Build → the store
+#   iOS      TestFlight      → App Store review
+#   Android  internal track  → production (Google reviews it too)
+# ─────────────────────────────────────────────────────────────────────────────
+run_submit() {
+  choose_platforms
+  preflight
+
+  local CURRENT_VERSION VERSION="" V
+  CURRENT_VERSION=$(pubspec_version_name)
+  local -a VERSIONS=("$CURRENT_VERSION")
+  while read -r V; do
+    [[ -n "$V" && "$V" != "$CURRENT_VERSION" ]] && VERSIONS+=("$V")
+  done < <(ls release-notes/ 2>/dev/null | grep -E "$VERSION_RE" | sort -Vr)
+
+  echo ""
+  echo -e "${CYAN}Version to submit?${RESET}"
+  select _CHOICE in "${VERSIONS[@]}" "custom"; do
+    if [[ "$REPLY" -ge 1 && "$REPLY" -le "${#VERSIONS[@]}" ]]; then
+      VERSION="${VERSIONS[$((REPLY - 1))]}"
+      break
+    elif [[ "$REPLY" -eq $(( ${#VERSIONS[@]} + 1 )) ]]; then
+      read -rp "Version: " VERSION || break
+      [[ "$VERSION" =~ $VERSION_RE ]] && break
+      echo "\"$VERSION\" is not X.Y.Z."
+      VERSION=""
+    fi
+  done
+  [[ -n "$VERSION" ]] || { echo "No version chosen. Aborted."; exit 0; }
+
+  local NOTES_PATH="release-notes/${VERSION}/all.md"
+  if [[ ! -f "$NOTES_PATH" ]]; then
+    local WRITE_NOTES
+    echo ""
+    echo -e "${CYAN}$NOTES_PATH is missing.${RESET} It is the What's New text the stores print verbatim."
+    read -rp "Write it now? [y/N] " WRITE_NOTES
+    [[ "$WRITE_NOTES" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+    mkdir -p "$(dirname "$NOTES_PATH")"
+    "${EDITOR:-nano}" "$NOTES_PATH"
+    [[ -s "$NOTES_PATH" ]] || die "$NOTES_PATH is still empty. Aborting."
+  fi
+
+  for P in "${PLATFORMS[@]}"; do
+    echo ""
+    if [[ "$P" == "ios" ]]; then
+      echo -e "${CYAN}What's New on the App Store (v${VERSION}):${RESET}"
+    else
+      echo -e "${CYAN}What's New on Play (v${VERSION}):${RESET}"
+    fi
+    preview_notes "$VERSION" "$P"
+  done
+
+  echo ""
+  echo -e "${BOLD}About to run:${RESET}"
+  for P in "${PLATFORMS[@]}"; do
+    echo -e "  ${GREEN}fastlane $P submit version:$VERSION${RESET}"
+  done
+  echo ""
+  has_platform ios && echo "iOS: sends the latest TestFlight build of v$VERSION to App Store review. Goes live automatically once approved."
+  has_platform android && echo "Android: promotes the v$VERSION bundle on the internal track to production. Google reviews it, then it rolls out."
+  confirm
+
+  for P in "${PLATFORMS[@]}"; do
+    echo ""
+    echo -e "${BOLD}▶ fastlane $P submit${RESET}"
+    fastlane "$P" submit "version:$VERSION"
+  done
+
+  echo ""
+  tag_release "$VERSION"
+  echo ""
+  echo -e "${GREEN}${BOLD}Submitted!${RESET}"
+}
+
+echo ""
+echo -e "${BOLD}🚀 Kloki Chat${RESET}"
+echo ""
+echo -e "${CYAN}What are we doing?${RESET}"
+select _CHOICE in "Build (TestFlight / Play internal)" "Submit (App Store review / Play production)"; do
+  case $REPLY in
+    1) run_build; break ;;
+    2) run_submit; break ;;
+  esac
+done

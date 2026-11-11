@@ -64,3 +64,9 @@ lib/credential_fixture.dart
 # Per-developer Lima VM config (references .lima/zulip-flutter.yaml via
 # `base:` and adds the workspace mount). See docs/howto/lima.md for usage.
 /.lima/local.yaml
+
+# fastlane: deploy secrets and generated output. See docs/konvo/release.md.
+/fastlane/.env
+/fastlane/report.xml
+/fastlane/README.md
+/fastlane/test_output
