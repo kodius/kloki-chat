@@ -59,6 +59,13 @@ class NotificationService {
   ///    https://firebase.google.com/docs/cloud-messaging/manage-tokens
   ValueNotifier<String?> token = ValueNotifier(null);
 
+  /// On iOS, the device's raw APNs token, which builds before Kloki Chat
+  /// moved iOS to FCM registered instead of [token].
+  ///
+  /// Registering [token] also unregisters this one; see
+  /// [PushDeviceManager]'s legacy registration.
+  String? legacyApnsToken;
+
   static String computeTokenId(String token) {
     final hash = sha256.convert(token.codeUnits).bytes;
     return base64Encode(hash.slice(0, 8));
@@ -103,8 +110,16 @@ class NotificationService {
           return;
         }
 
-        await _getApnsToken();
-        // TODO does iOS need token refresh too?
+        // Kloki Chat: iOS registers its FCM token too (see [kFirebaseOptionsIos]).
+        // The raw APNs token is kept only so the server can forget it:
+        // builds before FCM registered it, and the server would push twice.
+        // FCM can't make a token before APNs has given one to the app.
+        legacyApnsToken = await ZulipBinding.instance.firebaseMessaging.getAPNSToken();
+        assert(debugLog("notif APNs token: $legacyApnsToken"));
+        if (legacyApnsToken == null) return; // TODO(#323) warn the user
+        ZulipBinding.instance.firebaseMessaging.onTokenRefresh
+          .listen(_onTokenRefresh);
+        await _getFcmToken();
 
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
@@ -137,13 +152,6 @@ class NotificationService {
     // The call to `getToken` won't cause `onTokenRefresh` to fire if we
     // already have a token from a previous run of the app.
     // So we need to use the `getToken` return value.
-    token.value = value;
-  }
-
-  Future<void> _getApnsToken() async {
-    final value = await ZulipBinding.instance.firebaseMessaging.getAPNSToken();
-    // TODO(#323) warn user if getAPNSToken returns null, or doesn't timely return
-    assert(debugLog("notif APNs token: $value"));
     token.value = value;
   }
 

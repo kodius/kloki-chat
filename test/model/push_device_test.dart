@@ -373,6 +373,32 @@ void main() {
         }
       }));
 
+      test('Kloki Chat iOS: register the FCM token, forget the raw APNs token', () => awaitFakeAsync((async) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        PushDeviceManager.debugE2eeEnabled = false;
+        addTearDown(() => PushDeviceManager.debugE2eeEnabled = true);
+        testBinding.firebaseMessagingInitialToken = 'fid:fcm-token';
+        testBinding.packageInfoResult = eg.packageInfo(packageName: 'konvo.kodius.com');
+        await NotificationService.instance.start();
+        NotificationService.instance.legacyApnsToken = '0123abcd';
+
+        await prepareStore(zulipFeatureLevel: 468);
+        connection.prepare(json: {});
+        connection.prepare(json: {});
+        await model.debugUnpauseRegisterToken();
+        check(connection.takeRequests()).deepEquals(<Condition<Object?>>[
+          (it) => it.isA<http.Request>()
+            ..method.equals('POST')
+            ..url.path.equals('/api/v1/users/me/apns_device_token')
+            ..bodyFields.deepEquals({'token': 'fid:fcm-token', 'appid': 'konvo.kodius.com'}),
+          (it) => it.isA<http.Request>()
+            ..method.equals('DELETE')
+            ..url.path.equals('/api/v1/users/me/apns_device_token')
+            ..bodyFields.deepEquals({'token': '0123abcd'}),
+        ]);
+      }));
+
       testAndroidIos('token initially unknown', () => awaitFakeAsync((async) async {
         // This tests the case where the store is created while our
         // request for the token is still pending.

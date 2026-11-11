@@ -305,6 +305,19 @@ class PushDeviceManager extends PerAccountStoreBase {
       message: utf8.encode(plaintext));
   }
 
+  /// Kloki Chat: unregister the raw APNs token an older build registered,
+  /// now that [token] (an FCM token) is registered in its place;
+  /// otherwise the server would push to this iPhone twice.
+  Future<void> _forgetLegacyApnsToken(String token) async {
+    final legacyToken = NotificationService.instance.legacyApnsToken;
+    if (legacyToken == null || legacyToken == token) return;
+    try {
+      await removeApnsToken(connection, token: legacyToken);
+    } catch (e) {
+      // Normally "Token does not exist": nothing to forget.  // TODO(log)
+    }
+  }
+
   Future<void> _legacyRegisterToken() async {
     assert(!_e2eeAvailable);
 
@@ -323,6 +336,7 @@ class PushDeviceManager extends PerAccountStoreBase {
         await addApnsToken(connection,
           token: token,
           appid: packageInfo!.packageName);
+        await _forgetLegacyApnsToken(token);
 
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
