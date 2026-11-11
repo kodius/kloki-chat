@@ -515,6 +515,18 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get successAppVersionCopied => 'Verzija aplikacije kopirana';
 
   @override
+  String get successPushTokenCopied => 'Push token kopiran';
+
+  @override
+  String get notificationsSettingsTitle => 'OBAVIJESTI';
+
+  @override
+  String get pushTokenSettingTitle => 'Push token';
+
+  @override
+  String get pushTokenSettingUnavailable => 'Token još nije dostupan';
+
+  @override
   String get successLinkCopied => 'Poveznica kopirana';
 
   @override

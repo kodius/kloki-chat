@@ -1,9 +1,12 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/settings.dart';
 import 'package:zulip/widgets/store.dart';
@@ -12,6 +15,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../example_data.dart' as eg;
+import '../test_clipboard.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
 import 'test_app.dart';
@@ -235,6 +239,43 @@ void main() {
       checkTileOnSettingsPage(tester,
         expectedTitle: 'Open message feeds at',
         expectedSubtitle: settingTitle(VisitFirstUnreadSetting.never));
+    });
+  });
+
+  group('PushTokenSetting', () {
+    Future<void> preparePushToken(WidgetTester tester, {
+      required UserRole role,
+      String? token,
+    }) async {
+      addTearDown(testBinding.reset);
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier(token);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, MockClipboard().handleMethodCall);
+
+      final selfUser = eg.user(role: role);
+      await testBinding.globalStore.add(eg.account(user: selfUser),
+        eg.initialSnapshot(realmUsers: [selfUser]));
+      await tester.pumpWidget(TestZulipApp(
+        accountId: testBinding.globalStore.accounts.single.id,
+        child: SettingsPage()));
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('admin sees the token and copies it on tap', (tester) async {
+      await preparePushToken(tester, role: UserRole.administrator, token: 'fcm-token');
+      await tester.ensureVisible(find.text('fcm-token', skipOffstage: false));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Push token'));
+      await tester.pump(Duration.zero);
+      check(await Clipboard.getData('text/plain')).isNotNull().text.equals('fcm-token');
+    });
+
+    testWidgets('admin without a token sees a placeholder', (tester) async {
+      await preparePushToken(tester, role: UserRole.owner);
+      check(find.text('No token yet', skipOffstage: false)).findsOne();
+      check(find.byIcon(Icons.copy)).findsNothing();
     });
   });
 

@@ -519,6 +519,18 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get successAppVersionCopied => 'Versión de la aplicación copiada';
 
   @override
+  String get successPushTokenCopied => 'Push token copied';
+
+  @override
+  String get notificationsSettingsTitle => 'NOTIFICATIONS';
+
+  @override
+  String get pushTokenSettingTitle => 'Push token';
+
+  @override
+  String get pushTokenSettingUnavailable => 'No token yet';
+
+  @override
   String get successLinkCopied => 'Enlace copiado';
 
   @override

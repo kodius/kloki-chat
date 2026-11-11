@@ -1,7 +1,10 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
+import '../notifications/receive.dart';
+import 'actions.dart';
 import 'app_bar.dart';
 import 'page.dart';
 import 'store.dart';
@@ -37,6 +40,9 @@ class SettingsPage extends StatelessWidget {
                 onTap: () => Navigator.push(context,
                   ExperimentalFeaturesPage.buildRoute())),
           ]),
+          // Debugging push delivery: the token is what the Firebase console's
+          // "Test on device" asks for.
+          const _SettingsCard(children: [_PushTokenSetting()]),
         ]));
   }
 }
@@ -82,6 +88,29 @@ class _SettingsCardTitle extends StatelessWidget {
           fontSize: 13,
           letterSpacing: 0.5,
         ).merge(weightVariableTextStyle(context, wght: 700))));
+  }
+}
+
+class _PushTokenSetting extends StatelessWidget {
+  const _PushTokenSetting();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return ValueListenableBuilder<String?>(
+      valueListenable: NotificationService.instance.token,
+      builder: (context, token, _) => Column(children: [
+        _SettingsCardTitle(zulipLocalizations.notificationsSettingsTitle),
+        ListTile(
+          title: Text(zulipLocalizations.pushTokenSettingTitle),
+          subtitle: SelectableText(
+            token ?? zulipLocalizations.pushTokenSettingUnavailable),
+          trailing: token == null ? null : const Icon(Icons.copy),
+          onTap: token == null ? null : () => PlatformActions.copyWithPopup(
+            context: context,
+            data: ClipboardData(text: token),
+            successContent: Text(zulipLocalizations.successPushTokenCopied))),
+      ]));
   }
 }
 

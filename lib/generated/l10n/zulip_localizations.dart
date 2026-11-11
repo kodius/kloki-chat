@@ -980,6 +980,30 @@ abstract class ZulipLocalizations {
   /// **'App version copied'**
   String get successAppVersionCopied;
 
+  /// Success message after the push notification token was copied to the user's system clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Push token copied'**
+  String get successPushTokenCopied;
+
+  /// Heading of the notifications section on the settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTIFICATIONS'**
+  String get notificationsSettingsTitle;
+
+  /// Label for the push notification token (FCM on Android, APNs on iOS) on the settings page. Shown to administrators only; tapping it copies the token.
+  ///
+  /// In en, this message translates to:
+  /// **'Push token'**
+  String get pushTokenSettingTitle;
+
+  /// Shown instead of the push notification token when the app has not received one.
+  ///
+  /// In en, this message translates to:
+  /// **'No token yet'**
+  String get pushTokenSettingUnavailable;
+
   /// Success message after copy link action completed.
   ///
   /// In en, this message translates to:

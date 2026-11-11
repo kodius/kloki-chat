@@ -599,6 +599,22 @@
   "@successAppVersionCopied": {
     "description": "Success message after the app version was copied to the user's system clipboard."
   },
+  "successPushTokenCopied": "Push token copied",
+  "@successPushTokenCopied": {
+    "description": "Success message after the push notification token was copied to the user's system clipboard."
+  },
+  "notificationsSettingsTitle": "NOTIFICATIONS",
+  "@notificationsSettingsTitle": {
+    "description": "Heading of the notifications section on the settings page."
+  },
+  "pushTokenSettingTitle": "Push token",
+  "@pushTokenSettingTitle": {
+    "description": "Label for the push notification token (FCM on Android, APNs on iOS) on the settings page. Shown to administrators only; tapping it copies the token."
+  },
+  "pushTokenSettingUnavailable": "No token yet",
+  "@pushTokenSettingUnavailable": {
+    "description": "Shown instead of the push notification token when the app has not received one."
+  },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
