@@ -74,6 +74,9 @@ class PushDeviceManager extends PerAccountStoreBase {
   @visibleForTesting
   static bool debugE2eeEnabled = false;
 
+  /// Whether this app registers for E2EE push at all; see [debugE2eeEnabled].
+  static bool get e2eeEnabled => debugE2eeEnabled;
+
   bool get _e2eeAvailable =>
     debugE2eeEnabled && zulipFeatureLevel >= 468;
 

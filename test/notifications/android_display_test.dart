@@ -13,6 +13,7 @@ import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -644,6 +645,18 @@ void main() {
     test('stream message, legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init(addSelfAccount: false);
       await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+      await checkNotifications(async, legacyMessageFcmMessage(message, streamName: stream.name),
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message, legacy plaintext on new server when E2EE is off (Kloki Chat)', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      PushDeviceManager.debugE2eeEnabled = false;
+      addTearDown(() => PushDeviceManager.debugE2eeEnabled = true);
+      await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, legacyMessageFcmMessage(message, streamName: stream.name),

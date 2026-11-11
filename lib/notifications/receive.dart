@@ -11,6 +11,7 @@ import '../api/route/notifications.dart';
 import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/push_device.dart';
 import '../model/push_key.dart';
 import '../model/store.dart';
 import 'android_display.dart';
@@ -254,7 +255,10 @@ class NotificationService {
     }
 
     assert(defaultTargetPlatform == TargetPlatform.android);
-    if (account.zulipFeatureLevel >= 468) {
+    // Kloki Chat registers only the legacy way ([PushDeviceManager.e2eeEnabled]
+    // is off: no bouncer), so on its Zulip 12 servers a legacy notification is
+    // the only kind that ever arrives.  Dropping it would drop every push.
+    if (PushDeviceManager.e2eeEnabled && account.zulipFeatureLevel >= 468) {
       // The server is new enough for E2EE notifications, but this is a legacy
       // plaintext notification.  It's normal to potentially get these when
       // either client or server is first upgraded to add E2EE support, because
