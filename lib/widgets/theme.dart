@@ -9,6 +9,7 @@ import 'emoji_reaction.dart';
 import 'message_list.dart';
 import 'channel_colors.dart';
 import 'color.dart';
+import 'icons.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -144,6 +145,13 @@ ThemeData zulipThemeData(BuildContext context) {
 
     ),
     colorScheme: colorScheme,
+    // The back button on a card tile, as in Kloki GO.
+    actionIconTheme: ActionIconThemeData(
+      backButtonIconBuilder: (context) => Container(
+        width: 36, height: 36,
+        decoration: klokiCardDecoration(DesignVariables.of(context), radius: 12),
+        child: Icon(ZulipIcons.chevron_left, size: 20,
+          color: DesignVariables.of(context).title))),
     scaffoldBackgroundColor: designVariables.mainBackground,
     textSelectionTheme: TextSelectionThemeData(
       // As in Figma:
@@ -172,13 +180,6 @@ ThemeData zulipThemeData(BuildContext context) {
   );
 }
 
-/// The Zulip "brand color", a purplish blue.
-///
-/// This is chosen as the sRGB midpoint of the Zulip logo's gradient.
-// As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
-const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
-
-/// Colors from the Kloki design tokens, as on the web app and chat.kloki.app.
 /// The decoration of a Kloki card: a rounded surface with a hairline
 /// and the soft shadow of Kloki's design system (`--shadow-1`).
 BoxDecoration klokiCardDecoration(DesignVariables designVariables, {
@@ -194,6 +195,13 @@ BoxDecoration klokiCardDecoration(DesignVariables designVariables, {
     ]);
 }
 
+/// The Zulip "brand color", a purplish blue.
+///
+/// This is chosen as the sRGB midpoint of the Zulip logo's gradient.
+// As computed by Anders: https://github.com/zulip/zulip-mobile/pull/4467
+const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
+
+/// Colors from the Kloki design tokens, as on the web app and chat.kloki.app.
 ///
 /// Source: kloking-core packages/configs/tailwind/styles/globals.css
 /// (`:root` and `.dark`).
