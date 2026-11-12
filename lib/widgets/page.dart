@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'icons.dart';
 import 'kloki.dart';
 import 'store.dart';
 import 'text.dart';
@@ -259,7 +260,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     this.message,
     this.messageWithLinkMarkup,
     this.onTapMessageLink,
-    this.icon = Icons.forum_outlined,
+    this.icon = ZulipIcons.message_feed,
   }) : assert(
          (header != null)
          ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
