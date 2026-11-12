@@ -6,7 +6,6 @@
 <title>Kloki Chat store screenshots</title>
 <style>
   @font-face { font-family: Raleway; src: url('../../assets/Raleway/RalewayVF.ttf'); font-weight: 100 900; }
-  @font-face { font-family: 'Source Sans 3'; src: url('../../assets/Source_Sans_3/SourceSans3VF-Upright.otf'); font-weight: 200 900; }
 
   :root {
     --primary: #493DCC;
@@ -16,7 +15,7 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--page); color: var(--ink);
-    font-family: 'Source Sans 3', system-ui, sans-serif; }
+    font-family: Raleway, system-ui, sans-serif; }
 
   /* ---------- preview chrome ---------- */
   .bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 12px;
@@ -25,12 +24,12 @@
   .bar h1 { font: 800 20px Raleway; margin: 0 12px 0 0; }
   .seg { display: inline-flex; background: #fff; border: 1px solid #dcd9ef; border-radius: 999px; padding: 3px; }
   .seg button { border: 0; background: none; padding: 7px 14px; border-radius: 999px;
-    font: 600 14px 'Source Sans 3'; color: #55527a; cursor: pointer; }
+    font: 600 14px Raleway; color: #55527a; cursor: pointer; }
   .seg button.on { background: var(--primary); color: #fff; }
   .note { font-size: 14px; color: #6b6890; }
   .grid { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px 16px 48px; }
   .cell { display: flex; flex-direction: column; gap: 8px; }
-  .cell .label { font: 600 13px 'Source Sans 3'; color: #6b6890; }
+  .cell .label { font: 600 13px Raleway; color: #6b6890; }
   .scaler { overflow: hidden; border-radius: 18px; box-shadow: 0 10px 30px rgba(40,30,120,.12); }
   .scaler > .frame { transform-origin: 0 0; }
 
@@ -63,7 +62,7 @@
   .screen { position: absolute; overflow: hidden; background: #fff; }
   .screen img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .status { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center;
-    justify-content: space-between; font-family: -apple-system, 'SF Pro Text', 'Source Sans 3', sans-serif;
+    justify-content: space-between; font-family: -apple-system, 'SF Pro Text', Raleway, sans-serif;
     font-weight: 600; }
   .status .icons { display: flex; align-items: center; }
   .island { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 999px; }
@@ -159,7 +158,7 @@ function statusBar(platform, theme, scale) {
       </span></div>
       ${ipad ? '' : `<div class="island" style="top:${11*scale}px;width:${124*scale}px;height:${36*scale}px"></div>`}`;
   }
-  return `<div class="status" style="height:${44*scale}px;padding:0 ${26*scale}px;font-size:${15*scale}px;color:${color};font-family:Roboto,'Source Sans 3',sans-serif">
+  return `<div class="status" style="height:${44*scale}px;padding:0 ${26*scale}px;font-size:${15*scale}px;color:${color};font-family:Roboto,Raleway,sans-serif">
       <span>9:41</span>
       <span class="icons" style="gap:${6*scale}px">
         <svg width="${15*scale}" height="${12*scale}" viewBox="0 0 16 12"><path fill="${color}" d="M8 .5C5 .5 2.3 1.6.3 3.4L8 11.5l7.7-8.1C13.7 1.6 11 .5 8 .5z"/></svg>

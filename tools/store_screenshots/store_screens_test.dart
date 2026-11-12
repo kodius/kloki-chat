@@ -229,9 +229,8 @@ void main() {
   final images = <String, List<int>>{};
 
   setUpAll(() async {
-    await _loadFont('Source Sans 3', ['assets/Source_Sans_3/SourceSans3VF-Upright.otf',
-      'assets/Source_Sans_3/SourceSans3VF-Italic.otf']);
-    await _loadFont('Raleway', ['assets/Raleway/RalewayVF.ttf']);
+    await _loadFont('Raleway', ['assets/Raleway/RalewayVF.ttf',
+      'assets/Raleway/RalewayItalicVF.ttf']);
     await _loadFont('Zulip Icons', ['assets/icons/ZulipIcons.ttf']);
     await _loadFont('Noto Color Emoji', ['assets/Noto_Color_Emoji/Noto-COLRv1.ttf']);
     final flutterRoot = Platform.environment['FLUTTER_ROOT']

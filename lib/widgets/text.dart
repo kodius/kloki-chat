@@ -157,12 +157,14 @@ TextTheme _convertTextTheme(
 ///
 /// This is a variable-weight font, so any [TextStyle] that uses this should be
 /// merged with the result of calling [weightVariableTextStyle].
-const kDefaultFontFamily = 'Source Sans 3';
+///
+/// Raleway is Kloki's typeface, on the web app and in Kloki GO.
+const kDefaultFontFamily = 'Raleway';
 
 /// Kloki's heading font, for titles in the Kloki style.
 ///
 /// It's a variable font; set its weight with [weightVariableTextStyle].
-const kKlokiHeadingFontFamily = 'Raleway';
+const kKlokiHeadingFontFamily = kDefaultFontFamily;
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [

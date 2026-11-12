@@ -40,9 +40,6 @@ Stream<LicenseEntry> additionalLicenses() async* {
   yield LicenseEntryWithLineBreaks(
     ['Source Code Pro'],
     await rootBundle.loadString('assets/Source_Code_Pro/LICENSE.md'));
-  yield LicenseEntryWithLineBreaks(
-    ['Source Sans 3'],
-    await rootBundle.loadString('assets/Source_Sans_3/LICENSE.md'));
 
   // Alphabetic by path.
 }

@@ -49,8 +49,8 @@ void main() {
   // pending at the end of the test, which fails the test.
   setUpAll(() async {
     // TODO do this more centrally, or put in reusable helper
-    final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');
-    final fontLoader = FontLoader('Source Sans 3')..addFont(font);
+    final Future<ByteData> font = rootBundle.load('assets/Raleway/RalewayVF.ttf');
+    final fontLoader = FontLoader('Raleway')..addFont(font);
     await fontLoader.load();
   });
 
