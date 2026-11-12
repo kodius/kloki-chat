@@ -17,6 +17,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
@@ -581,13 +582,13 @@ void main() {
       await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
       check(platform.isPlaying).isTrue();
 
-      await tester.tap(find.byIcon(Icons.pause_circle_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.circle_pause));
       check(platform.isPlaying).isFalse();
 
       // re-render to update player controls
       await tester.pump();
 
-      await tester.tap(find.byIcon(Icons.play_circle_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.circle_play));
       check(platform.isPlaying).isTrue();
     });
 
@@ -703,14 +704,14 @@ void main() {
       check(platform.isPlaying).isTrue();
       check(TestZulipBinding.instance.wakelockEnabled).isTrue();
 
-      await tester.tap(find.byIcon(Icons.pause_circle_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.circle_pause));
       check(platform.isPlaying).isFalse();
       check(TestZulipBinding.instance.wakelockEnabled).isFalse();
 
       // re-render to update player controls
       await tester.pump();
 
-      await tester.tap(find.byIcon(Icons.play_circle_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.circle_play));
       check(platform.isPlaying).isTrue();
       check(TestZulipBinding.instance.wakelockEnabled).isTrue();
     });

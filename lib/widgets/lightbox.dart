@@ -594,8 +594,8 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
           },
           icon: Icon(
             _controller!.value.isPlaying
-              ? Icons.pause_circle_rounded
-              : Icons.play_circle_rounded,
+              ? ZulipIcons.circle_pause
+              : ZulipIcons.circle_play,
             size: 50,
           ),
         ),
