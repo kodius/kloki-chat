@@ -6,6 +6,7 @@ import '../model/settings.dart';
 import '../notifications/receive.dart';
 import 'actions.dart';
 import 'app_bar.dart';
+import 'icons.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -36,7 +37,7 @@ class SettingsPage extends StatelessWidget {
             if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
               ListTile(
                 title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(ZulipIcons.chevron_right, size: 20),
                 onTap: () => Navigator.push(context,
                   ExperimentalFeaturesPage.buildRoute())),
           ]),
@@ -105,7 +106,7 @@ class _PushTokenSetting extends StatelessWidget {
           title: Text(zulipLocalizations.pushTokenSettingTitle),
           subtitle: SelectableText(
             token ?? zulipLocalizations.pushTokenSettingUnavailable),
-          trailing: token == null ? null : const Icon(Icons.copy),
+          trailing: token == null ? null : const Icon(ZulipIcons.copy, size: 20),
           onTap: token == null ? null : () => PlatformActions.copyWithPopup(
             context: context,
             data: ClipboardData(text: token),
@@ -178,7 +179,7 @@ class _VisitFirstUnreadSetting extends StatelessWidget {
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(VisitFirstUnreadSettingPage._valueDisplayName(
         globalSettings.visitFirstUnread, zulipLocalizations: zulipLocalizations)),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: const Icon(ZulipIcons.chevron_right, size: 20),
       onTap: () => Navigator.push(context,
         VisitFirstUnreadSettingPage.buildRoute()));
   }
@@ -242,7 +243,7 @@ class _MarkReadOnScrollSetting extends StatelessWidget {
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(MarkReadOnScrollSettingPage._valueDisplayName(
         globalSettings.markReadOnScroll, zulipLocalizations: zulipLocalizations)),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: const Icon(ZulipIcons.chevron_right, size: 20),
       onTap: () => Navigator.push(context,
         MarkReadOnScrollSettingPage.buildRoute()));
   }
