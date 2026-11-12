@@ -230,7 +230,7 @@ abstract final class KlokiColors {
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=2945-49492&t=MEb4vtp7S26nntxm-0
 class DesignVariables extends ThemeExtension<DesignVariables> {
   static final light = DesignVariables._(
-    background: const Color(0xffffffff),
+    background: KlokiColors.lightBackground,
     bannerBgIntDanger: const Color(0xfff2e4e4),
     bannerBgIntInfo: KlokiColors.lightAccent,
     bannerBgIntWarning: const Color(0xfffaf5dc),
@@ -240,7 +240,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: KlokiColors.lightPrimary.withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: KlokiColors.lightPrimary.withValues(alpha: 0.10),
-    bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
+    bgMessageRegular: KlokiColors.lightBackground,
     bgSearchInput: KlokiColors.lightMuted,
     bgTopBar: KlokiColors.lightCard,
     borderBar: KlokiColors.lightBorder,
@@ -305,7 +305,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json
     // in sync.
     // One white plane, as Kloki pages are; fields are tinted to stand out.
-    mainBackground: KlokiColors.lightCard,
+    mainBackground: KlokiColors.lightBackground,
 
     neutralButtonBg: const Color(0xff8c84ae),
     neutralButtonLabel: const Color(0xff433d5c),
