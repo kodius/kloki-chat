@@ -43,8 +43,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.light(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
-      colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
-      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
+      colorDirectMentionBackground: KlokiColors.lightPrimary.withValues(alpha: 0.16),
+      colorGroupMentionBackground: KlokiColors.lightPrimary.withValues(alpha: 0.09),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
       colorLink: KlokiColors.lightPrimary,
@@ -78,8 +78,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   factory ContentTheme.dark(BuildContext context) {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
-      colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
-      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
+      colorDirectMentionBackground: KlokiColors.darkPrimary.withValues(alpha: 0.32),
+      colorGroupMentionBackground: KlokiColors.darkPrimary.withValues(alpha: 0.18),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorLink: KlokiColors.darkPrimaryHover,
