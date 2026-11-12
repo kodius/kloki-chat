@@ -246,9 +246,9 @@ flutter:
     - family: Raleway
       fonts:
         - asset: assets/Raleway/RalewayVF.ttf
-
         - asset: assets/Raleway/RalewayItalicVF.ttf
           style: italic
+
     # Zulip's custom icons.  To use or edit, see class ZulipIcons.
     - family: Zulip Icons
       fonts:
