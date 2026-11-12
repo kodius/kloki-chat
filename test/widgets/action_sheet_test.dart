@@ -2229,14 +2229,14 @@ void main() {
         final unreadMessage = eg.streamMessage(flags: []);
         await setupToMessageActionSheet(tester, message: unreadMessage, narrow: TopicNarrow.ofMessage(unreadMessage));
 
-        check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).isEmpty();
+        check(find.byIcon(ZulipIcons.message_unread).evaluate()).isEmpty();
       });
 
       testWidgets('visible if message is read', (tester) async {
         final readMessage = eg.streamMessage(flags: [MessageFlag.read]);
         await setupToMessageActionSheet(tester, message: readMessage, narrow: TopicNarrow.ofMessage(readMessage));
 
-        check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
+        check(find.byIcon(ZulipIcons.message_unread).evaluate()).single;
       });
 
       group('onPressed', () {
@@ -2249,8 +2249,8 @@ void main() {
             firstProcessedId: 1, lastProcessedId: 1980,
             foundOldest: true, foundNewest: true).toJson());
 
-          await tester.ensureVisible(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
-          await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+          await tester.ensureVisible(find.byIcon(ZulipIcons.message_unread, skipOffstage: false));
+          await tester.tap(find.byIcon(ZulipIcons.message_unread, skipOffstage: false));
           await tester.pumpAndSettle();
           check(connection.lastRequest).isA<http.Request>()
             ..method.equals('POST')
@@ -2299,7 +2299,7 @@ void main() {
             processedCount: 11, updatedCount: 3,
             firstProcessedId: 1, lastProcessedId: 1980,
             foundOldest: true, foundNewest: true).toJson());
-          await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+          await tester.tap(find.byIcon(ZulipIcons.message_unread, skipOffstage: false));
           await tester.pumpAndSettle();
           check(connection.lastRequest).isA<http.Request>()
             ..method.equals('POST')
@@ -2317,8 +2317,8 @@ void main() {
           connection.prepare(httpException: http.ClientException('Oops'));
           final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
-          await tester.ensureVisible(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
-          await tester.tap(find.byIcon(Icons.mark_chat_unread_outlined, skipOffstage: false));
+          await tester.ensureVisible(find.byIcon(ZulipIcons.message_unread, skipOffstage: false));
+          await tester.tap(find.byIcon(ZulipIcons.message_unread, skipOffstage: false));
           await tester.pumpAndSettle();
           checkErrorDialog(tester,
             expectedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle,

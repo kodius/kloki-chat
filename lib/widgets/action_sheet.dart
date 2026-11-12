@@ -1624,7 +1624,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
 class MarkAsUnreadButton extends MessageActionSheetMenuItemButton {
   MarkAsUnreadButton({super.key, required super.message, required super.pageContext});
 
-  @override IconData get icon => Icons.mark_chat_unread_outlined;
+  @override IconData get icon => ZulipIcons.message_unread;
 
   @override
   String label(ZulipLocalizations zulipLocalizations) {
