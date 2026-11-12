@@ -2251,7 +2251,8 @@ class DateText extends StatelessWidget {
             height: height,
             // This is equivalent to css `all-small-caps`, see:
             //   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-caps#all-small-caps
-            fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
+            fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp'),
+              FontFeature.liningFigures()],
           )
         : TextStyle(
             color: messageListTheme.labelTime,
@@ -2345,12 +2346,13 @@ class SenderRow extends StatelessWidget {
           if (timestamp != null) ...[
             const SizedBox(width: 4),
             Text(timestamp,
-              style: TextStyle(
+              style: weightVariableTextStyle(context).copyWith(
                 color: messageListTheme.labelTime,
                 fontSize: 16,
                 height: (18 / 16),
-                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp')],
-              ).merge(weightVariableTextStyle(context))),
+                fontFeatures: const [FontFeature.enable('c2sc'), FontFeature.enable('smcp'),
+                  FontFeature.liningFigures()],
+              )),
           ],
         ]));
   }

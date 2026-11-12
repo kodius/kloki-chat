@@ -259,6 +259,9 @@ TextStyle weightVariableTextStyle(BuildContext context, {
   TextStyle result = TextStyle(
     fontVariations: [FontVariation('wght', value)],
 
+    // Raleway's default figures are old-style; Kloki uses the lining ones.
+    fontFeatures: const [FontFeature.liningFigures()],
+
     // This use of `fontWeight` shouldn't affect glyphs in the preferred,
     // "wght"-axis font. But it can; see upstream bug:
     //   https://github.com/flutter/flutter/issues/136779
