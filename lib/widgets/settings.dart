@@ -60,10 +60,7 @@ class _SettingsCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: designVariables.bgTopBar,
-          border: Border.all(color: designVariables.borderBar),
-          borderRadius: BorderRadius.circular(14)),
+        decoration: klokiCardDecoration(designVariables, radius: 14),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: Material(

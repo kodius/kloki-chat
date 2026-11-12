@@ -626,10 +626,7 @@ class _MenuPageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.bgTopBar,
-        border: Border.all(color: designVariables.borderBar),
-        borderRadius: BorderRadius.circular(16)),
+      decoration: klokiCardDecoration(designVariables),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Material(

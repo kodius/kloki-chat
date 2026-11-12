@@ -8,6 +8,7 @@ import 'content.dart';
 import 'emoji_reaction.dart';
 import 'message_list.dart';
 import 'channel_colors.dart';
+import 'color.dart';
 import 'store.dart';
 import 'text.dart';
 
@@ -178,6 +179,21 @@ ThemeData zulipThemeData(BuildContext context) {
 const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 
 /// Colors from the Kloki design tokens, as on the web app and chat.kloki.app.
+/// The decoration of a Kloki card: a rounded surface with a hairline
+/// and the soft shadow of Kloki's design system (`--shadow-1`).
+BoxDecoration klokiCardDecoration(DesignVariables designVariables, {
+  double radius = 16,
+  Color? color,
+}) {
+  return BoxDecoration(
+    color: color ?? designVariables.bgTopBar,
+    border: Border.all(color: designVariables.borderBar.withFadedAlpha(0.5)),
+    borderRadius: BorderRadius.circular(radius),
+    boxShadow: const [
+      BoxShadow(color: Color(0x0d000000), offset: Offset(0, 8), blurRadius: 10),
+    ]);
+}
+
 ///
 /// Source: kloking-core packages/configs/tailwind/styles/globals.css
 /// (`:root` and `.dark`).
