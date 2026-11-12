@@ -22,6 +22,7 @@ import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -987,7 +988,7 @@ void main() {
       await prepareContent(tester,
         plainContent('<p><a href="https://example/"><code>code</code></a></p>'));
       final style = mergedStyleOf(tester, 'code');
-      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+      check(style!.color).equals(KlokiColors.lightPrimary);
     });
   });
 
@@ -1538,7 +1539,7 @@ void main() {
       await prepareContent(tester,
         plainContent('<p><a href="https://example/">$mathInlineHtml</a></p>'));
       final style = mergedStyleOf(tester, 'λ');
-      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+      check(style!.color).equals(KlokiColors.lightPrimary);
     });
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
@@ -1585,7 +1586,7 @@ void main() {
         await prepareContent(tester,
           plainContent('<p><a href="https://example/">$unsupportedKatexHtml</a></p>'));
         final style = mergedStyleOf(tester, expectedText);
-        check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+        check(style!.color).equals(KlokiColors.lightPrimary);
       });
     });
   });
@@ -1674,7 +1675,7 @@ void main() {
     testIconAndTextSameColor('common case', '<p>$timeSpanHtml</p>');
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1819
     testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>',
-      expectedColor: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+      expectedColor: KlokiColors.lightPrimary);
 
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {

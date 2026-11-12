@@ -47,7 +47,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
-      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
+      colorLink: KlokiColors.lightPrimary,
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
       colorPollNames: const HSLColor.fromAHSL(1, 0, 0, .45).toColor(),
@@ -82,7 +82,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
-      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
+      colorLink: KlokiColors.darkPrimaryHover,
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
       colorPollNames: const HSLColor.fromAHSL(1, 236, .15, .7).toColor(),
