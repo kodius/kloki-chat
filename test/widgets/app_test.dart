@@ -9,6 +9,7 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/login.dart';
 import 'package:zulip/widgets/page.dart';
 
@@ -364,7 +365,7 @@ void main() {
 
         final findThreeDotsButton = find.descendant(
           of: find.widgetWithText(InkWell, eg.selfAccount.email),
-          matching: find.byIcon(Icons.adaptive.more));
+          matching: find.byIcon(ZulipIcons.more_horizontal));
 
         await tester.tap(findThreeDotsButton);
         await tester.pump();

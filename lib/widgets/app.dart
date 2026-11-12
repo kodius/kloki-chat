@@ -13,6 +13,7 @@ import '../model/store.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
+import 'icons.dart';
 import 'kloki.dart';
 import 'login.dart';
 import 'page.dart';
@@ -495,7 +496,7 @@ class ChooseAccountPage extends StatelessWidget {
                       controller.open();
                     }
                   },
-                  icon: Icon(Icons.adaptive.more, color: designVariables.loginOrDividerText));
+                  icon: Icon(ZulipIcons.more_horizontal, color: designVariables.loginOrDividerText));
               }),
           ]))));
   }
@@ -539,7 +540,7 @@ class ChooseAccountPage extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => Navigator.push(context,
                   KlokiSignInPage.buildRoute()),
-                icon: const Icon(Icons.add),
+                icon: const Icon(ZulipIcons.plus, size: 20),
                 label: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
             ])))));
   }
@@ -570,7 +571,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
               controller.open();
             }
           },
-          icon: Icon(Icons.adaptive.more));
+          icon: Icon(ZulipIcons.more_horizontal));
       });
   }
 }
