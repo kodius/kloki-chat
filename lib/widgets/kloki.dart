@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
+import 'icons.dart';
 import 'store.dart';
 import 'theme.dart';
 
@@ -882,7 +883,7 @@ class KlokiThemeToggle extends StatelessWidget {
           child: ScaleTransition(scale: animation,
             child: FadeTransition(opacity: animation, child: child))),
         child: Icon(
-          isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          isDark ? ZulipIcons.sun : ZulipIcons.moon,
           key: ValueKey(isDark),
           size: 20,
           color: Colors.white)));
