@@ -21,6 +21,7 @@ import 'app.dart';
 import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
+import 'icons.dart';
 import 'input.dart';
 import 'kloki.dart';
 import 'page.dart';
@@ -425,7 +426,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       inProgress: _inProgress,
       children: [
         _KlokiIconTile(icon: widget.klokiGuest
-          ? Icons.person_outline : Icons.dns_outlined),
+          ? ZulipIcons.person : ZulipIcons.server),
         _KlokiTitle(widget.klokiGuest
           ? zulipLocalizations.klokiGuestSignIn
           : zulipLocalizations.klokiOtherServer),
@@ -1419,9 +1420,9 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       : zulipLocalizations.loginUsernameLabel;
 
     final passwordVisibilityButton = ZulipIconButton(
-      icon: Icons.visibility,
+      icon: ZulipIcons.eye,
       isSelected: _obscurePassword,
-      selectedIcon: Icons.visibility_off,
+      selectedIcon: ZulipIcons.eye_off,
       tooltip: zulipLocalizations.loginHidePassword,
       onPressed: _handlePasswordVisibilityPress,
       size: .large,
