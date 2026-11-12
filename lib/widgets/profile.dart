@@ -129,7 +129,7 @@ class ProfilePage extends StatelessWidget {
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
-        icon: const Icon(Icons.email),
+        icon: const Icon(ZulipIcons.mail, size: 20),
         label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
     ];
 
@@ -326,7 +326,7 @@ class _ProfileErrorPage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error),
+              const Icon(ZulipIcons.circle_alert),
               const SizedBox(width: 4),
               Text(zulipLocalizations.errorCouldNotShowUserProfile),
             ]))));

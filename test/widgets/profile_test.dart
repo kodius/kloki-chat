@@ -91,7 +91,7 @@ void main() {
   testWidgets('page builds; error page shows up if data is missing', (tester) async {
     await setupPage(tester, pageUserId: eg.selfUser.userId + 1989);
     check(because: 'find no user avatar', find.byType(Avatar).evaluate()).isEmpty();
-    check(because: 'find error icon', find.byIcon(Icons.error).evaluate()).isNotEmpty();
+    check(because: 'find error icon', find.byIcon(ZulipIcons.circle_alert).evaluate()).isNotEmpty();
   });
 
   testWidgets('page builds; dm links to correct narrow', (tester) async {
@@ -105,7 +105,7 @@ void main() {
       navigatorObserver: testNavObserver,
     );
 
-    final targetWidget = find.byIcon(Icons.email);
+    final targetWidget = find.byIcon(ZulipIcons.mail);
     await tester.ensureVisible(targetWidget);
     await tester.tap(targetWidget);
     check(pushedRoutes).last.isA<WidgetRoute>().page
