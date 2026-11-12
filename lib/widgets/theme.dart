@@ -79,12 +79,20 @@ ThemeData zulipThemeData(BuildContext context) {
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titleTextStyle: TextStyle(
-        fontFamily: kKlokiHeadingFontFamily,
+        color: designVariables.title,
+        fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
         fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: designVariables.title),
-      contentTextStyle: TextStyle(fontSize: 16, height: 1.4,
-        color: designVariables.labelMenuButton)),
+        height: 26 / 20,
+      ).merge(weightVariableTextStyle(context, wght: 700)),
+      contentTextStyle: TextStyle(
+        color: designVariables.labelMenuButton,
+        fontFamily: kDefaultFontFamily,
+        fontFamilyFallback: defaultFontFamilyFallback,
+        fontSize: 16,
+        height: 22 / 16,
+      ).merge(weightVariableTextStyle(context)),
+    ),
     textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
       foregroundColor: designVariables.fabBg)),
     filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
