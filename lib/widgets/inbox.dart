@@ -314,9 +314,6 @@ class InboxFolderHeaderItem extends StatelessWidget {
     this.isFirst = false,
   });
 
-  /// The label for this folder header, not yet uppercased.
-  ///
-  /// The implementation will call [String.toUpperCase] on this.
   final String label;
 
   /// Whether this is the first folder section.
@@ -326,9 +323,8 @@ class InboxFolderHeaderItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    // TODO(#2259) actually show the trailing markers;
-    //   we use this just to anticipate doing that.
-    const fontSize = InboxRowTrailingMarkers.fontSize;
+    // A Kloki section label: small, muted, left-aligned.
+    const fontSize = 13.0;
 
     final double topPadding = 10 + (isFirst ? 0 : 8);
 
@@ -336,19 +332,18 @@ class InboxFolderHeaderItem extends StatelessWidget {
       // TODO(design) check if this is the right variable
       color: designVariables.background,
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(14, topPadding, 12, 10),
+        padding: EdgeInsetsDirectional.fromSTEB(20, topPadding, 12, 6),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
           Expanded(
             child: Text(
               maxLines: 1,
               overflow: .ellipsis,
               style: TextStyle(
-                color: designVariables.folderText,
+                color: designVariables.loginOrDividerText,
                 fontSize: fontSize,
-                height: 20 / fontSize,
-                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: fontSize),
+                height: 16 / fontSize,
               ).merge(weightVariableTextStyle(context, wght: 700)),
-              label.toUpperCase())),
+              label)),
         ])));
 
     return Semantics(container: true,
@@ -398,10 +393,10 @@ class InboxDmItem extends StatelessWidget {
         },
         onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
-              const SizedBox(width: 6),
+              const SizedBox(width: 10),
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Text(
@@ -481,9 +476,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
     final swatch = colorSwatchFor(context, subscription);
 
     Widget result = Material(
-      // The Figma uses a gradient background, which we decided we didn't like:
-      //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2443083
-      color: swatch.barBackground,
+      color: designVariables.background,
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
@@ -496,12 +489,18 @@ class InboxChannelHeaderItem extends StatelessWidget {
         //   40px min height.
         onTap: _onCollapseButtonTap,
         onLongPress: _onLongPress,
-        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Icon(size: 18,
-              color: swatch.iconOnBarBackground,
-              iconDataForStream(subscription)),
-            const SizedBox(width: 8),
+            // The channel's icon on a tile of its color, as in the channel list.
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: swatch.iconOnPlainBackground.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(10)),
+              child: Icon(size: 16,
+                color: swatch.iconOnPlainBackground,
+                iconDataForStream(subscription))),
+            const SizedBox(width: 10),
             // Pin the chevron to the end of the channel name.
             // Let the name grow until the chevron has no room after it,
             // truncating overflow with "...".
@@ -618,7 +617,7 @@ class InboxTopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 12, 0),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 16, 0),
             child: Center(
               widthFactor: 1,
               child: Row(
@@ -626,7 +625,7 @@ class InboxTopicItem extends StatelessWidget {
                 textBaseline: localizedTextBaseline(context),
                 children: [
                   SizedBox(
-                    width: 42,
+                    width: 48,
                     child: Align(
                       // When the system text-size setting rises,
                       // let the checkmark icon grow startward into the margin
@@ -637,7 +636,7 @@ class InboxTopicItem extends StatelessWidget {
                       child: topic.isResolved
                         ? InboxRowMarkerIcon(icon: ZulipIcons.check)
                         : null)),
-                  SizedBox(width: 8),
+                  SizedBox(width: 10),
                   Expanded(child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(

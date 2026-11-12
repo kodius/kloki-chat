@@ -131,12 +131,12 @@ void main() {
   }
 
   void checkFolderHeader(String label) {
-    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+    check(find.widgetWithText(InboxFolderHeaderItem, label))
       .findsOne();
   }
 
   void checkNoFolderHeader(String label) {
-    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+    check(find.widgetWithText(InboxFolderHeaderItem, label))
       .findsNothing();
   }
 
