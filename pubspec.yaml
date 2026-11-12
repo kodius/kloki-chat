@@ -148,6 +148,7 @@ flutter:
     - assets/Pygments/AUTHORS.txt
     - assets/Pygments/LICENSE.txt
     - assets/Raleway/LICENSE.txt
+    - assets/icons/LUCIDE-LICENSE
     - assets/Source_Code_Pro/LICENSE.md
 
   fonts:
