@@ -52,7 +52,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20unread.20marker/near/1658008
     // (Web uses a left-to-right gradient from hsl(217deg 64% 59%) to transparent,
     // in both light and dark theme.)
-    unreadMarker: const HSLColor.fromAHSL(1, 227, 0.78, 0.59).toColor(),
+    unreadMarker: KlokiColors.lightPrimary,
 
     unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
   );
@@ -68,7 +68,7 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     // Discussion, some weeks after the discussion linked on the light variant:
     //   https://github.com/zulip/zulip-flutter/pull/317#issuecomment-1784311663
     // where Vlad includes screenshots that look like they're from there.
-    unreadMarker: const HSLColor.fromAHSL(0.75, 227, 0.78, 0.59).toColor(),
+    unreadMarker: KlokiColors.darkPrimary,
 
     unreadMarkerGap: Colors.transparent,
   );
@@ -1640,23 +1640,23 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> with PerAccountStor
           //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
           child: Padding(
             // vertical padding adjusted for tap target height (48px) of button
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10 - ((48 - 38) / 2)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10 - ((48 - 44) / 2)),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
                 splashFactory: NoSplash.splashFactory,
-                minimumSize: const Size.fromHeight(38),
+                minimumSize: const Size.fromHeight(44),
                 textStyle:
                   // Restate [FilledButton]'s default, which inherits from
                   // [zulipTypography]…
                   Theme.of(context).textTheme.labelLarge!
                     // …then clobber some attributes to follow Figma:
                     .merge(TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       letterSpacing: proportionalLetterSpacing(context,
-                        kButtonTextLetterSpacingProportion, baseFontSize: 18),
-                      height: (23 / 18))
-                    .merge(weightVariableTextStyle(context, wght: 400))),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                        kButtonTextLetterSpacingProportion, baseFontSize: 16),
+                      height: (22 / 16))
+                    .merge(weightVariableTextStyle(context, wght: 600))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ).copyWith(
                 // Give the buttons a constant color regardless of whether their
                 // state is disabled, pressed, etc.  We handle those states
@@ -1666,7 +1666,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> with PerAccountStor
                 backgroundColor: WidgetStatePropertyAll(messageListTheme.unreadMarker),
               ),
               onPressed: _loading ? null : () => _handlePress(context),
-              icon: const Icon(ZulipIcons.message_checked),
+              icon: const Icon(ZulipIcons.message_checked, size: 20),
               label: Text(zulipLocalizations.markAllAsReadLabel))))));
   }
 }
