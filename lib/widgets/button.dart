@@ -589,10 +589,16 @@ class MenuButtonsShape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(7),
-      child: Column(spacing: 1,
-        children: buttons));
+    final designVariables = DesignVariables.of(context);
+    // A Kloki card; its border color shows between the buttons as dividers.
+    return Container(
+      decoration: klokiCardDecoration(designVariables, radius: 14,
+        color: Color.alphaBlend(designVariables.borderBar.withFadedAlpha(0.5),
+          designVariables.contextMenuBg)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: Column(spacing: 1,
+          children: buttons)));
   }
 }
 
@@ -648,23 +654,16 @@ class ZulipMenuItemButton extends StatelessWidget {
   }
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
-    switch (style) {
-      case ZulipMenuItemButtonStyle.menu:
-        return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
-          ~WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.12),
-        });
-      case ZulipMenuItemButtonStyle.menuDestructive:
-        return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.20),
-          ~WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.12),
-        });
-      case ZulipMenuItemButtonStyle.list:
-        return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.7),
-          ~WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.35),
-        });
-    }
+    final card = designVariables.contextMenuBg;
+    final tone = switch (style) {
+      ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemIcon,
+      ZulipMenuItemButtonStyle.menuDestructive => designVariables.contextMenuItemIconDanger,
+      ZulipMenuItemButtonStyle.list => designVariables.listMenuItemIcon,
+    };
+    return WidgetStateColor.fromMap({
+      WidgetState.pressed: Color.alphaBlend(tone.withFadedAlpha(0.10), card),
+      ~WidgetState.pressed: card,
+    });
   }
 
   Color _labelColor(DesignVariables designVariables) {
@@ -678,8 +677,8 @@ class ZulipMenuItemButton extends StatelessWidget {
   double _labelWght() {
     return switch (style) {
       ZulipMenuItemButtonStyle.menu
-        || ZulipMenuItemButtonStyle.menuDestructive => 600,
-      ZulipMenuItemButtonStyle.list => 500,
+        || ZulipMenuItemButtonStyle.menuDestructive
+        || ZulipMenuItemButtonStyle.list => 500,
     };
   }
 
@@ -714,11 +713,11 @@ class ZulipMenuItemButton extends StatelessWidget {
               spacing: itemSpacingAndEndPadding,
               children: [
                 ?toggle,
-                if (icon != null) Icon(icon!, color: _iconColor(designVariables)),
+                if (icon != null) Icon(icon!, size: 20, color: _iconColor(designVariables)),
               ]))
         : null,
       style: MenuItemButton.styleFrom(
-        minimumSize: Size.fromHeight(48),
+        minimumSize: Size.fromHeight(50),
         padding: EdgeInsetsDirectional.only(start: 16, end: itemSpacingAndEndPadding),
         foregroundColor: _labelColor(designVariables),
         splashFactory: NoSplash.splashFactory,
@@ -734,14 +733,14 @@ class ZulipMenuItemButton extends StatelessWidget {
           children: [
             Flexible(child: Text(label,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 20, height: 24 / 20)
+              style: const TextStyle(fontSize: 17, height: 22 / 17)
                 .merge(weightVariableTextStyle(context, wght: _labelWght())))),
             if (subLabel != null)
               Flexible(child: Text.rich(subLabel!,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 16,
-                  height: 16 / 16,
+                  fontSize: 14,
+                  height: 16 / 14,
                   color: _labelColor(designVariables).withFadedAlpha(0.70),
                 ).merge(weightVariableTextStyle(context, wght: _labelWght())))),
           ],
