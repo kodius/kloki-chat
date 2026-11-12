@@ -5,7 +5,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legacy_checks/legacy_checks.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -22,8 +21,8 @@ import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
-import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/text.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -333,12 +332,12 @@ void main() {
         final pushedRoutes = await prepare(tester, example.html);
         checkIsExpanded(tester, false);
 
-        await tester.tap(find.byIcon(Icons.expand_more));
+        await tester.tap(find.byIcon(ZulipIcons.chevron_down));
         await tester.pumpAndSettle();
         check(pushedRoutes).isEmpty(); // no lightbox
         checkIsExpanded(tester, true);
 
-        await tester.tap(find.byIcon(Icons.expand_more));
+        await tester.tap(find.byIcon(ZulipIcons.chevron_down));
         await tester.pumpAndSettle();
         check(pushedRoutes).isEmpty(); // no lightbox
         checkIsExpanded(tester, false);
@@ -731,7 +730,7 @@ void main() {
       const example = ContentExample.videoInline;
       final pushedRoutes = await prepare(tester, example.html);
 
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.play_filled));
       check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
         .fullscreenDialog.isTrue(); // opened lightbox
     });
@@ -763,7 +762,7 @@ void main() {
       check(image.src).equals(expectedResolvedUrl);
 
       final expectedLaunchUrl = expectedVideo.hrefUrl;
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      await tester.tap(find.byIcon(ZulipIcons.play_filled));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: Uri.parse(expectedLaunchUrl), mode: LaunchMode.inAppBrowserView));
     }

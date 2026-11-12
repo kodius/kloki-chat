@@ -609,7 +609,7 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
                       turns: _animation.drive(Tween(begin: 0, end: 0.5)),
                       // Web has the same color in light and dark mode.
                       child: const Icon(color: Color(0xffd4d4d4), size: 25,
-                        Icons.expand_more)),
+                        ZulipIcons.chevron_down)),
                   ]))),
               FadeTransition(
                 opacity: _animation,
@@ -680,7 +680,7 @@ class MessageInlineVideo extends StatelessWidget {
         // To avoid potentially confusing UX, do not show play icon as
         // we also disable onTap above.
         child: resolvedSrc == null ? null : const Icon( // TODO(log)
-          Icons.play_arrow_rounded,
+          ZulipIcons.play_filled,
           color: Colors.white, // Web has the same color in light and dark mode.
           size: 32)));
   }
@@ -708,7 +708,7 @@ class MessageEmbedVideo extends StatelessWidget {
           // Show the "play" icon even when previewImageSrcUrl didn't resolve;
           // the action uses hrefUrl, which might still work.
           const Icon(
-            Icons.play_arrow_rounded,
+            ZulipIcons.play_filled,
             color: Colors.white, // Web has the same color in light and dark mode.
             size: 32),
         ]));
