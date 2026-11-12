@@ -308,6 +308,7 @@ platform :ios do
       app_version: version,
       build_number: build_number.to_s,
       release_notes: release_notes,
+      name: locales.to_h { |locale| [locale, "Kloki Go Chat"] },
       skip_binary_upload: true,
       skip_screenshots: true,
       submit_for_review: true,
