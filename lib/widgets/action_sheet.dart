@@ -470,20 +470,24 @@ class BottomSheetDismissButton extends StatelessWidget {
 
     return TextButton(
       style: TextButton.styleFrom(
-        minimumSize: const Size.fromHeight(44),
+        minimumSize: const Size.fromHeight(50),
         padding: const EdgeInsets.all(10),
         foregroundColor: designVariables.contextMenuCancelText,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        // Kloki's secondary button: a card with a hairline.
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: designVariables.borderBar.withFadedAlpha(0.5)),
+          borderRadius: BorderRadius.circular(14)),
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuCancelPressedBg,
-        ~WidgetState.pressed: designVariables.contextMenuCancelBg,
+        WidgetState.pressed: Color.alphaBlend(
+          designVariables.contextMenuCancelPressedBg, designVariables.contextMenuBg),
+        ~WidgetState.pressed: designVariables.contextMenuBg,
       })),
       onPressed: () {
         Navigator.pop(context);
       },
       child: Text(label,
-        style: const TextStyle(fontSize: 20, height: 24 / 20)
+        style: const TextStyle(fontSize: 17, height: 22 / 17)
           .merge(weightVariableTextStyle(context, wght: 600))));
   }
 }
