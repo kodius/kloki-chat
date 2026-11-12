@@ -9,6 +9,7 @@
 module.exports = [
   "arrow_right",
   "chevron_right",
+  "chevron_left",
   "send",
   "arrow_left_right",
 
