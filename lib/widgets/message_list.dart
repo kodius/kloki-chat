@@ -1513,7 +1513,7 @@ class ScrollToBottomButton extends StatelessWidget {
       // TODO: fix hardcoded values for size and style here
       child: IconButton(
         tooltip: zulipLocalizations.scrollToBottomTooltip,
-        icon: const Icon(Icons.expand_circle_down_rounded),
+        icon: const Icon(ZulipIcons.circle_chevron_down),
         iconSize: 40,
         // Web has the same color in light and dark mode.
         color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
