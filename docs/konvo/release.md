@@ -73,30 +73,27 @@ it sends iOS FCM tokens through FCM whatever their app ID
 
 ### Moving iOS to the new app: remaining steps
 
-Done in the repo: bundle ID, app group, fastlane.
+Done: bundle ID, app group, fastlane;
+the Firebase iOS app for `com.kodius.klokichat`
+(project renamed `kloki-chat`, still `konvo-fb886`),
+whose App ID is in `kFirebaseOptionsIos`,
+with the APNs key uploaded;
+and the App Store ID in kloki-mobile.
 Still to do, on the Mac:
 
-1. In `konvo-fb886`, add an iOS app for `com.kodius.klokichat`
-   (App Store ID 6833812526).
-   Put its `GOOGLE_APP_ID` (and `API_KEY`, if different)
-   in `kFirebaseOptionsIos`.
-   If the "iOS key (auto created by Firebase)" in Google Cloud
-   is restricted to bundle IDs, add the new one.
-2. Upload the APNs key to that app, as above.
-3. `scripts/deploy` → iOS → Build.
+1. `scripts/deploy` → iOS → Build.
    Automatic signing registers `com.kodius.klokichat.NotificationService`
    and the app group.
    The version waiting in App Store Connect is 28.1.6.
-4. On a real iPhone, from TestFlight:
+2. On a real iPhone, from TestFlight:
    the token in Settings is an FCM token (`…:APA91b…`), not hex,
    and a message from another account shows a notification.
-5. Set `EXPO_PUBLIC_KONVO_APP_STORE_ID=6833812526` in kloki-mobile.
-6. Before the first Submit, App Review needs, for a public chat app:
+3. Before the first Submit, App Review needs, for a public chat app:
    a demo account, reporting content and blocking users (guideline 1.2),
    and deleting the account in the app (5.1.1(v)).
    The review notes should say that it is a B2B app for many companies,
    the companion of Kloki GO.
-7. Take `konvo.kodius.com` off sale once users have moved.
+4. Take `konvo.kodius.com` off sale once users have moved.
 
 Then delete this subsection.
 
