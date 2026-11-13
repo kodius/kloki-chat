@@ -516,6 +516,19 @@ class ZulipLocalizationsPt extends ZulipLocalizations {
   String get pushTokenSettingUnavailable => 'No token yet';
 
   @override
+  String get moveToNewAppTitle => 'Kloki Chat has a new app';
+
+  @override
+  String get moveToNewAppMessage =>
+      'Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app will soon stop getting updates.';
+
+  @override
+  String get moveToNewAppOpenStoreButton => 'Open App Store';
+
+  @override
+  String get moveToNewAppLaterButton => 'Later';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override

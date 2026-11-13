@@ -1004,6 +1004,30 @@ abstract class ZulipLocalizations {
   /// **'No token yet'**
   String get pushTokenSettingUnavailable;
 
+  /// Title of the dialog in the old iOS app that asks the user to install the new Kloki Chat app.
+  ///
+  /// In en, this message translates to:
+  /// **'Kloki Chat has a new app'**
+  String get moveToNewAppTitle;
+
+  /// Message of the dialog in the old iOS app that asks the user to install the new Kloki Chat app.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app will soon stop getting updates.'**
+  String get moveToNewAppMessage;
+
+  /// Button in the move-to-new-app dialog that opens the new app's App Store page.
+  ///
+  /// In en, this message translates to:
+  /// **'Open App Store'**
+  String get moveToNewAppOpenStoreButton;
+
+  /// Button in the move-to-new-app dialog that closes it, so the user keeps using this app.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get moveToNewAppLaterButton;
+
   /// Success message after copy link action completed.
   ///
   /// In en, this message translates to:

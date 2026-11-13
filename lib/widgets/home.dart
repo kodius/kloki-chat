@@ -20,6 +20,7 @@ import 'color.dart';
 import 'icons.dart';
 import 'inbox.dart';
 import 'message_list.dart';
+import 'move_app.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'recent_dm_conversations.dart';
@@ -72,6 +73,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _tab.addListener(_tabChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) maybeShowMoveToNewAppDialog(context);
+    });
   }
 
   @override
