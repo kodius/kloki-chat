@@ -29,6 +29,78 @@ See [release-notes/README.md](../../release-notes/README.md).
 Both stores release on their own once review approves the build.
 
 
+## Store apps
+
+| | iOS | Android |
+|---|---|---|
+| Store name | Kloki Chat – Team Chat | Kloki Chat |
+| ID | `com.kodius.klokichat`, Apple ID 6833812526 | `konvo.kodius.com` |
+| Account | Kodius d.o.o., team `N53842DU2C` | Kodius Play Console |
+
+The two IDs differ: fastlane has `IOS_APP_ID` and `ANDROID_APP_ID`.
+Android kept Konvo's Play listing.
+iOS moved to a new public app in November 2026:
+Konvo's App Store app (`konvo.kodius.com`) was a private Custom App,
+which Apple does not make public.
+The iOS app group is `group.com.kodius.klokichat`
+(`ios/Flutter/Zulip.xcconfig`, `lib/model/store.dart`).
+
+Kloki GO links to the App Store app by
+`EXPO_PUBLIC_KONVO_APP_STORE_ID` in kloki-mobile.
+
+
+## Push notifications
+
+Both platforms receive notifications through FCM,
+from the Firebase project `konvo-fb886`.
+The app reads its Firebase configuration from `lib/firebase_options.dart`,
+not from `google-services.json` or `GoogleService-Info.plist`.
+Each platform has its own app in that project,
+registered under the store ID above.
+
+For iOS, FCM delivers through APNs
+with the team's APNs auth key `Q22MAG94D6`
+(team-scoped, sandbox and production),
+uploaded in Firebase → Project settings → Cloud Messaging
+→ the iOS app → APNs Authentication Key,
+in both the Development and Production rows.
+The key file is private; it is not in the repo.
+
+The server needs nothing per app:
+it sends iOS FCM tokens through FCM whatever their app ID
+(kodius/zulip `zerver/lib/kloki_push.py`).
+
+
+### Moving iOS to the new app: remaining steps
+
+Done in the repo: bundle ID, app group, fastlane.
+Still to do, on the Mac:
+
+1. In `konvo-fb886`, add an iOS app for `com.kodius.klokichat`
+   (App Store ID 6833812526).
+   Put its `GOOGLE_APP_ID` (and `API_KEY`, if different)
+   in `kFirebaseOptionsIos`.
+   If the "iOS key (auto created by Firebase)" in Google Cloud
+   is restricted to bundle IDs, add the new one.
+2. Upload the APNs key to that app, as above.
+3. `scripts/deploy` → iOS → Build.
+   Automatic signing registers `com.kodius.klokichat.NotificationService`
+   and the app group.
+   The version waiting in App Store Connect is 28.1.6.
+4. On a real iPhone, from TestFlight:
+   the token in Settings is an FCM token (`…:APA91b…`), not hex,
+   and a message from another account shows a notification.
+5. Set `EXPO_PUBLIC_KONVO_APP_STORE_ID=6833812526` in kloki-mobile.
+6. Before the first Submit, App Review needs, for a public chat app:
+   a demo account, reporting content and blocking users (guideline 1.2),
+   and deleting the account in the app (5.1.1(v)).
+   The review notes should say that it is a B2B app for many companies,
+   the companion of Kloki GO.
+7. Take `konvo.kodius.com` off sale once users have moved.
+
+Then delete this subsection.
+
+
 ## One-time setup
 
 1. `brew install fastlane`
