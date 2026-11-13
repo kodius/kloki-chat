@@ -8,6 +8,10 @@ Everything goes through `scripts/deploy`, which wraps fastlane
 It asks what to do, which platform, and which version, then runs the lanes.
 
 
+Before every release, check [kloki-login.md, "Scheme"](kloki-login.md#scheme):
+the old `konvo://` sign-in scheme is waiting to be dropped.
+
+
 ## Build, test, Submit
 
 There is one build, with no environments:

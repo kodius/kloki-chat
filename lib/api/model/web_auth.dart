@@ -67,7 +67,13 @@ class WebAuthPayload {
 }
 
 /// A link from Kloki GO that signs in to a Kloki chat realm, like
-/// `konvo://kloki-login?realm=https://slug.chat.kloki.app&token=…`.
+/// `kloki-chat://kloki-login?realm=https://slug.chat.kloki.app&token=…`.
+///
+/// `konvo://` (the scheme of Konvo, the app this one replaced) works too,
+/// for the Kloki GO versions and Kloki web sign-ins that still send it.
+/// TODO(kloki): drop `konvo` from [klokiLoginSchemes], the Android manifest
+///   and Info.plist once no Kloki GO version in use sends it
+///   (docs/konvo/kloki-login.md, "Scheme").
 ///
 /// The token is the 60-second JWT Kloki issues for one realm and one person.
 /// The app posts it to the realm itself; see `postKlokiJwtLogin`.
@@ -109,9 +115,12 @@ class KlokiLoginLink {
   /// so a token can't be sent to a server that isn't Kloki's.
   static const allowedRealmHostSuffixes = ['.chat.kloki.app', '.chat.dev.kloki.app'];
 
+  /// URL schemes a sign-in link may come with; see the class doc.
+  static const klokiLoginSchemes = {'kloki-chat', 'konvo'};
+
   /// Whether [url] is a sign-in link from Kloki GO, well-formed or not.
   static bool isKlokiLoginUrl(Uri url) =>
-    url.scheme == 'konvo' && url.host == 'kloki-login';
+    klokiLoginSchemes.contains(url.scheme) && url.host == 'kloki-login';
 
   /// The link's realm, as a URL with only scheme and host,
   /// if it is one a link may sign in to; else null.

@@ -115,6 +115,29 @@ xcrun simctl openurl booted \
   'konvo://kloki-login?realm=https://slug.chat.dev.kloki.app&token=…'
 ```
 
+## Scheme
+
+The app opens sign-in links under two schemes:
+`kloki-chat://kloki-login?…`, the name to use from now on,
+and `konvo://kloki-login?…`, the scheme of Konvo, the app this one replaced.
+Both are registered in `android/app/src/main/AndroidManifest.xml`
+and in `CFBundleURLSchemes` in `ios/Runner/Info.plist`,
+and `KlokiLoginLink.klokiLoginSchemes` accepts both.
+
+`konvo://` stays until nothing sends it any more:
+Kloki GO versions that only know `konvo://`,
+and Kloki web's `/api/chat-app-handoff`, which redirects to `konvo://`.
+Order of the move:
+
+1. This app registers both (done, 2026-11-13). Release it.
+2. Kloki GO asks for `kloki-chat://` first and falls back to `konvo://`
+   (a Kloki Chat older than step 1 knows only that), and declares both
+   in its query lists. The web handoff switches to `kloki-chat://`.
+3. **When releasing a new Kloki Chat, check whether `konvo://` can go:**
+   only once every Kloki GO in use is past step 2,
+   and no Kloki Chat older than step 1 is still around.
+   Then drop it here (manifest, Info.plist, `klokiLoginSchemes`) and in Kloki GO.
+
 ## Tests
 
 The flows above are covered in `test/widgets/login_test.dart`,

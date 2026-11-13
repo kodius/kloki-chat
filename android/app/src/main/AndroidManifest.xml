@@ -45,6 +45,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="kloki-chat" android:host="kloki-login" />
+                <!-- Konvo's old scheme, until no Kloki GO sends it. -->
                 <data android:scheme="konvo" android:host="kloki-login" />
             </intent-filter>
             <intent-filter>

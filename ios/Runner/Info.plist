@@ -30,6 +30,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>zulip</string>
+				<string>kloki-chat</string>
 				<string>konvo</string>
 			</array>
 		</dict>

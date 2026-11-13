@@ -59,6 +59,14 @@ void main() {
         'token': ?token,
       });
 
+    test('kloki-chat and the old konvo scheme, nothing else', () {
+      Uri withScheme(String scheme) => link().replace(scheme: scheme);
+      check(KlokiLoginLink.isKlokiLoginUrl(withScheme('kloki-chat'))).isTrue();
+      check(KlokiLoginLink.isKlokiLoginUrl(withScheme('konvo'))).isTrue();
+      check(KlokiLoginLink.isKlokiLoginUrl(withScheme('zulip'))).isFalse();
+      check(KlokiLoginLink.isKlokiLoginUrl(withScheme('https'))).isFalse();
+    });
+
     test('basic happy case', () {
       check(KlokiLoginLink.parse(link()))
         ..realm.equals(Uri.parse('https://firma.chat.kloki.app'))
