@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
-import 'kloki.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -49,7 +48,11 @@ class _MoveToNewAppDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(22, 26, 22, 14),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const KlokiMark(size: 64),
+          ClipRRect(
+            // The iOS app icon's corner radius, about 22% of its size.
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset('assets/app-icons/kloki-chat.png',
+              width: 72, height: 72)),
           const SizedBox(height: 16),
           Text(zulipLocalizations.moveToNewAppTitle,
             textAlign: TextAlign.center,

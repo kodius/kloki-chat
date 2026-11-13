@@ -520,7 +520,7 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
 
   @override
   String get moveToNewAppMessage =>
-      'Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app will soon stop getting updates.';
+      'Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app no longer gets updates.';
 
   @override
   String get moveToNewAppOpenStoreButton => 'Open App Store';
