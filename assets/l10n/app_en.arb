@@ -619,7 +619,7 @@
   "@moveToNewAppTitle": {
     "description": "Title of the dialog in the old iOS app that asks the user to install the new Kloki Chat app."
   },
-  "moveToNewAppMessage": "Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app will soon stop getting updates.",
+  "moveToNewAppMessage": "Install the new Kloki Chat app from the App Store and sign in with the same account. All your messages and channels are there. This app no longer gets updates.",
   "@moveToNewAppMessage": {
     "description": "Message of the dialog in the old iOS app that asks the user to install the new Kloki Chat app."
   },

@@ -143,6 +143,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/app-icons/kloki-chat.png
     - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt

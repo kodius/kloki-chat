@@ -138,7 +138,7 @@
   "pushTokenSettingTitle": "Push token",
   "pushTokenSettingUnavailable": "Token još nije dostupan",
   "moveToNewAppTitle": "Kloki Chat ima novu aplikaciju",
-  "moveToNewAppMessage": "Instaliraj novu Kloki Chat aplikaciju iz App Storea i prijavi se istim računom. Sve poruke i kanali su tamo. Ova aplikacija uskoro više neće dobivati ažuriranja.",
+  "moveToNewAppMessage": "Instaliraj novu Kloki Chat aplikaciju iz App Storea i prijavi se istim računom. Sve poruke i kanali su tamo. Ova aplikacija više ne dobiva ažuriranja.",
   "moveToNewAppOpenStoreButton": "Otvori App Store",
   "moveToNewAppLaterButton": "Kasnije",
   "successLinkCopied": "Poveznica kopirana",

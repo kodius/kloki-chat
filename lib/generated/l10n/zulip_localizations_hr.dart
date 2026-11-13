@@ -531,7 +531,7 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
 
   @override
   String get moveToNewAppMessage =>
-      'Instaliraj novu Kloki Chat aplikaciju iz App Storea i prijavi se istim računom. Sve poruke i kanali su tamo. Ova aplikacija uskoro više neće dobivati ažuriranja.';
+      'Instaliraj novu Kloki Chat aplikaciju iz App Storea i prijavi se istim računom. Sve poruke i kanali su tamo. Ova aplikacija više ne dobiva ažuriranja.';
 
   @override
   String get moveToNewAppOpenStoreButton => 'Otvori App Store';
