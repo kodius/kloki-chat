@@ -379,7 +379,7 @@ void main() {
         PushDeviceManager.debugE2eeEnabled = false;
         addTearDown(() => PushDeviceManager.debugE2eeEnabled = true);
         testBinding.firebaseMessagingInitialToken = 'fid:fcm-token';
-        testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.kodius.klokichat');
+        testBinding.packageInfoResult = eg.packageInfo(packageName: 'konvo.kodius.com');
         await NotificationService.instance.start();
         NotificationService.instance.legacyApnsToken = '0123abcd';
 
@@ -391,7 +391,7 @@ void main() {
           (it) => it.isA<http.Request>()
             ..method.equals('POST')
             ..url.path.equals('/api/v1/users/me/apns_device_token')
-            ..bodyFields.deepEquals({'token': 'fid:fcm-token', 'appid': 'com.kodius.klokichat'}),
+            ..bodyFields.deepEquals({'token': 'fid:fcm-token', 'appid': 'konvo.kodius.com'}),
           (it) => it.isA<http.Request>()
             ..method.equals('DELETE')
             ..url.path.equals('/api/v1/users/me/apns_device_token')

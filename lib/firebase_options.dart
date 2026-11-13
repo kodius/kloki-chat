@@ -40,7 +40,7 @@ abstract class _KlokiFirebaseOptions {
 /// APNs payload (kodius/zulip `zerver/lib/kloki_push.py`). FCM delivers
 /// them through APNs with the key uploaded to that project.
 const kFirebaseOptionsIos = FirebaseOptions(
-  appId: '1:${_KlokiFirebaseOptions.projectNumber}:ios:0be151309f79a241f7defd',
+  appId: '1:${_KlokiFirebaseOptions.projectNumber}:ios:165adc9ab430ff41f7defd',
   messagingSenderId: _KlokiFirebaseOptions.projectNumber,
   projectId: _KlokiFirebaseOptions.projectId,
   apiKey: _KlokiFirebaseOptions.iosApiKey,

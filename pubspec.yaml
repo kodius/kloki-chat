@@ -261,4 +261,4 @@ patrol:
   android:
     package_name: konvo.kodius.com
   ios:
-    bundle_id: com.kodius.klokichat
+    bundle_id: konvo.kodius.com
