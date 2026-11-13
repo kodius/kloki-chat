@@ -8,9 +8,13 @@ which run Kodius's fork of the Zulip server.
 
 It replaces Konvo, the earlier Kodius app,
 which was a fork of the React Native [zulip-mobile][].
-Kloki Chat keeps Konvo's store listings
-(`konvo.kodius.com` on both stores),
+On Android, Kloki Chat keeps Konvo's Play listing
+(`konvo.kodius.com`),
 so updating Konvo brings in Kloki Chat.
+On iOS it is a new public App Store app
+(`com.kodius.klokichat`, Apple ID 6833812526),
+because Konvo's App Store app was a private Custom App,
+which Apple does not make public.
 The chat is a separate app, not a screen in Kloki GO:
 Kloki GO opens it with a sign-in link
 (see [docs/konvo/kloki-login.md](docs/konvo/kloki-login.md)).

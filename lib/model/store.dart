@@ -1342,7 +1342,7 @@ class LiveGlobalStore extends GlobalStore {
     //
     // This should match ZULIP_APP_GROUP_IDENTIFIER in
     // ios/Flutter/Zulip.xcconfig.
-    const iosAppGroupIdentifier = 'group.com.kodius.konvo';
+    const iosAppGroupIdentifier = 'group.com.kodius.klokichat';
 
     final containerDbDir = await PathProviderFoundation().getContainerPath(
       appGroupIdentifier: iosAppGroupIdentifier);

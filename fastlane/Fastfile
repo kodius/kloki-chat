@@ -16,7 +16,12 @@ require "tmpdir"
 
 REPO_ROOT    = File.expand_path("..", __dir__)
 PUBSPEC_PATH = File.join(REPO_ROOT, "pubspec.yaml")
-APP_ID       = "konvo.kodius.com"
+# iOS moved to a new, public App Store app; the old private (Custom App)
+# one, under konvo.kodius.com, cannot be made public. Android keeps the
+# Play listing it always had.
+IOS_APP_ID     = "com.kodius.klokichat"
+ANDROID_APP_ID = "konvo.kodius.com"
+IOS_APP_NAME   = "Kloki Chat – Team Chat"
 TEAM_ID      = "N53842DU2C"
 
 IOS_WORKSPACE = File.join(REPO_ROOT, "ios", "Runner.xcworkspace")
@@ -133,7 +138,7 @@ end
 # App Store Connect refuses a What's New text for a locale the listing does not
 # have, so read the locales off the app instead of hardcoding them.
 def app_store_version_locales
-  app = Spaceship::ConnectAPI::App.find(APP_ID)
+  app = Spaceship::ConnectAPI::App.find(IOS_APP_ID)
   version = app.get_edit_app_store_version || app.get_live_app_store_version
   locales = version.get_app_store_version_localizations.map(&:locale)
   locales.empty? ? ["en-US"] : locales
@@ -149,7 +154,7 @@ def play_listing_locales(json_key_file)
 
   client = Supply::Client.make_from_config(params: { json_key: json_key_file, timeout: 300 })
   begin
-    client.begin_edit(package_name: APP_ID)
+    client.begin_edit(package_name: ANDROID_APP_ID)
     locales = client.listings.map(&:language)
   ensure
     client.abort_current_edit if client.current_edit
@@ -164,7 +169,7 @@ end
 def play_version_codes(json_key_file, tracks)
   tracks.flat_map do |track|
     begin
-      google_play_track_version_codes(package_name: APP_ID, track: track, json_key: json_key_file)
+      google_play_track_version_codes(package_name: ANDROID_APP_ID, track: track, json_key: json_key_file)
     rescue StandardError
       []
     end
@@ -179,7 +184,7 @@ def play_holding_version_code(json_key_file, version)
 
   client = Supply::Client.make_from_config(params: { json_key: json_key_file, timeout: 300 })
   begin
-    client.begin_edit(package_name: APP_ID)
+    client.begin_edit(package_name: ANDROID_APP_ID)
     track = client.tracks(PLAY_HOLDING_TRACK).first
     releases = track ? Array(track.releases) : []
   ensure
@@ -232,7 +237,7 @@ platform :ios do
 
     store_latest = latest_testflight_build_number(
       api_key: api_key,
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       initial_build_number: 0
     )
     build_number = next_build_number(store_latest)
@@ -271,7 +276,7 @@ platform :ios do
     testflight_opts = {
       api_key: api_key,
       ipa: File.join(IOS_IPA_DIR, IOS_IPA_NAME),
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       skip_waiting_for_build_processing: changelog.nil?,
       skip_submission: true,
       distribute_external: false
@@ -292,7 +297,7 @@ platform :ios do
     build_number = latest_testflight_build_number(
       api_key: api_key,
       version: version,
-      app_identifier: APP_ID
+      app_identifier: IOS_APP_ID
     )
 
     locales = app_store_version_locales
@@ -304,11 +309,11 @@ platform :ios do
     # stay exactly as they are.
     upload_to_app_store(
       api_key: api_key,
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       app_version: version,
       build_number: build_number.to_s,
       release_notes: release_notes,
-      name: locales.to_h { |locale| [locale, "Kloki Go Chat"] },
+      name: locales.to_h { |locale| [locale, IOS_APP_NAME] },
       skip_binary_upload: true,
       skip_screenshots: true,
       submit_for_review: true,
@@ -357,7 +362,7 @@ platform :android do
     # `version_name` names the release on the track; `submit` finds the build to
     # promote by that name.
     upload_to_play_store(
-      package_name: APP_ID,
+      package_name: ANDROID_APP_ID,
       track: PLAY_HOLDING_TRACK,
       version_name: version,
       release_status: "completed",
@@ -389,7 +394,7 @@ platform :android do
     # supply promotes it, then patches the What's New onto the production
     # release, which is why the version code is passed explicitly.
     upload_to_play_store(
-      package_name: APP_ID,
+      package_name: ANDROID_APP_ID,
       track: PLAY_HOLDING_TRACK,
       track_promote_to: "production",
       track_promote_release_status: "completed",
