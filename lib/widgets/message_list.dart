@@ -61,6 +61,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     conversationCardBorder: KlokiColors.lightBorder,
     conversationCardHeaderBg: KlokiColors.lightCard,
     conversationCardHeaderRule: const HSLColor.fromAHSL(1, 0, 0, 0.925).toColor(),
+    dateSeparatorLine: KlokiColors.lightBorder,
+    dateSeparatorPillBg: const HSLColor.fromAHSL(1, 0, 0, 0.925).toColor(),
+    dateSeparatorLabel: const HSLColor.fromAHSL(1, 0, 0, 0.388).toColor(),
   );
 
   static final dark = MessageListTheme._(
@@ -82,6 +85,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     conversationCardBorder: const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor(),
     conversationCardHeaderBg: const HSLColor.fromAHSL(1, 0, 0, 0.22).toColor(),
     conversationCardHeaderRule: const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor(),
+    dateSeparatorLine: const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor(),
+    dateSeparatorPillBg: const HSLColor.fromAHSL(1, 0, 0, 0.22).toColor(),
+    dateSeparatorLabel: const HSLColor.fromAHSL(1, 0, 0, 0.83).toColor(),
   );
 
   MessageListTheme._({
@@ -95,6 +101,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.conversationCardBorder,
     required this.conversationCardHeaderBg,
     required this.conversationCardHeaderRule,
+    required this.dateSeparatorLine,
+    required this.dateSeparatorPillBg,
+    required this.dateSeparatorLabel,
   });
 
   /// The [MessageListTheme] from the context's active theme.
@@ -117,6 +126,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color conversationCardBorder;
   final Color conversationCardHeaderBg;
   final Color conversationCardHeaderRule;
+  final Color dateSeparatorLine;
+  final Color dateSeparatorPillBg;
+  final Color dateSeparatorLabel;
 
   @override
   MessageListTheme copyWith({
@@ -130,6 +142,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? conversationCardBorder,
     Color? conversationCardHeaderBg,
     Color? conversationCardHeaderRule,
+    Color? dateSeparatorLine,
+    Color? dateSeparatorPillBg,
+    Color? dateSeparatorLabel,
   }) {
     return MessageListTheme._(
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
@@ -142,6 +157,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       conversationCardBorder: conversationCardBorder ?? this.conversationCardBorder,
       conversationCardHeaderBg: conversationCardHeaderBg ?? this.conversationCardHeaderBg,
       conversationCardHeaderRule: conversationCardHeaderRule ?? this.conversationCardHeaderRule,
+      dateSeparatorLine: dateSeparatorLine ?? this.dateSeparatorLine,
+      dateSeparatorPillBg: dateSeparatorPillBg ?? this.dateSeparatorPillBg,
+      dateSeparatorLabel: dateSeparatorLabel ?? this.dateSeparatorLabel,
     );
   }
 
@@ -161,6 +179,9 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       conversationCardBorder: Color.lerp(conversationCardBorder, other.conversationCardBorder, t)!,
       conversationCardHeaderBg: Color.lerp(conversationCardHeaderBg, other.conversationCardHeaderBg, t)!,
       conversationCardHeaderRule: Color.lerp(conversationCardHeaderRule, other.conversationCardHeaderRule, t)!,
+      dateSeparatorLine: Color.lerp(dateSeparatorLine, other.dateSeparatorLine, t)!,
+      dateSeparatorPillBg: Color.lerp(dateSeparatorPillBg, other.dateSeparatorPillBg, t)!,
+      dateSeparatorLabel: Color.lerp(dateSeparatorLabel, other.dateSeparatorLabel, t)!,
     );
   }
 }
@@ -1883,38 +1904,38 @@ class DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // This makes the small-caps text vertically centered,
-    // to align with the vertically centered divider lines.
-    const textBottomPadding = 2.0;
-
     final designVariables = DesignVariables.of(context);
+    final messageListTheme = MessageListTheme.of(context);
 
-    final line = BorderSide(width: 0, color: designVariables.foreground);
+    // As on the Kloki web chat: the day as a quiet pill on a light line,
+    // in sentence case (zulip:web/styles/kloki_messages.css).
+    final line = SizedBox(height: 0,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(width: 1,
+            color: messageListTheme.dateSeparatorLine)))));
 
-    final color = inCard ? MessageListTheme.of(context).conversationCardBg
+    final color = inCard ? messageListTheme.conversationCardBg
       : designVariables.bgMessageRegular;
     final Widget result = ColoredBox(color: color,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(children: [
-          Expanded(
-            child: SizedBox(height: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: line))))),
-          Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
-            child: DateText(
-              fontSize: 16,
-              height: (16 / 16),
-              timestamp: message.timestamp)),
-          SizedBox(height: 0, width: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: line)))),
-        ])),
-    );
+          Expanded(child: line),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: messageListTheme.dateSeparatorPillBg,
+              borderRadius: BorderRadius.circular(999)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+              child: DateText(
+                fontSize: 12,
+                height: 18 / 12,
+                smallCaps: false,
+                color: messageListTheme.dateSeparatorLabel,
+                timestamp: message.timestamp))),
+          SizedBox(width: 12, child: line),
+        ])));
     if (!inCard) return result;
     return _ConversationCardSlice(color: color, child: result);
   }
@@ -2331,11 +2352,15 @@ class DateText extends StatelessWidget {
     required this.height,
     required this.timestamp,
     this.smallCaps = true,
+    this.color,
   });
 
   final double fontSize;
   final double height;
   final int timestamp;
+
+  /// The text color; by default [MessageListTheme.labelTime].
+  final Color? color;
 
   /// Whether to show in small caps; if false, in the Kloki heading font.
   final bool smallCaps;
@@ -2353,7 +2378,7 @@ class DateText extends StatelessWidget {
     return Text(
       style: smallCaps
         ? TextStyle(
-            color: messageListTheme.labelTime,
+            color: color ?? messageListTheme.labelTime,
             fontSize: fontSize,
             height: height,
             // This is equivalent to css `all-small-caps`, see:
@@ -2362,7 +2387,7 @@ class DateText extends StatelessWidget {
               FontFeature.liningFigures()],
           )
         : TextStyle(
-            color: messageListTheme.labelTime,
+            color: color ?? messageListTheme.labelTime,
             fontFamily: kKlokiHeadingFontFamily,
             fontSize: fontSize,
             height: height,

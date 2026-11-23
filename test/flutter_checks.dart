@@ -89,6 +89,7 @@ extension TextStyleChecks on Subject<TextStyle> {
   Subject<List<FontVariation>?> get fontVariations => has((t) => t.fontVariations, 'fontVariations');
   Subject<String?> get fontFamily => has((t) => t.fontFamily, 'fontFamily');
   Subject<List<String>?> get fontFamilyFallback => has((t) => t.fontFamilyFallback, 'fontFamilyFallback');
+  Subject<List<FontFeature>?> get fontFeatures => has((t) => t.fontFeatures, 'fontFeatures');
 
   // TODO others
 }

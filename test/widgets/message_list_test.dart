@@ -2288,6 +2288,21 @@ void main() {
     });
   });
 
+  testWidgets('date separator: quiet pill in sentence case', (tester) async {
+    const secondsPerDay = 24 * 60 * 60;
+    final channel = eg.stream();
+    final message1 = eg.streamMessage(stream: channel, topic: 'a',
+      timestamp: eg.utcTimestamp() - 3 * secondsPerDay);
+    final message2 = eg.streamMessage(stream: channel, topic: 'a');
+    await setupMessageListPage(tester,
+      messages: [message1, message2], subscriptions: [eg.subscription(channel)]);
+    final text = tester.widget<Text>(find.descendant(
+      of: find.byType(DateSeparator), matching: find.byType(Text)));
+    check(text.style!)
+      ..color.isNotNull().isSameColorAs(MessageListTheme.light.dateSeparatorLabel)
+      ..fontFeatures.not((it) => it.isNotNull().contains(const FontFeature.enable('smcp')));
+  });
+
   group('MessageTimestampStyle', () {
     void doTests(
       MessageTimestampStyle style,
