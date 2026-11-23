@@ -75,18 +75,19 @@ ThemeData zulipThemeData(BuildContext context) {
     iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
       foregroundColor: designVariables.icon,
     )),
-    // Material dialogs (as on Android) as Kloki cards.
+    // Dialogs as on the Kloki web chat (zulip:web/styles/kloki_primitives.css):
+    // a 12px radius, the title 18px semibold.
     dialogTheme: DialogThemeData(
       backgroundColor: designVariables.bgTopBar,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       titleTextStyle: TextStyle(
         color: designVariables.title,
         fontFamily: kDefaultFontFamily,
         fontFamilyFallback: defaultFontFamilyFallback,
-        fontSize: 20,
-        height: 26 / 20,
-      ).merge(weightVariableTextStyle(context, wght: 700)),
+        fontSize: 18,
+        height: 22 / 18,
+      ).merge(weightVariableTextStyle(context, wght: 600)),
       contentTextStyle: TextStyle(
         color: designVariables.labelMenuButton,
         fontFamily: kDefaultFontFamily,
