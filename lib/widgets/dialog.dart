@@ -1,5 +1,3 @@
-import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -34,15 +32,9 @@ class ZulipDialog extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: designVariables.bgContextMenu,
       titlePadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-      title: Text(title,
-        style: TextStyle(
-          color: designVariables.title,
-          fontSize: 22,
-          height: 30 / 22,
-        ).merge(weightVariableTextStyle(context, wght: 600))),
+      title: Text(title),
       contentPadding: EdgeInsets.symmetric(horizontal: 16),
       content: content,
       actionsPadding: EdgeInsets.fromLTRB(16, 4, 16, 12),
@@ -50,69 +42,66 @@ class ZulipDialog extends StatelessWidget {
   }
 }
 
-/// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
-///
-/// [isDefaultAction] and [isDestructiveAction] are ignored on Android
-/// because Material Design doesn't specify corresponding styles.
-Widget _adaptiveAction({
-  required VoidCallback onPressed,
-  required bool isDefaultAction,
-  bool isDestructiveAction = false,
-  required String text,
-}) {
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      return TextButton(
-        onPressed: onPressed,
-        child: Text(
-          text,
-          // As suggested by
-          //   https://api.flutter.dev/flutter/material/AlertDialog/actions.html :
-          // > It is recommended to set the Text.textAlign to TextAlign.end
-          // > for the Text within the TextButton, so that buttons whose
-          // > labels wrap to an extra line align with the overall
-          // > OverflowBar's alignment within the dialog.
-          textAlign: TextAlign.end));
+/// A dialog button as on the Kloki web chat, on every platform:
+/// the default action a filled primary button (red when destructive),
+/// any other an outline button (zulip:web/styles/kloki_primitives.css).
+class KlokiDialogAction extends StatelessWidget {
+  const KlokiDialogAction({
+    super.key,
+    required this.onPressed,
+    required this.isDefaultAction,
+    this.isDestructiveAction = false,
+    required this.text,
+  });
 
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      return CupertinoDialogAction(
+  final VoidCallback onPressed;
+  final bool isDefaultAction;
+  final bool isDestructiveAction;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+    const minimumSize = Size(0, 36);
+    const padding = EdgeInsets.symmetric(horizontal: 16);
+    final textStyle = const TextStyle(fontSize: 15)
+      .merge(weightVariableTextStyle(context, wght: 600));
+    final label = Text(text, textAlign: TextAlign.center);
+
+    if (isDefaultAction) {
+      return FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: isDestructiveAction
+            ? designVariables.btnLabelAttMediumIntDanger
+            : designVariables.fabBg,
+          foregroundColor: Colors.white,
+          minimumSize: minimumSize,
+          padding: padding,
+          shape: shape,
+          textStyle: textStyle),
         onPressed: onPressed,
-        isDefaultAction: isDefaultAction,
-        isDestructiveAction: isDestructiveAction,
-        child: Text(text));
+        child: label);
+    }
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: designVariables.title,
+        side: BorderSide(color: designVariables.borderBar),
+        minimumSize: minimumSize,
+        padding: padding,
+        shape: shape,
+        textStyle: textStyle),
+      onPressed: onPressed,
+      child: label);
   }
 }
 
-/// Platform-appropriate content for [AlertDialog.adaptive]'s [content] param.
-Widget? _adaptiveContent(Widget? content) {
+/// [AlertDialog]'s [content] param, made scrollable for long content.
+Widget? _dialogContent(Widget? content) {
   if (content == null) return null;
-
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      // [AlertDialog] does not create a [SingleChildScrollView];
-      // callers are asked to do that themselves, to handle long content.
-      return SingleChildScrollView(child: content);
-
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      // A [SingleChildScrollView] (wrapping both title and content) is already
-      // created by [CupertinoAlertDialog].
-      return DefaultTextStyle.merge(
-        // The "alert description" is start-aligned in one example in Apple's
-        // HIG document:
-        //   https://developer.apple.com/design/human-interface-guidelines/alerts#Anatomy
-        // (Confusingly, in 2025-10, it's center-aligned in the graphic at the
-        // *top* of that page; shrug.)
-        textAlign: TextAlign.start,
-        child: content);
-  }
+  // [AlertDialog] does not create a [SingleChildScrollView];
+  // callers are asked to do that themselves, to handle long content.
+  return SingleChildScrollView(child: content);
 }
 
 /// Tracks the status of a dialog, in being still open or already closed.
@@ -166,16 +155,16 @@ DialogStatus<void> showErrorDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
+    builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: message != null ? _adaptiveContent(Text(message)) : null,
+      content: message != null ? _dialogContent(Text(message)) : null,
       actions: [
         if (learnMoreButtonUrl != null)
-          _adaptiveAction(
+          KlokiDialogAction(
             onPressed: () => PlatformActions.launchUrl(context, learnMoreButtonUrl),
             isDefaultAction: false,
             text: zulipLocalizations.errorDialogLearnMore),
-        _adaptiveAction(
+        KlokiDialogAction(
           onPressed: () => Navigator.pop(context),
           isDefaultAction: true,
           text: zulipLocalizations.errorDialogContinue),
@@ -201,15 +190,15 @@ DialogStatus<bool> showSuggestedActionDialog({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<bool>(
     context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
+    builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: message != null ? _adaptiveContent(Text(message)) : null,
+      content: message != null ? _dialogContent(Text(message)) : null,
       actions: [
-        _adaptiveAction(
+        KlokiDialogAction(
           onPressed: () => Navigator.pop<bool>(context, null),
           isDefaultAction: false,
           text: zulipLocalizations.dialogCancel),
-        _adaptiveAction(
+        KlokiDialogAction(
           onPressed: () => Navigator.pop<bool>(context, true),
           isDefaultAction: true,
           isDestructiveAction: destructiveActionButton,
@@ -234,12 +223,12 @@ DialogStatus<T> showActionsDialog<T extends Object>({
   HapticFeedback.errorNotification();
   final future = showDialog<T>(
     context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
+    builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: message != null ? _adaptiveContent(Text(message)) : null,
+      content: message != null ? _dialogContent(Text(message)) : null,
       actions: [
         for (final (i, action) in actions.indexed)
-          _adaptiveAction(
+          KlokiDialogAction(
             onPressed: () => Navigator.pop<T>(context, action.value),
             isDefaultAction: i == actions.length - 1,
             text: action.text),

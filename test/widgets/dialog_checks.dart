@@ -1,6 +1,4 @@
 import 'package:checks/checks.dart';
-import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -26,40 +24,19 @@ Widget checkErrorDialog(WidgetTester tester, {
 }) {
   // TODO if a dialog was found but it doesn't match expectations,
   //   show its details; see checkNoDialog for how to do that
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      final finder = find.bySubtype<AlertDialog>();
-      // TODO can we target error dialogs more precisely?
-      final dialog = allowOtherAlertDialogs
-        ? tester.widgetList<AlertDialog>(finder).last
-        : tester.widget<AlertDialog>(finder);
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      if (expectedMessage != null) {
-        tester.widget(find.descendant(matchRoot: true,
-          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
-      }
-      return tester.widget(find.descendant(of: find.byWidget(dialog),
-        matching: find.widgetWithText(TextButton, 'OK')));
-
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      final finder = find.byType(CupertinoAlertDialog);
-      final dialog = allowOtherAlertDialogs
-        ? tester.widgetList<CupertinoAlertDialog>(finder).last
-        : tester.widget<CupertinoAlertDialog>(finder);
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      if (expectedMessage != null) {
-        tester.widget(find.descendant(matchRoot: true,
-          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
-      }
-      return tester.widget(find.descendant(of: find.byWidget(dialog),
-        matching: find.widgetWithText(CupertinoDialogAction, 'OK')));
+  final finder = find.bySubtype<AlertDialog>();
+  // TODO can we target error dialogs more precisely?
+  final dialog = allowOtherAlertDialogs
+    ? tester.widgetList<AlertDialog>(finder).last
+    : tester.widget<AlertDialog>(finder);
+  tester.widget(find.descendant(matchRoot: true,
+    of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+  if (expectedMessage != null) {
+    tester.widget(find.descendant(matchRoot: true,
+      of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
   }
+  return tester.widget(find.descendant(of: find.byWidget(dialog),
+    matching: find.widgetWithText(KlokiDialogAction, 'OK')));
 }
 
 
@@ -70,7 +47,6 @@ Widget checkErrorDialog(WidgetTester tester, {
 void checkNoDialog(WidgetTester tester) {
   final List<Widget> alertDialogs = [
     ...tester.widgetList(find.bySubtype<AlertDialog>()),
-    ...tester.widgetList(find.byType(CupertinoAlertDialog)),
   ];
 
   if (alertDialogs.isNotEmpty) {
@@ -78,7 +54,6 @@ void checkNoDialog(WidgetTester tester) {
     for (final alertDialog in alertDialogs) {
       final (title, content) = switch (alertDialog) {
         AlertDialog()          => (alertDialog.title, alertDialog.content),
-        CupertinoAlertDialog() => (alertDialog.title, alertDialog.content),
         _ => throw UnimplementedError(),
       };
 
@@ -113,7 +88,6 @@ void checkNoDialog(WidgetTester tester) {
 ///
 /// Use [expectDestructiveActionButton] to check whether
 /// the button is "destructive" (see [showSuggestedActionDialog]).
-/// This has no effect on Android because the "destructive" style is iOS-only.
 ///
 /// On success, returns a Record with the widget's action button first
 /// and its cancel button second.
@@ -124,44 +98,20 @@ void checkNoDialog(WidgetTester tester) {
   String? expectedActionButtonText,
   bool expectDestructiveActionButton = false,
 }) {
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      if (expectedMessage != null) {
-        tester.widget(find.descendant(matchRoot: true,
-          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
-      }
-
-      final actionButton = tester.widget(find.descendant(of: find.byWidget(dialog),
-        matching: find.widgetWithText(TextButton, expectedActionButtonText ?? 'Continue')));
-      final cancelButton = tester.widget(find.descendant(of: find.byWidget(dialog),
-        matching: find.widgetWithText(TextButton, 'Cancel')));
-      return (actionButton, cancelButton);
-
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      final dialog = tester.widget<CupertinoAlertDialog>(find.byType(CupertinoAlertDialog));
-      tester.widget(find.descendant(matchRoot: true,
-        of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
-      if (expectedMessage != null) {
-        tester.widget(find.descendant(matchRoot: true,
-          of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
-      }
-
-      final actionButton = tester.widget<CupertinoDialogAction>(
-        find.descendant(
-          of: find.byWidget(dialog),
-          matching: find.widgetWithText(
-            CupertinoDialogAction,
-            expectedActionButtonText ?? 'Continue')));
-      check(actionButton.isDestructiveAction).equals(expectDestructiveActionButton);
-      final cancelButton = tester.widget(find.descendant(of: find.byWidget(dialog),
-        matching: find.widgetWithText(CupertinoDialogAction, 'Cancel')));
-      return (actionButton, cancelButton);
+  final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
+  tester.widget(find.descendant(matchRoot: true,
+    of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
+  if (expectedMessage != null) {
+    tester.widget(find.descendant(matchRoot: true,
+      of: find.byWidget(dialog.content!), matching: find.text(expectedMessage)));
   }
+
+  final actionButton = tester.widget<KlokiDialogAction>(find.descendant(
+    of: find.byWidget(dialog),
+    matching: find.widgetWithText(
+      KlokiDialogAction, expectedActionButtonText ?? 'Continue')));
+  check(actionButton.isDestructiveAction).equals(expectDestructiveActionButton);
+  final cancelButton = tester.widget(find.descendant(of: find.byWidget(dialog),
+    matching: find.widgetWithText(KlokiDialogAction, 'Cancel')));
+  return (actionButton, cancelButton);
 }
