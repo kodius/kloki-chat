@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -30,72 +29,53 @@ class CounterBadge extends StatelessWidget {
   final CounterBadgeKind kind;
   final int count;
 
-  /// An optional [Subscription.streamId], for a channel-colorized background.
+  /// The [Subscription.streamId] when this counter is for one channel's unreads.
   ///
-  /// Useful when this counter represents unreads in one specific channel.
-  ///
-  /// If null, the default neutral background will be used.
+  /// Unused: Kloki's badge is the same whatever the channel.
   // TODO remove; the Figma doesn't use this anymore.
   final int? channelIdForBackground;
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-
-    final Color textColor;
-    final Color backgroundColor;
-    if (channelIdForBackground != null) {
-      textColor = designVariables.unreadCountBadgeTextForChannel;
-
-      final subscription = store.subscriptions[channelIdForBackground!];
-      final swatch = colorSwatchFor(context, subscription);
-      backgroundColor = swatch.unreadCountBadgeBackground;
-    } else {
-      textColor = switch (kind) {
-        CounterBadgeKind.unread => designVariables.labelCounterUnread,
-        CounterBadgeKind.quantity => designVariables.labelCounterQuantity,
-      };
-      backgroundColor = designVariables.bgCounterUnread;
-    }
-
-    final padding = switch (style) {
-      CounterBadgeStyle.mainMenu =>
-        const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      CounterBadgeStyle.other =>
-        const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-    };
-
-    final double wght = switch ((style, kind)) {
-      (CounterBadgeStyle.mainMenu, CounterBadgeKind.unread  ) => 600,
-      (CounterBadgeStyle.mainMenu, CounterBadgeKind.quantity) => 500,
-      (CounterBadgeStyle.other,    CounterBadgeKind.unread  ) => 500,
-      (CounterBadgeStyle.other,    CounterBadgeKind.quantity) => 500,
-    };
-
-    Widget result = Padding(
-      padding: padding,
-      child: Text(
-        style: TextStyle(
-          fontSize: 16,
-          height: (16 / 16),
-          color: textColor,
-        ).merge(weightVariableTextStyle(context, wght: wght)),
-        count.toString()));
 
     switch (kind) {
       case CounterBadgeKind.unread:
-        result = DecoratedBox(
+        // Kloki's badge, as on the web chat: a primary pill, 12px text,
+        // whatever the channel (zulip:web/styles/kloki_inbox.css).
+        return Container(
+          constraints: const BoxConstraints(minWidth: 20),
+          height: 20,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: backgroundColor,
-          ),
-          child: result);
-      case CounterBadgeKind.quantity:
-        // no decoration
-    }
+            borderRadius: BorderRadius.circular(10),
+            color: designVariables.bgCounterUnread),
+          child: Text(
+            style: TextStyle(
+              fontSize: 12,
+              height: (20 / 12),
+              color: designVariables.labelCounterUnread,
+            ).merge(weightVariableTextStyle(context, wght: 500)),
+            count.toString()));
 
-    return result;
+      case CounterBadgeKind.quantity:
+        final padding = switch (style) {
+          CounterBadgeStyle.mainMenu =>
+            const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+          CounterBadgeStyle.other =>
+            const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        };
+        return Padding(
+          padding: padding,
+          child: Text(
+            style: TextStyle(
+              fontSize: 16,
+              height: (16 / 16),
+              color: designVariables.labelCounterQuantity,
+            ).merge(weightVariableTextStyle(context, wght: 500)),
+            count.toString()));
+    }
   }
 }
 
@@ -119,7 +99,7 @@ enum CounterBadgeStyle {
 enum CounterBadgeKind {
   /// A counter specifically for unread messages.
   ///
-  /// A rounded-rectangle background draws attention to the presence of unreads
+  /// A pill background draws attention to the presence of unreads
   /// and distinguishes this kind of counter from any nearby [quantity] counters
   /// that do not track unread counts (e.g. a starred-messages counter).
   ///

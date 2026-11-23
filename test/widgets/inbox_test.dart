@@ -458,9 +458,6 @@ void main() {
     });
 
     testWidgets('UnreadCountBadge text color for a channel', (tester) async {
-      // Regression test for a bug where
-      // DesignVariables.labelCounterUnread was used for the text instead of
-      // DesignVariables.unreadCountBadgeTextForChannel.
       final channel = eg.stream();
       final subscription  = eg.subscription(channel);
       await setupPage(tester,
@@ -475,7 +472,7 @@ void main() {
             of: find.byType(CounterBadge),
             matching: find.text('1'))));
 
-      final expectedTextColor = DesignVariables.light.unreadCountBadgeTextForChannel;
+      final expectedTextColor = DesignVariables.light.labelCounterUnread;
       check(text).style.isNotNull().color.isNotNull().isSameColorAs(expectedTextColor);
     });
 

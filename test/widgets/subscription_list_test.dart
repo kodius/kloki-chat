@@ -11,6 +11,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/text.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/counter_badge.dart';
 
 import '../flutter_checks.dart';
@@ -260,7 +261,7 @@ void main() {
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
   });
 
-  testWidgets('color propagates to icon and badge', (tester) async {
+  testWidgets('color propagates to icon, not badge', (tester) async {
     final stream = eg.stream();
     final unreadMsgs = eg.unreadMsgs(channels: [
       eg.unreadChannelMsgs(streamId: stream.streamId, topic: 'a', unreadMessageIds: [1, 2]),
@@ -278,7 +279,7 @@ void main() {
     check(unreadCountBadgeRenderBox).legacyMatcher(
       // `paints` isn't a [Matcher] so we wrap it with `equals`;
       // awkward but it works
-      equals(paints..rrect(color: swatch.unreadCountBadgeBackground)));
+      equals(paints..rrect(color: DesignVariables.light.bgCounterUnread)));
   });
 
   testWidgets('muted streams are displayed as faded', (tester) async {
