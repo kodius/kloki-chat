@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter, clampDouble, lerpDouble;
+import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -82,30 +81,29 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _tab.dispose();
-    _hidden.dispose();
     super.dispose();
   }
 
   void _tabChanged() {
-    _hidden.value = _hiddenByTab[_tab.value] ?? 0;
     setState(() {
       // The actual state lives in [_tab].
     });
   }
 
-  /// How far each tab's content is scrolled on under the title.
-  final _hiddenByTab = <_HomePageTab, double>{};
-
-  /// [_hiddenByTab] for the current tab, which the title follows.
-  final _hidden = ValueNotifier<double>(0);
+  /// The tabs whose content is scrolled on under the title.
+  final _scrolledUnder = <_HomePageTab>{};
 
   bool _handleScroll(_HomePageTab tab, ScrollMetrics metrics) {
     if (metrics.axis != Axis.vertical) return false;
     // In a reversed list (as for messages) the content above is the extent after.
     final hidden = metrics.axisDirection == AxisDirection.up
       ? metrics.extentAfter : metrics.extentBefore;
-    _hiddenByTab[tab] = hidden;
-    if (tab == _tab.value) _hidden.value = hidden;
+    final scrolledUnder = hidden > 0;
+    if (scrolledUnder != _scrolledUnder.contains(tab)) {
+      setState(() {
+        scrolledUnder ? _scrolledUnder.add(tab) : _scrolledUnder.remove(tab);
+      });
+    }
     return false;
   }
 
@@ -156,15 +154,47 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.menu,           _MenuPageBody()),
     ];
 
+    final designVariables = DesignVariables.of(context);
     // With the server-compat banner at the top, keep the plain layout.
     final frostedTitle = !_ServerCompatBanner.shows(context);
     return Scaffold(
       // Lists scroll on under the frosted title, as under the bottom nav.
       extendBodyBehindAppBar: frostedTitle,
-      appBar: _HomeTitleBar(
-        title: _currentTabTitle,
-        actions: _currentTabAppBarActions,
-        hidden: frostedTitle ? _hidden : null),
+      // A large Kloki page title, part of the page rather than a bar.
+      appBar: ZulipAppBar(
+        titleSpacing: 20,
+        centerTitle: false,
+        toolbarHeight: 76,
+        backgroundColor: frostedTitle ? Colors.transparent : null,
+        // With no bar color to go by, say which status-bar icons suit the page.
+        systemOverlayStyle: Theme.of(context).brightness == Brightness.light
+          ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
+        // Frosted only once something is under it: the blur would otherwise
+        // pull the content just below it up into the bar.
+        flexibleSpace: frostedTitle
+          ? AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: !_scrolledUnder.contains(_tab.value)
+                ? const SizedBox.expand()
+                : ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      child: ColoredBox(
+                        color: designVariables.mainBackground.withValues(alpha: 0.6),
+                        // Fill the bar; the app bar lays this out loosely.
+                        child: const SizedBox.expand()))))
+          : null,
+        title: Semantics(
+          identifier: HomePage.titleSemanticsIdentifier,
+          namesRoute: true,
+          child: Text(_currentTabTitle,
+            style: TextStyle(
+              fontFamily: kKlokiHeadingFontFamily,
+              fontSize: 28,
+              height: 1.2,
+              color: designVariables.title,
+            ).merge(weightVariableTextStyle(context, wght: 800)))),
+        actions: _currentTabAppBarActions),
       body: Column(
         children: [
           _ServerCompatBanner(),
@@ -188,106 +218,6 @@ class _HomePageState extends State<HomePage> {
       // The bar floats over the content, which scrolls on under it.
       extendBody: true,
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
-  }
-}
-
-/// The home page's title: a large Kloki title that,
-/// as the content scrolls on under it,
-/// shrinks into a small centered title on a frosted bar, as on iOS.
-///
-/// It keeps its full height for the layout,
-/// so the content doesn't move as it shrinks;
-/// the content shows below the shrunken bar.
-class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
-  const _HomeTitleBar({
-    required this.title,
-    required this.actions,
-    required this.hidden,
-  });
-
-  final String title;
-  final List<Widget>? actions;
-
-  /// How far the content is scrolled on under the title,
-  /// or null to keep the large title on a plain bar.
-  final ValueListenable<double>? hidden;
-
-  static const _largeHeight = 76.0;
-  static const _smallHeight = 44.0;
-
-  @override
-  Size get preferredSize => const Size.fromHeight(_largeHeight + 4);
-
-  @override
-  Widget build(BuildContext context) {
-    final hidden = this.hidden;
-    if (hidden == null) return _build(context, collapse: 0, frosted: false);
-    return ValueListenableBuilder(
-      valueListenable: hidden,
-      builder: (context, value, _) => _build(context,
-        collapse: clampDouble(value / (_largeHeight - _smallHeight), 0, 1),
-        frosted: value > 0));
-  }
-
-  Widget _build(BuildContext context, {
-    required double collapse,
-    required bool frosted,
-  }) {
-    final designVariables = DesignVariables.of(context);
-    final height = lerpDouble(_largeHeight, _smallHeight, collapse)!;
-    final appBar = ZulipAppBar(
-      titleSpacing: 0,
-      centerTitle: false,
-      toolbarHeight: height,
-      backgroundColor: hidden != null ? Colors.transparent : null,
-      // With no bar color to go by, say which status-bar icons suit the page.
-      systemOverlayStyle: Theme.of(context).brightness == Brightness.light
-        ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
-      // Frosted only once something is under it: the blur would otherwise
-      // pull the content just below it up into the bar.
-      flexibleSpace: hidden == null ? null
-        : AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: !frosted
-              ? const SizedBox.expand()
-              : ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                    child: ColoredBox(
-                      color: designVariables.mainBackground.withValues(alpha: 0.6),
-                      // Fill the bar; the app bar lays this out loosely.
-                      child: const SizedBox.expand())))),
-      title: SizedBox(width: double.infinity,
-        child: Align(
-          alignment: Alignment.lerp(
-            AlignmentDirectional.centerStart.resolve(Directionality.of(context)),
-            Alignment.center, collapse)!,
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(start: 20 * (1 - collapse)),
-            child: Semantics(
-              identifier: HomePage.titleSemanticsIdentifier,
-              namesRoute: true,
-              child: Text(title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: kKlokiHeadingFontFamily,
-                  fontSize: lerpDouble(28, 17, collapse),
-                  height: 1.2,
-                  color: designVariables.title,
-                ).merge(weightVariableTextStyle(context,
-                  wght: lerpDouble(800, 700, collapse)!))))))),
-      actions: actions);
-
-    if (hidden == null) return appBar;
-    final topPadding = MediaQuery.paddingOf(context).top;
-    // The bar shrinks inside the full-height slot;
-    // below it, taps go through to the content.
-    return Align(
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        height: topPadding + height + appBar.bottom!.preferredSize.height,
-        child: appBar));
   }
 }
 

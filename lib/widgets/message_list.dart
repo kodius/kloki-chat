@@ -1151,8 +1151,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
 
     _handleScrollMetrics(notification.metrics);
-    // Let it on up, for the home page's title over the Feed tab.
-    return false;
+    return true;
   }
 
   @override
