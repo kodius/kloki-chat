@@ -285,7 +285,9 @@ class ZulipWebUiKitButton extends StatelessWidget {
         ),
         shape: RoundedRectangleBorder(
           side: _borderSide(designVariables),
-          borderRadius: BorderRadius.circular(_forSize(6, 4))),
+          // Kloki's button radii, as on the web chat:
+          // 10px small, 12px normal (zulip:web/styles/kloki_primitives.css).
+          borderRadius: BorderRadius.circular(_forSize(10, 12))),
         splashFactory: NoSplash.splashFactory,
 
         // These three arguments make the button `buttonHeight` tall,
@@ -460,8 +462,9 @@ class ZulipIconButton extends StatelessWidget {
         // TODO(#417): Disable splash effects for all buttons globally.
         splashFactory: NoSplash.splashFactory,
 
+        // Kloki's icon-button radius, as on the web chat.
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))
+          borderRadius: BorderRadius.all(Radius.circular(8)))
       ).copyWith(
         // [IconButton.styleFrom]'s overlayColor takes a single [Color] (and
         // wraps it with M3-default state-layer alphas). To use our own

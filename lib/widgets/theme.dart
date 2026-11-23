@@ -102,7 +102,7 @@ ThemeData zulipThemeData(BuildContext context) {
       backgroundColor: designVariables.fabBg,
       foregroundColor: Colors.white,
       minimumSize: const Size.fromHeight(52),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       textStyle: const TextStyle(fontFamily: kKlokiHeadingFontFamily, fontSize: 16)
         .merge(weightVariableTextStyle(context, wght: 700)),
     )),
