@@ -1978,9 +1978,10 @@ void main() {
         final colors = tester.widgetList<DecoratedBox>(find.descendant(
           of: find.byType(StreamMessageRecipientHeader),
           matching: find.byType(DecoratedBox),
-        )).map((box) => (box.decoration as BoxDecoration).color);
+        )).map((box) => (box.decoration as BoxDecoration).color).nonNulls;
         check(colors).deepEquals(<Condition<Object?>>[
-          (it) => it.isA<Color>().isSameColorAs(DesignVariables.light.bgMessageRegular),
+          (it) => it.isA<Color>().isSameColorAs(
+            MessageListTheme.light.conversationCardHeaderBg),
           (it) => it.isA<Color>().isSameColorAs(
             swatch.iconOnPlainBackground.withValues(alpha: 0.14)),
         ]);
@@ -2249,6 +2250,41 @@ void main() {
       assert(pushedRoutes.length == 1);
       // The app bar names the conversation; there's no recipient header to tap.
       check(find.byType(DmRecipientHeader)).findsNothing();
+    });
+  });
+
+  group('conversation cards', () {
+    Iterable<Color> messageColors(WidgetTester tester) {
+      return tester.widgetList<ColoredBox>(find.descendant(
+        of: find.byType(MessageItem),
+        matching: find.byType(ColoredBox))).map((box) => box.color);
+    }
+
+    testWidgets('card in a feed of several conversations', (tester) async {
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
+        messages: [message], subscriptions: [eg.subscription(channel)]);
+      check(messageColors(tester)).any((it) => it.isSameColorAs(
+        MessageListTheme.light.conversationCardBg));
+    });
+
+    testWidgets('no card in a topic', (tester) async {
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await setupMessageListPage(tester, narrow: TopicNarrow.ofMessage(message),
+        messages: [message], streams: [channel]);
+      check(messageColors(tester)).not((it) => it.any((it) => it.isSameColorAs(
+        MessageListTheme.light.conversationCardBg)));
+    });
+
+    testWidgets('no card in a DM conversation', (tester) async {
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+      await setupMessageListPage(tester,
+        narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId),
+        messages: [message], users: [eg.otherUser]);
+      check(messageColors(tester)).not((it) => it.any((it) => it.isSameColorAs(
+        MessageListTheme.light.conversationCardBg)));
     });
   });
 

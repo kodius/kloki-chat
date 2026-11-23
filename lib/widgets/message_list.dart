@@ -55,6 +55,12 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     unreadMarker: KlokiColors.lightPrimary,
 
     unreadMarkerGap: Colors.white.withValues(alpha: 0.6),
+
+    // As on the Kloki web chat: zulip:web/styles/kloki_messages.css .
+    conversationCardBg: KlokiColors.lightCard,
+    conversationCardBorder: KlokiColors.lightBorder,
+    conversationCardHeaderBg: KlokiColors.lightCard,
+    conversationCardHeaderRule: const HSLColor.fromAHSL(1, 0, 0, 0.925).toColor(),
   );
 
   static final dark = MessageListTheme._(
@@ -71,6 +77,11 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     unreadMarker: KlokiColors.darkPrimary,
 
     unreadMarkerGap: Colors.transparent,
+
+    conversationCardBg: KlokiColors.darkCard,
+    conversationCardBorder: const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor(),
+    conversationCardHeaderBg: const HSLColor.fromAHSL(1, 0, 0, 0.22).toColor(),
+    conversationCardHeaderRule: const HSLColor.fromAHSL(1, 0, 0, 0.27).toColor(),
   );
 
   MessageListTheme._({
@@ -80,6 +91,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     required this.streamRecipientHeaderChevronRight,
     required this.unreadMarker,
     required this.unreadMarkerGap,
+    required this.conversationCardBg,
+    required this.conversationCardBorder,
+    required this.conversationCardHeaderBg,
+    required this.conversationCardHeaderRule,
   });
 
   /// The [MessageListTheme] from the context's active theme.
@@ -98,6 +113,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
   final Color streamRecipientHeaderChevronRight;
   final Color unreadMarker;
   final Color unreadMarkerGap;
+  final Color conversationCardBg;
+  final Color conversationCardBorder;
+  final Color conversationCardHeaderBg;
+  final Color conversationCardHeaderRule;
 
   @override
   MessageListTheme copyWith({
@@ -107,6 +126,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
     Color? streamRecipientHeaderChevronRight,
     Color? unreadMarker,
     Color? unreadMarkerGap,
+    Color? conversationCardBg,
+    Color? conversationCardBorder,
+    Color? conversationCardHeaderBg,
+    Color? conversationCardHeaderRule,
   }) {
     return MessageListTheme._(
       dmRecipientHeaderBg: dmRecipientHeaderBg ?? this.dmRecipientHeaderBg,
@@ -115,6 +138,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       streamRecipientHeaderChevronRight: streamRecipientHeaderChevronRight ?? this.streamRecipientHeaderChevronRight,
       unreadMarker: unreadMarker ?? this.unreadMarker,
       unreadMarkerGap: unreadMarkerGap ?? this.unreadMarkerGap,
+      conversationCardBg: conversationCardBg ?? this.conversationCardBg,
+      conversationCardBorder: conversationCardBorder ?? this.conversationCardBorder,
+      conversationCardHeaderBg: conversationCardHeaderBg ?? this.conversationCardHeaderBg,
+      conversationCardHeaderRule: conversationCardHeaderRule ?? this.conversationCardHeaderRule,
     );
   }
 
@@ -130,6 +157,10 @@ class MessageListTheme extends ThemeExtension<MessageListTheme> {
       streamRecipientHeaderChevronRight: Color.lerp(streamRecipientHeaderChevronRight, other.streamRecipientHeaderChevronRight, t)!,
       unreadMarker: Color.lerp(unreadMarker, other.unreadMarker, t)!,
       unreadMarkerGap: Color.lerp(unreadMarkerGap, other.unreadMarkerGap, t)!,
+      conversationCardBg: Color.lerp(conversationCardBg, other.conversationCardBg, t)!,
+      conversationCardBorder: Color.lerp(conversationCardBorder, other.conversationCardBorder, t)!,
+      conversationCardHeaderBg: Color.lerp(conversationCardHeaderBg, other.conversationCardHeaderBg, t)!,
+      conversationCardHeaderRule: Color.lerp(conversationCardHeaderRule, other.conversationCardHeaderRule, t)!,
     );
   }
 }
@@ -1316,7 +1347,8 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
           header: header,
-          child: DateSeparator(message: data.message));
+          child: DateSeparator(message: data.message,
+            inCard: showsConversationCards(widget.narrow)));
       case MessageListMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
@@ -1720,8 +1752,67 @@ class _MarkAsReadAnimationState extends State<MarkAsReadAnimation> {
 /// so that a tap anywhere in the header's height reaches them.
 const _kRecipientHeaderPadding = EdgeInsets.symmetric(vertical: 13);
 
-/// A recipient header's frame: a thin full-width line
-/// between conversations in the full-screen chat.
+/// Whether a message list in [narrow] shows each conversation as a card,
+/// as the Kloki web chat does.
+///
+/// A topic or DM narrow holds one conversation, named in the app bar,
+/// so it shows the messages on the page instead.
+bool showsConversationCards(Narrow narrow) {
+  return narrow is! TopicNarrow && narrow is! DmNarrow;
+}
+
+const _kConversationCardMargin = 12.0;
+const _kConversationCardRadius = Radius.circular(10);
+
+/// One item's slice of a conversation's card:
+/// the top under the recipient header, the bottom under the last message,
+/// and the sides in between.
+class _ConversationCardSlice extends StatelessWidget {
+  const _ConversationCardSlice({
+    this.isTop = false,
+    this.isBottom = false,
+    this.isLastInFeed = false,
+    required this.color,
+    required this.child,
+  });
+
+  final bool isTop;
+  final bool isBottom;
+  final bool isLastInFeed;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final messageListTheme = MessageListTheme.of(context);
+    final side = BorderSide(color: messageListTheme.conversationCardBorder);
+    final borderRadius = BorderRadius.vertical(
+      top: isTop ? _kConversationCardRadius : Radius.zero,
+      bottom: isBottom ? _kConversationCardRadius : Radius.zero);
+    // The page color around the card hides the messages
+    // scrolling under a sticky header.
+    return ColoredBox(color: designVariables.bgMessageRegular,
+      child: Container(
+        margin: EdgeInsets.fromLTRB(
+          _kConversationCardMargin, 0,
+          _kConversationCardMargin,
+          isBottom && !isLastInFeed ? _kConversationCardMargin : 0),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(color: color, borderRadius: borderRadius),
+        // In front, so the clipped child's edge doesn't eat into it.
+        foregroundDecoration: BoxDecoration(
+          border: Border(
+            top: isTop ? side : BorderSide.none,
+            left: side,
+            right: side,
+            bottom: isBottom ? side : BorderSide.none),
+          borderRadius: borderRadius),
+        child: child));
+  }
+}
+
+/// A recipient header's frame: the top of its conversation's card.
 class _RecipientHeaderFrame extends StatelessWidget {
   const _RecipientHeaderFrame({required this.child});
 
@@ -1729,13 +1820,14 @@ class _RecipientHeaderFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final rule = BorderSide(color: designVariables.borderBar.withFadedAlpha(0.5));
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.bgMessageRegular,
-        border: Border(top: rule, bottom: rule)),
-      child: child);
+    final messageListTheme = MessageListTheme.of(context);
+    return _ConversationCardSlice(isTop: true,
+      color: messageListTheme.conversationCardHeaderBg,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(
+            color: messageListTheme.conversationCardHeaderRule))),
+        child: child));
   }
 }
 
@@ -1784,9 +1876,10 @@ class RecipientHeader extends StatelessWidget {
 }
 
 class DateSeparator extends StatelessWidget {
-  const DateSeparator({super.key, required this.message});
+  const DateSeparator({super.key, required this.message, this.inCard = false});
 
   final MessageBase message;
+  final bool inCard;
 
   @override
   Widget build(BuildContext context) {
@@ -1798,8 +1891,9 @@ class DateSeparator extends StatelessWidget {
 
     final line = BorderSide(width: 0, color: designVariables.foreground);
 
-    // TODO(#681) use different color for DM messages
-    return ColoredBox(color: designVariables.bgMessageRegular,
+    final color = inCard ? MessageListTheme.of(context).conversationCardBg
+      : designVariables.bgMessageRegular;
+    final Widget result = ColoredBox(color: color,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -1821,6 +1915,8 @@ class DateSeparator extends StatelessWidget {
                   bottom: line)))),
         ])),
     );
+    if (!inCard) return result;
+    return _ConversationCardSlice(color: color, child: result);
   }
 }
 
@@ -1843,8 +1939,11 @@ class MessageItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final item = this.item;
+    final inCard = showsConversationCards(narrow);
+    final color = inCard ? MessageListTheme.of(context).conversationCardBg
+      : designVariables.bgMessageRegular;
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: color,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(
@@ -1855,12 +1954,20 @@ class MessageItem extends StatelessWidget {
         // TODO write tests for this padding logic
         if (isLastInFeed)
           const SizedBox(height: 5)
+        else if (inCard && item.isLastInBlock)
+          const SizedBox(height: 6)
         else if (item.isLastInBlock)
           const SizedBox(height: 18),
       ]));
     if (item case MessageListMessageItem(:final message)) {
       child = _UnreadMarker(
         isRead: message.flags.contains(MessageFlag.read),
+        child: child);
+    }
+    if (inCard) {
+      child = _ConversationCardSlice(isBottom: item.isLastInBlock,
+        isLastInFeed: isLastInFeed,
+        color: color,
         child: child);
     }
     child = _ArrivingMessage(
