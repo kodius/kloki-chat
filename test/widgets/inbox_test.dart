@@ -457,6 +457,27 @@ void main() {
       });
     });
 
+    testWidgets('topic and DM rows are cards', (tester) async {
+      final channel = eg.stream();
+      await setupPage(tester,
+        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
+        unreadMessages: [
+          eg.streamMessage(stream: channel, topic: 'lunch', flags: []),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
+        ]);
+
+      void checkCard(Finder row) {
+        final material = tester.widget<Material>(find.descendant(
+          of: row, matching: find.byType(Material)).first);
+        check(material.shape).isA<RoundedRectangleBorder>()
+          .has((s) => s.borderRadius, 'borderRadius')
+          .equals(BorderRadius.circular(12));
+      }
+      checkCard(find.byType(InboxTopicItem));
+      checkCard(find.byType(InboxDmItem));
+    });
+
     testWidgets('UnreadCountBadge text color for a channel', (tester) async {
       final channel = eg.stream();
       final subscription  = eg.subscription(channel);

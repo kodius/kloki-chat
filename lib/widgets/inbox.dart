@@ -380,44 +380,35 @@ class InboxDmItem extends StatelessWidget {
       _ => narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
     };
 
-    final backgroundColor = designVariables.background; // TODO(design) check if this is the right variable
-    Widget result = Material(
-      color: backgroundColor,
-      child: InkWell(
-        splashFactory: NoSplash.splashFactory,
-        // TODO(design) this is ad hoc
-        highlightColor: designVariables.bgCounterUnread.withFadedAlpha(0.5),
-        onTap: () {
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
-        },
-        onLongPress: () => showDmActionSheet(context, narrow: narrow),
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
-              const SizedBox(width: 10),
-              Expanded(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Text(
-                  style: TextStyle(
-                    fontSize: InboxRowTrailingMarkers.fontSize,
-                    height: (19 / InboxRowTrailingMarkers.fontSize),
-                    color: designVariables.textMessage,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  title))),
-              // 6 in Figma, but 8 is consistent with channel and topic rows
-              const SizedBox(width: 8),
-              InboxRowTrailingMarkers(
-                hasMention: hasMention,
-                unreadCountBadge: CounterBadge(
-                  // TODO(design) use CounterKind.quantity, following Figma
-                  kind: CounterBadgeKind.unread,
-                  channelIdForBackground: null,
-                  count: count)),
-            ])))));
+    final backgroundColor = designVariables.bgTopBar;
+    Widget result = _InboxCard(
+      onTap: () {
+        Navigator.push(context,
+          MessageListPage.buildRoute(context: context, narrow: narrow));
+      },
+      onLongPress: () => showDmActionSheet(context, narrow: narrow),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
+        const SizedBox(width: 10),
+        Expanded(child: Text(
+          style: TextStyle(
+            fontSize: InboxRowTrailingMarkers.fontSize,
+            height: (19 / InboxRowTrailingMarkers.fontSize),
+            color: designVariables.textMessage,
+          ).merge(weightVariableTextStyle(context, wght: 600)),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          title)),
+        // 6 in Figma, but 8 is consistent with channel and topic rows
+        const SizedBox(width: 8),
+        InboxRowTrailingMarkers(
+          hasMention: hasMention,
+          unreadCountBadge: CounterBadge(
+            // TODO(design) use CounterKind.quantity, following Figma
+            kind: CounterBadgeKind.unread,
+            channelIdForBackground: null,
+            count: count)),
+      ]));
 
     return Semantics(container: true,
       child: result);
@@ -594,74 +585,87 @@ class InboxTopicItem extends StatelessWidget {
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
-    final subscription = store.subscriptions[streamId];
-    final swatch = colorSwatchFor(context, subscription);
-
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
       store.topicVisibilityPolicy(streamId, topic));
 
-    Widget result = Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
-      child: InkWell(
-        splashFactory: NoSplash.splashFactory,
-        // TODO(design) this is ad hoc
-        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
-        onTap: () {
-          final narrow = TopicNarrow(streamId, topic);
-          Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
-        },
-        onLongPress: () => showTopicActionSheet(context,
-          channelId: streamId,
-          topic: topic,
-          someMessageIdInTopic: lastUnreadId),
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 16, 0),
-            child: Center(
-              widthFactor: 1,
-              child: Row(
-                crossAxisAlignment: .baseline,
-                textBaseline: localizedTextBaseline(context),
-                children: [
-                  SizedBox(
-                    width: 48,
-                    child: Align(
-                      // When the system text-size setting rises,
-                      // let the checkmark icon grow startward into the margin
-                      // so the topic text stays aligned with channel-header text.
-                      // (Note: "center" in .centerEnd is inert:
-                      // this Align shrink-wraps to its child's height.)
-                      alignment: .centerEnd,
-                      child: topic.isResolved
-                        ? InboxRowMarkerIcon(icon: ZulipIcons.check)
-                        : null)),
-                  SizedBox(width: 10),
-                  Expanded(child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      style: TextStyle(
-                        fontSize: InboxRowTrailingMarkers.fontSize,
-                        height: (20 / InboxRowTrailingMarkers.fontSize),
-                        fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                        color: designVariables.textMessage,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
-                  const SizedBox(width: 8),
-                  InboxRowTrailingMarkers(
-                    hasMention: hasMention,
-                    visibilityIcon: visibilityIcon,
-                    unreadCountBadge: CounterBadge(
-                      // TODO(design) use CounterKind.quantity, following Figma
-                      kind: CounterBadgeKind.unread,
-                      channelIdForBackground: streamId,
-                      count: count)),
-                ]))))));
+    Widget result = _InboxCard(
+      onTap: () {
+        final narrow = TopicNarrow(streamId, topic);
+        Navigator.push(context,
+          MessageListPage.buildRoute(context: context, narrow: narrow));
+      },
+      onLongPress: () => showTopicActionSheet(context,
+        channelId: streamId,
+        topic: topic,
+        someMessageIdInTopic: lastUnreadId),
+      child: Row(
+        crossAxisAlignment: .baseline,
+        textBaseline: localizedTextBaseline(context),
+        children: [
+          if (topic.isResolved) ...[
+            InboxRowMarkerIcon(icon: ZulipIcons.check),
+            const SizedBox(width: 6),
+          ],
+          Expanded(child: Text(
+            style: TextStyle(
+              fontSize: InboxRowTrailingMarkers.fontSize,
+              height: (20 / InboxRowTrailingMarkers.fontSize),
+              fontStyle: topic.displayName == null ? FontStyle.italic : null,
+              color: designVariables.textMessage,
+            ).merge(weightVariableTextStyle(context, wght: 600)),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName)),
+          const SizedBox(width: 8),
+          InboxRowTrailingMarkers(
+            hasMention: hasMention,
+            visibilityIcon: visibilityIcon,
+            unreadCountBadge: CounterBadge(
+              // TODO(design) use CounterKind.quantity, following Figma
+              kind: CounterBadgeKind.unread,
+              channelIdForBackground: streamId,
+              count: count)),
+        ]));
 
     return Semantics(container: true,
       child: result);
+  }
+}
+
+/// A conversation's row in the inbox, as a card as on the Kloki web chat:
+/// 12px radius, a 1px border, 12×16 padding and 8px between cards
+/// (zulip:web/styles/kloki_inbox.css).
+class _InboxCard extends StatelessWidget {
+  const _InboxCard({
+    required this.onTap,
+    required this.onLongPress,
+    required this.child,
+  });
+
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Material(
+        color: designVariables.bgTopBar,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: designVariables.borderBar),
+          borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          splashFactory: NoSplash.splashFactory,
+          highlightColor: designVariables.bgCounterUnread.withFadedAlpha(0.08),
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: child))));
   }
 }
 
