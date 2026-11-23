@@ -87,7 +87,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _tabChanged() {
-    _hidden.value = _hiddenByTab[_tab.value] ?? 0;
+    // A tab comes in with its title showing.
+    _barAway.remove(_tab.value);
+    _hidden.value = (_hiddenByTab[_tab.value] ?? 0, false);
     setState(() {
       // The actual state lives in [_tab].
     });
@@ -96,16 +98,28 @@ class _HomePageState extends State<HomePage> {
   /// How far each tab's content is scrolled on under the title.
   final _hiddenByTab = <_HomePageTab, double>{};
 
-  /// [_hiddenByTab] for the current tab, which the title follows.
-  final _hidden = ValueNotifier<double>(0);
+  /// The tabs whose title has slid away, the content being scrolled on.
+  final _barAway = <_HomePageTab>{};
+
+  /// For the current tab, [_hiddenByTab] and whether it's in [_barAway]:
+  /// what the title follows.
+  final _hidden = ValueNotifier<(double, bool)>((0, false));
 
   bool _handleScroll(_HomePageTab tab, ScrollMetrics metrics) {
     if (metrics.axis != Axis.vertical) return false;
     // In a reversed list (as for messages) the content above is the extent after.
     final hidden = metrics.axisDirection == AxisDirection.up
       ? metrics.extentAfter : metrics.extentBefore;
+    final delta = hidden - (_hiddenByTab[tab] ?? hidden);
     _hiddenByTab[tab] = hidden;
-    if (tab == _tab.value) _hidden.value = hidden;
+    // Reading on (down) sends the title away, for the whole screen;
+    // any move back up brings it back, as in Safari.
+    if (hidden <= _HomeTitleBar.collapseDistance || delta < -1) {
+      _barAway.remove(tab);
+    } else if (delta > 1) {
+      _barAway.add(tab);
+    }
+    if (tab == _tab.value) _hidden.value = (hidden, _barAway.contains(tab));
     return false;
   }
 
@@ -193,11 +207,13 @@ class _HomePageState extends State<HomePage> {
 
 /// The home page's title: a large Kloki title that,
 /// as the content scrolls on under it,
-/// shrinks into a small centered title on a frosted bar, as on iOS.
+/// shrinks into a small centered title on a frosted bar,
+/// and slides away while the content is scrolled on down,
+/// coming back on any scroll up, for a full-screen view.
 ///
 /// It keeps its full height for the layout,
-/// so the content doesn't move as it shrinks;
-/// the content shows below the shrunken bar.
+/// so the content doesn't move as it shrinks or slides;
+/// the content shows below and behind it.
 class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomeTitleBar({
     required this.title,
@@ -209,11 +225,15 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
 
   /// How far the content is scrolled on under the title,
+  /// and whether the title has slid away;
   /// or null to keep the large title on a plain bar.
-  final ValueListenable<double>? hidden;
+  final ValueListenable<(double, bool)>? hidden;
 
   static const _largeHeight = 76.0;
   static const _smallHeight = 44.0;
+
+  /// How far the content scrolls before the title is small.
+  static const collapseDistance = _largeHeight - _smallHeight;
 
   @override
   Size get preferredSize => const Size.fromHeight(_largeHeight + 4);
@@ -221,17 +241,34 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final hidden = this.hidden;
-    if (hidden == null) return _build(context, collapse: 0, frosted: false);
+    if (hidden == null) {
+      return _build(context, collapse: 0, frosted: false, away: false);
+    }
     return ValueListenableBuilder(
       valueListenable: hidden,
-      builder: (context, value, _) => _build(context,
-        collapse: clampDouble(value / (_largeHeight - _smallHeight), 0, 1),
-        frosted: value > 0));
+      builder: (context, value, _) {
+        final (extent, away) = value;
+        return _build(context,
+          collapse: clampDouble(extent / collapseDistance, 0, 1),
+          frosted: extent > 0,
+          away: away);
+      });
+  }
+
+  Widget _frost(DesignVariables designVariables) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: ColoredBox(
+          color: designVariables.mainBackground.withValues(alpha: 0.6),
+          // Fill the bar; the app bar lays this out loosely.
+          child: const SizedBox.expand())));
   }
 
   Widget _build(BuildContext context, {
     required double collapse,
     required bool frosted,
+    required bool away,
   }) {
     final designVariables = DesignVariables.of(context);
     final height = lerpDouble(_largeHeight, _smallHeight, collapse)!;
@@ -248,15 +285,7 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: hidden == null ? null
         : AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            child: !frosted
-              ? const SizedBox.expand()
-              : ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                    child: ColoredBox(
-                      color: designVariables.mainBackground.withValues(alpha: 0.6),
-                      // Fill the bar; the app bar lays this out loosely.
-                      child: const SizedBox.expand())))),
+            child: !frosted ? const SizedBox.expand() : _frost(designVariables)),
       title: SizedBox(width: double.infinity,
         child: Align(
           alignment: Alignment.lerp(
@@ -283,11 +312,22 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
     final topPadding = MediaQuery.paddingOf(context).top;
     // The bar shrinks inside the full-height slot;
     // below it, taps go through to the content.
-    return Align(
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        height: topPadding + height + appBar.bottom!.preferredSize.height,
-        child: appBar));
+    return Stack(children: [
+      // With the bar away, the status bar keeps a strip of frost
+      // so its icons stay readable over the content.
+      if (frosted)
+        SizedBox(height: topPadding, width: double.infinity,
+          child: _frost(designVariables)),
+      Align(
+        alignment: Alignment.topCenter,
+        child: AnimatedSlide(
+          offset: away ? const Offset(0, -1) : Offset.zero,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          child: SizedBox(
+            height: topPadding + height + appBar.bottom!.preferredSize.height,
+            child: appBar))),
+    ]);
   }
 }
 
