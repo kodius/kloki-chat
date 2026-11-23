@@ -50,6 +50,11 @@ async function main() {
         fontName,
         files: iconFiles,
 
+        // At the default, the tallest icon's height (24 for Lucide's grid),
+        // svg2ttf rounds the outlines to a 24-unit grid, and circles come out
+        // as jagged polygons.  The tools recommend at least 1000.
+        fontHeight: 1000,
+
         types: ['ttf'],
         css: false,
         // Useful for debugging:
