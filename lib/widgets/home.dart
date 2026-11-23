@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter, clampDouble, lerpDouble;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -113,8 +113,8 @@ class _HomePageState extends State<HomePage> {
     final delta = hidden - (_hiddenByTab[tab] ?? hidden);
     _hiddenByTab[tab] = hidden;
     // Reading on (down) sends the title away, for the whole screen;
-    // any move back up brings it back, as in Safari.
-    if (hidden <= _HomeTitleBar.collapseDistance || delta < -1) {
+    // any move back up brings it back.
+    if (hidden <= _HomeTitleBar.keepDistance || delta < -1) {
       _barAway.remove(tab);
     } else if (delta > 1) {
       _barAway.add(tab);
@@ -205,15 +205,13 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-/// The home page's title: a large Kloki title that,
-/// as the content scrolls on under it,
-/// shrinks into a small centered title on a frosted bar,
-/// and slides away while the content is scrolled on down,
+/// The home page's title: a large Kloki title
+/// that slides away while the content is scrolled on down,
 /// coming back on any scroll up, for a full-screen view.
 ///
 /// It keeps its full height for the layout,
-/// so the content doesn't move as it shrinks or slides;
-/// the content shows below and behind it.
+/// so the content doesn't move as it slides;
+/// the content shows behind it.
 class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomeTitleBar({
     required this.title,
@@ -226,32 +224,26 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// How far the content is scrolled on under the title,
   /// and whether the title has slid away;
-  /// or null to keep the large title on a plain bar.
+  /// or null to keep the title on a plain bar.
   final ValueListenable<(double, bool)>? hidden;
 
-  static const _largeHeight = 76.0;
-  static const _smallHeight = 44.0;
+  static const _height = 76.0;
 
-  /// How far the content scrolls before the title is small.
-  static const collapseDistance = _largeHeight - _smallHeight;
+  /// How far the content scrolls before the title may slide away.
+  static const keepDistance = _height;
 
   @override
-  Size get preferredSize => const Size.fromHeight(_largeHeight + 4);
+  Size get preferredSize => const Size.fromHeight(_height + 4);
 
   @override
   Widget build(BuildContext context) {
     final hidden = this.hidden;
-    if (hidden == null) {
-      return _build(context, collapse: 0, frosted: false, away: false);
-    }
+    if (hidden == null) return _build(context, frosted: false, away: false);
     return ValueListenableBuilder(
       valueListenable: hidden,
       builder: (context, value, _) {
         final (extent, away) = value;
-        return _build(context,
-          collapse: clampDouble(extent / collapseDistance, 0, 1),
-          frosted: extent > 0,
-          away: away);
+        return _build(context, frosted: extent > 0, away: away);
       });
   }
 
@@ -265,17 +257,12 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
           child: const SizedBox.expand())));
   }
 
-  Widget _build(BuildContext context, {
-    required double collapse,
-    required bool frosted,
-    required bool away,
-  }) {
+  Widget _build(BuildContext context, {required bool frosted, required bool away}) {
     final designVariables = DesignVariables.of(context);
-    final height = lerpDouble(_largeHeight, _smallHeight, collapse)!;
     final appBar = ZulipAppBar(
-      titleSpacing: 0,
+      titleSpacing: 20,
       centerTitle: false,
-      toolbarHeight: height,
+      toolbarHeight: _height,
       backgroundColor: hidden != null ? Colors.transparent : null,
       // With no bar color to go by, say which status-bar icons suit the page.
       systemOverlayStyle: Theme.of(context).brightness == Brightness.light
@@ -286,47 +273,31 @@ class _HomeTitleBar extends StatelessWidget implements PreferredSizeWidget {
         : AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: !frosted ? const SizedBox.expand() : _frost(designVariables)),
-      title: SizedBox(width: double.infinity,
-        child: Align(
-          alignment: Alignment.lerp(
-            AlignmentDirectional.centerStart.resolve(Directionality.of(context)),
-            Alignment.center, collapse)!,
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(start: 20 * (1 - collapse)),
-            child: Semantics(
-              identifier: HomePage.titleSemanticsIdentifier,
-              namesRoute: true,
-              child: Text(title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: kKlokiHeadingFontFamily,
-                  fontSize: lerpDouble(28, 17, collapse),
-                  height: 1.2,
-                  color: designVariables.title,
-                ).merge(weightVariableTextStyle(context,
-                  wght: lerpDouble(800, 700, collapse)!))))))),
+      title: Semantics(
+        identifier: HomePage.titleSemanticsIdentifier,
+        namesRoute: true,
+        child: Text(title,
+          style: TextStyle(
+            fontFamily: kKlokiHeadingFontFamily,
+            fontSize: 28,
+            height: 1.2,
+            color: designVariables.title,
+          ).merge(weightVariableTextStyle(context, wght: 800)))),
       actions: actions);
 
     if (hidden == null) return appBar;
     final topPadding = MediaQuery.paddingOf(context).top;
-    // The bar shrinks inside the full-height slot;
-    // below it, taps go through to the content.
     return Stack(children: [
       // With the bar away, the status bar keeps a strip of frost
       // so its icons stay readable over the content.
       if (frosted)
         SizedBox(height: topPadding, width: double.infinity,
           child: _frost(designVariables)),
-      Align(
-        alignment: Alignment.topCenter,
-        child: AnimatedSlide(
-          offset: away ? const Offset(0, -1) : Offset.zero,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          child: SizedBox(
-            height: topPadding + height + appBar.bottom!.preferredSize.height,
-            child: appBar))),
+      AnimatedSlide(
+        offset: away ? const Offset(0, -1) : Offset.zero,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: appBar),
     ]);
   }
 }
