@@ -276,6 +276,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnLabelAttMediumIntWarning: const Color(0xff764607),
     btnShadowAttMed: const Color(0xff000000).withValues(alpha: 0.20),
     composeBoxBg: const Color(0xffffffff),
+    composeFieldBorder: const HSLColor.fromAHSL(1, 0, 0, 0.631).toColor(),
     contextMenuBg: const Color(0xffffffff), // grey/900
     contextMenuBorder: const Color(0xff9ea1ae), // grey/350
     contextMenuCancelText: const Color(0xff222222),
@@ -389,6 +390,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnLabelAttMediumIntWarning: const Color(0xfff8b325),
     btnShadowAttMed: const Color(0xffffffff).withValues(alpha: 0.21),
     composeBoxBg: KlokiColors.darkCard,
+    composeFieldBorder: const HSLColor.fromAHSL(1, 0, 0, 0.63).toColor(),
     contextMenuBg: KlokiColors.darkAccent,
     contextMenuBorder: const Color(0xff444754), // grey/650
     contextMenuCancelText: const Color(0xffffffff).withValues(alpha: 0.75),
@@ -511,6 +513,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.btnLabelAttMediumIntWarning,
     required this.btnShadowAttMed,
     required this.composeBoxBg,
+    required this.composeFieldBorder,
     required this.contextMenuBg,
     required this.contextMenuBorder,
     required this.contextMenuCancelText,
@@ -624,6 +627,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color btnLabelAttMediumIntWarning;
   final Color btnShadowAttMed;
   final Color composeBoxBg;
+  final Color composeFieldBorder;
   final Color contextMenuBg;
   final Color contextMenuBorder;
   final Color contextMenuCancelText;
@@ -731,6 +735,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? btnLabelAttMediumIntWarning,
     Color? btnShadowAttMed,
     Color? composeBoxBg,
+    Color? composeFieldBorder,
     Color? contextMenuBg,
     Color? contextMenuBorder,
     Color? contextMenuCancelText,
@@ -833,6 +838,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttMediumIntWarning: btnLabelAttMediumIntWarning ?? this.btnLabelAttMediumIntWarning,
       btnShadowAttMed: btnShadowAttMed ?? this.btnShadowAttMed,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
+      composeFieldBorder: composeFieldBorder ?? this.composeFieldBorder,
       contextMenuBg: contextMenuBg ?? this.contextMenuBg,
       contextMenuBorder: contextMenuBorder ?? this.contextMenuBorder,
       contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
@@ -942,6 +948,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnLabelAttMediumIntWarning: Color.lerp(btnLabelAttMediumIntWarning, other.btnLabelAttMediumIntWarning, t)!,
       btnShadowAttMed: Color.lerp(btnShadowAttMed, other.btnShadowAttMed, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
+      composeFieldBorder: Color.lerp(composeFieldBorder, other.composeFieldBorder, t)!,
       contextMenuBg: Color.lerp(contextMenuBg, other.contextMenuBg, t)!,
       contextMenuBorder: Color.lerp(contextMenuBorder, other.contextMenuBorder, t)!,
       contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,

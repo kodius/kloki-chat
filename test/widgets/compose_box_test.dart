@@ -333,6 +333,28 @@ void main() {
     });
   });
 
+  testWidgets('content field border turns primary on focus', (tester) async {
+    final channel = eg.stream();
+    final message = eg.streamMessage(stream: channel, topic: 'topic');
+    await prepareComposeBox(tester,
+      narrow: TopicNarrow.ofMessage(message),
+      subscriptions: [eg.subscription(channel)],
+      messages: [message]);
+
+    Color borderColor() {
+      final field = tester.widget<AnimatedContainer>(find.ancestor(
+        of: contentInputFinder, matching: find.byType(AnimatedContainer)).first);
+      return ((field.decoration as BoxDecoration).border as Border).top.color;
+    }
+
+    check(controller!.contentFocusNode.hasFocus).isFalse();
+    check(borderColor()).isSameColorAs(DesignVariables.light.composeFieldBorder);
+
+    await tester.tap(contentInputFinder);
+    await tester.pump();
+    check(borderColor()).isSameColorAs(DesignVariables.light.fabBg);
+  });
+
   group('ComposeContentController', () {
     group('insertPadded', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,

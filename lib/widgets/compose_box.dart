@@ -603,7 +603,7 @@ class _ContentInput extends StatelessWidget {
         child: InsetShadowBox(
           top: _verticalPadding, bottom: _verticalPadding,
           // The color of the rounded field the input sits in.
-          color: designVariables.bgSearchInput,
+          color: designVariables.composeBoxBg,
           child: Padding(
             // This padding ensures that the user can always scroll long
             // content entirely out of the top or bottom shadow if desired.
@@ -1431,13 +1431,15 @@ class _SendButtonState extends State<_SendButton> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
+            // Kloki's primary button, as on the web chat.
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(10),
               color: ready
                 ? designVariables.fabBg
                 : designVariables.fabBg.withValues(alpha: 0.35)),
             child: IconButton(
-              style: IconButton.styleFrom(shape: const CircleBorder()),
+              style: IconButton.styleFrom(shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10))),
               tooltip: zulipLocalizations.composeBoxSendTooltip,
               icon: Icon(ZulipIcons.send,
                 // We set [Icon.color] instead of [IconButton.color] because the
@@ -1542,7 +1544,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         //     https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3707-41711&node-type=frame&t=sSYomsJzGCt34D8N-0
         highlightColor: designVariables.editorButtonPressedBg,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))));
+          borderRadius: BorderRadius.all(Radius.circular(8)))));
 
     final composeButtonsEnabled = getComposeButtonsEnabled(context);
     final composeButtons = [
@@ -1564,15 +1566,25 @@ abstract class _ComposeBoxBody extends StatelessWidget {
               padding: const EdgeInsets.only(top: 6),
               child: topicInput),
           const SizedBox(height: 6),
-          // The message in a soft rounded field, with the send button beside it.
+          // The message in a Kloki field, as on the web chat:
+          // 12px radius, a gray border that turns primary on focus
+          // (zulip:web/styles/kloki_compose.css).
           Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Expanded(child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: designVariables.bgSearchInput,
-                borderRadius: BorderRadius.circular(22)),
-              // The input's edge shadows are square; keep them in the pill.
-              clipBehavior: Clip.antiAlias,
+            Expanded(child: ListenableBuilder(
+              listenable: controller.contentFocusNode,
+              builder: (context, child) => AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: designVariables.composeBoxBg,
+                  border: Border.all(
+                    color: controller.contentFocusNode.hasFocus
+                      ? designVariables.fabBg
+                      : designVariables.composeFieldBorder),
+                  borderRadius: BorderRadius.circular(12)),
+                // The input's edge shadows are square; keep them in the field.
+                clipBehavior: Clip.antiAlias,
+                child: child),
               child: buildContentInput())),
             if (sendButton != null) ...[
               const SizedBox(width: 8),
