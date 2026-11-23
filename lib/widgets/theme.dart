@@ -438,10 +438,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     statusIdle: Color(0xffae640a),
 
     statusOnline: Color(0xff44bb66),
-    textInput: const Color(0xffffffff).withValues(alpha: 0.9),
-    textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
+    // Kloki's foreground, as on the web chat; not dimmed.
+    textInput: KlokiColors.darkForeground,
+    textMessage: KlokiColors.darkForeground,
     textMessageMuted: const Color(0xffffffff).withValues(alpha: 0.5),
-    title: const Color(0xffffffff).withValues(alpha: 0.9),
+    title: KlokiColors.darkForeground,
     channelColorSwatches: ChannelColorSwatches.dark,
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     avatarPlaceholderBg: const Color(0x33cccccc),
