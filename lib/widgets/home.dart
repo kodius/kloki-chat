@@ -613,6 +613,7 @@ class _MenuPageBody extends StatelessWidget {
         KlokiStaggered.at(begin: 0.1, child: _MenuPageCard(children: [
           row(const _SettingsButton()),
           row(const _KlokiOrganizationsButton()),
+          row(const _OpenKlokiGoButton()),
           row(const _SwitchAccountButton()),
           row(const _AboutZulipButton()),
         ])),
@@ -703,6 +704,24 @@ class _KlokiOrganizationsButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.push(context, KlokiOrganizationsPage.buildRoute(context));
+  }
+}
+
+/// Open Kloki GO, for what the chat is about: requests, absences, approvals.
+class _OpenKlokiGoButton extends MenuButton {
+  const _OpenKlokiGoButton();
+
+  @override
+  IconData get icon => ZulipIcons.external_link;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.openKlokiGoButton;
+  }
+
+  @override
+  void onPressed(BuildContext context) {
+    openKlokiGo();
   }
 }
 

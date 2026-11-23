@@ -1550,6 +1550,9 @@ class ZulipLocalizationsHr extends ZulipLocalizations {
   String get klokiLinkTryManually => 'Pokušaj ručno';
 
   @override
+  String get openKlokiGoButton => 'Otvori Kloki GO';
+
+  @override
   String get klokiOrganizationsTitle => 'Organizacije';
 
   @override

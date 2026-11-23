@@ -2666,6 +2666,12 @@ abstract class ZulipLocalizations {
   /// **'Sign in here'**
   String get klokiLinkTryManually;
 
+  /// Label of the menu item that opens Kloki GO, Kloki's own app (or its store page if it isn't installed).
+  ///
+  /// In en, this message translates to:
+  /// **'Open Kloki GO'**
+  String get openKlokiGoButton;
+
   /// Title of the page, and label of the menu item, for switching the chat between the person's companies in Kloki.
   ///
   /// In en, this message translates to:

@@ -1522,6 +1522,9 @@ class ZulipLocalizationsHu extends ZulipLocalizations {
   String get klokiLinkTryManually => 'Sign in here';
 
   @override
+  String get openKlokiGoButton => 'Open Kloki GO';
+
+  @override
   String get klokiOrganizationsTitle => 'Organizations';
 
   @override

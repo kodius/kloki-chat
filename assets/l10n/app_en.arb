@@ -1832,6 +1832,10 @@
   "@klokiLinkTryManually": {
     "description": "Button in the error dialog of a failed sign-in from Kloki GO, opening this app's sign-in for the same server."
   },
+  "openKlokiGoButton": "Open Kloki GO",
+  "@openKlokiGoButton": {
+    "description": "Label of the menu item that opens Kloki GO, Kloki's own app (or its store page if it isn't installed)."
+  },
   "klokiOrganizationsTitle": "Organizations",
   "@klokiOrganizationsTitle": {
     "description": "Title of the page, and label of the menu item, for switching the chat between the person's companies in Kloki."

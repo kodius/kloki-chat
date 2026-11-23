@@ -408,6 +408,7 @@
   "klokiLinkSignInFailedMessage": "Poveznica je možda istekla. Vratite se u Kloki GO i ponovno otvorite chat ili se prijavite ovdje.",
   "klokiLinkBackToKlokiGo": "Natrag u Kloki GO",
   "klokiLinkTryManually": "Pokušaj ručno",
+  "openKlokiGoButton": "Otvori Kloki GO",
   "klokiOrganizationsTitle": "Organizacije",
   "klokiOrganizationsSignInPrompt": "Prijavite se kroz Kloki da biste ovdje prelazili između chatova svojih tvrtki.",
   "klokiOrganizationsOnlyOne": "U Klokiju ste samo u jednoj tvrtki.",

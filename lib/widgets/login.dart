@@ -651,7 +651,6 @@ enum _KlokiLinkFailureAction { backToKlokiGo, tryManually }
 /// as [LoginPage.handleWebAuthUrl] does.
 abstract final class KlokiLinkSignIn {
   /// The scheme of Kloki GO, to go back to after a failure.
-  static final klokiGoUrl = Uri.parse('klokimobile://');
 
   /// The pad sent to Kloki's web sign-in, to open the session it sends back.
   static String? _webSignInOtp;
@@ -808,13 +807,7 @@ abstract final class KlokiLinkSignIn {
       case null:
         break;
       case _KlokiLinkFailureAction.backToKlokiGo:
-        try {
-          await ZulipBinding.instance.launchUrl(klokiGoUrl,
-            mode: LaunchMode.externalApplication);
-        } catch (e) {
-          // Kloki GO isn't installed; the dialog is already closed.
-          assert(debugLog(e.toString()));
-        }
+        await openKlokiGo();
       case _KlokiLinkFailureAction.tryManually:
         unawaited(Navigator.push(context, serverSettings != null
           ? LoginPage.buildRoute(serverSettings: serverSettings)

@@ -1,8 +1,12 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
+import '../model/binding.dart';
 import '../model/settings.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -14,6 +18,38 @@ import 'theme.dart';
 /// of the company active in Kloki,
 /// and the `zulip://login` redirect says which realm that is.
 final kKlokiChatSignInUrl = Uri.parse('https://kloki.app/app/auth/chat');
+
+/// Kloki GO, Kloki's own app, by its URL scheme.
+final kKlokiGoUrl = Uri.parse('klokimobile://');
+
+/// Kloki GO's store page, for when it isn't installed.
+Uri get klokiGoStoreUrl => switch (defaultTargetPlatform) {
+  TargetPlatform.iOS || TargetPlatform.macOS =>
+    Uri.parse('https://apps.apple.com/app/id6762602526'),
+  _ => Uri.parse('https://play.google.com/store/apps/details?id=com.kodius.kloki'),
+};
+
+/// Opens Kloki GO, or its store page if it isn't installed.
+///
+/// Kloki GO keeps its own sign-in, so this needs no token:
+/// it opens on Početna, or on its sign-in page.
+Future<void> openKlokiGo() async {
+  bool opened;
+  try {
+    opened = await ZulipBinding.instance.launchUrl(kKlokiGoUrl,
+      mode: LaunchMode.externalApplication);
+  } catch (e) {
+    assert(debugLog(e.toString()));
+    opened = false;
+  }
+  if (opened) return;
+  try {
+    await ZulipBinding.instance.launchUrl(klokiGoStoreUrl,
+      mode: LaunchMode.externalApplication);
+  } catch (e) {
+    assert(debugLog(e.toString()));
+  }
+}
 
 /// The [ExternalAuthenticationMethod.name] of the Kloki sign-in
 /// on chat.kloki.app realms.
