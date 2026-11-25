@@ -38,18 +38,18 @@ esac
 # see docs/howto/claude-web.md ("Trust model").
 git config commit.gpgsign false
 
-# Find the session branch's merge-base with main, which `tools/check`
+# Find the session branch's merge-base with master, which `tools/check`
 # needs to pick which files to check. The clone starts out shallow
-# and single-branch, so that takes (a) fetching main and (b)
+# and single-branch, so that takes (a) fetching master and (b)
 # unshallowing, to restore the branch's ancestry back through the
 # merge-base.
-if ! git rev-parse -q --verify refs/remotes/origin/main >/dev/null; then
+if ! git rev-parse -q --verify refs/remotes/origin/master >/dev/null; then
     fetch_opts=()
     if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
         fetch_opts+=(--unshallow)
     fi
-    git fetch -q "${fetch_opts[@]}" origin main:refs/remotes/origin/main \
-        || echo "cloud-session-start: couldn't fetch origin/main; tools/check will want it."
+    git fetch -q "${fetch_opts[@]}" origin master:refs/remotes/origin/master \
+        || echo "cloud-session-start: couldn't fetch origin/master; tools/check will want it."
 fi
 
 # Fetch pub deps for the fresh clone, unless already done (on resume

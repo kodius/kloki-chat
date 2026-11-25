@@ -274,7 +274,7 @@ The hook:
   can't hard-halt a session, so it warns via context);
 - turns off commit signing, which would otherwise sign as
   Anthropic's `claude` identity (see [Trust model](#trust-model));
-- fetches your fork's `main` and unshallows the clone, which
+- fetches your fork's `master` and unshallows the clone, which
   starts out shallow and single-branch, so that `tools/check`
   can find the branch's merge-base;
 - runs `flutter pub get` for the fresh clone (fast, thanks to

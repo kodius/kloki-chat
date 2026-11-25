@@ -69,13 +69,13 @@ EOF
 }
 
 git_upstream_ref() {
-    echo refs/remotes/"$(git_upstream_remote_name)"/main
+    echo refs/remotes/"$(git_upstream_remote_name)"/master
 }
 
 # usage: git_base_commit [TIP [UPSTREAM]]
 #
 # The merge-base of TIP (default: current HEAD) with
-# UPSTREAM (default: upstream/main or origin/main).
+# UPSTREAM (default: upstream/master or origin/master).
 git_base_commit() {
     tip_commit=${1:-@}
     upstream=${2:-$(git_upstream_ref)}

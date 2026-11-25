@@ -52,7 +52,7 @@ usage: tools/check [OPTION]... [SUITE]...
 Run our tests.
 
 By default, run only on files changed in this branch
-as compared to the upstream \`main\`.
+as compared to the upstream \`master\`.
 
 By default, run ${#default_suites[@]} suite(s):
   ${default_suites[*]}
@@ -69,7 +69,7 @@ What tests to run:
               \`git help revisions\` for many more ways to name a commit.)
   --all       In the given suites, run on all files. If no list of suites
               was specified, run all suites -- including \`authorship\`,
-              which needs upstream \`main\` fetched and a clone deep
+              which needs upstream \`master\` fetched and a clone deep
               enough to reach the branch's fork point.
   --exclude SUITE
               Don't run the given suite, despite \`--all\`
@@ -170,7 +170,7 @@ tools/check: couldn't find the merge-base of @ with upstream (see the
 git error above).  Often this is a shallow or single-branch clone
 lacking the branch's fork point; if so, fetch enough history:
     git fetch --unshallow                                # a shallow clone
-    git fetch <remote> main:refs/remotes/<remote>/main   # if main is absent
+    git fetch <remote> master:refs/remotes/<remote>/master   # if master is absent
 EOF
     return 1
 }
@@ -411,10 +411,10 @@ Take authorship of these when adopting them. For a flagged commit
 at the tip of the branch:
   \$ git commit --amend --reset-author
 Or, when adopting a branch that's wholly an agent's, re-author every
-commit since the branch's fork point from upstream main (below as
+commit since the branch's fork point from upstream master (below as
 the remote \`upstream\`, freshly fetched):
   \$ git rebase --exec 'git commit --amend --reset-author --no-edit' \\
-        \$(git merge-base @ upstream/main)
+        \$(git merge-base @ upstream/master)
 See docs/howto/claude-web.md ("Trust model").
 EOF
     return 1

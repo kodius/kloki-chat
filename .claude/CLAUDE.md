@@ -21,7 +21,7 @@ flutter test --no-pub test/foo/bar_test.dart --name 'some test name'
 # Static analysis (type-checking + linting)
 flutter analyze --no-pub
 
-# Run all test suites (only changed files vs upstream main)
+# Run all test suites (only changed files vs origin/master)
 tools/check
 
 # Regenerate JSON serialization code after editing API types
