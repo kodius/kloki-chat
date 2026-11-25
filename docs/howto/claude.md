@@ -65,8 +65,8 @@ in this project:
   approved it. Cheap way to catch a wrong direction early.
 - Research questions, like "how does X work?" or "when did the
   API start doing Y?": Claude can cross-reference this codebase,
-  the server's (see [lima.md](lima.md#8-optional-clone-the-zulip-server-repo)
-  on cloning it), and issues and PRs via `gh`.
+  the server's (kodius/zulip, cloned next to this repo as `../zulip`),
+  and issues and PRs via `gh`.
 - Paste a chat.zulip.org link: a small skill in this repo lets
   Claude fetch and read web-public conversations, like design
   discussions linked from issues.
@@ -110,8 +110,7 @@ the wall they actually build:
   host-level sandboxes (nothing on the host is reachable unless
   explicitly mounted), at the cost of VM overhead -- though with
   no egress restriction out of the box, unlike the sandbox
-  runtime's proxy. This repo includes a [Lima](lima.md) config
-  (for macOS hosts); see its [trust model](lima.md#trust-model).
+  runtime's proxy.
 - A **[dev container][claude-devcontainer]**, with caveats[^dev-container].
 - **[Claude Code on the web][ccweb]** runs each session in an
   Anthropic-hosted VM, with nothing to install locally; see
@@ -121,9 +120,7 @@ the wall they actually build:
 One risk is shared by every option that runs against the same
 clone your host uses: `.git/` is a host-execution path. Git runs
 hooks and obeys config from it, `git diff` never shows it, and a
-jailed agent can write to it. See the
-[Lima trust model](lima.md#trust-model) for details and a cheap
-mitigation; they apply to the other options here too.
+jailed agent can write to it.
 
 Anthropic's [sandbox environments page][sandbox-environments] covers
 these approaches at a higher level.
@@ -152,7 +149,7 @@ scraping HTML), and authenticating lifts unauthenticated rate
 limits. Install it where Claude runs (instructions at
 [cli.github.com][gh]), and authenticate with a credential of the
 narrowest scope that works. In a jail with its own environment,
-like the Lima VM, that means a dedicated fine-grained PAT with
+like a VM, that means a dedicated fine-grained PAT with
 read-only access to public repos: GitHub then enforces
 server-side that the agent can't push or read anything private.
 The same token can also authenticate `git fetch` over HTTPS,
@@ -160,10 +157,6 @@ which such a jail needs, since it deliberately holds no SSH
 keys. (The host-level options instead share your host's existing
 `gh` and Git credentials; that's part of the wall they don't
 build.)
-
-For a worked example (creating the token, running
-`gh auth login`, and the Git config for `git fetch`), see
-[the Lima setup](lima.md#7-authenticate-gh-and-git-fetch).
 
 [claude-docs]: https://code.claude.com/docs/
 [gh]: https://cli.github.com/

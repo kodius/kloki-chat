@@ -73,7 +73,7 @@ class WebAuthPayload {
 /// for the Kloki GO versions and Kloki web sign-ins that still send it.
 /// TODO(kloki): drop `konvo` from [klokiLoginSchemes], the Android manifest
 ///   and Info.plist once no Kloki GO version in use sends it
-///   (docs/konvo/kloki-login.md, "Scheme").
+///   (docs/kloki-login.md, "Scheme").
 ///
 /// The token is the 60-second JWT Kloki issues for one realm and one person.
 /// The app posts it to the realm itself; see `postKlokiJwtLogin`.

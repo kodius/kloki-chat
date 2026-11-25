@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Build and release Kloki Chat to TestFlight / Play, then to the stores.
-# Wraps the lanes in fastlane/Fastfile; see docs/konvo/release.md.
+# Wraps the lanes in fastlane/Fastfile; see docs/release.md.
 
 set -euo pipefail
 

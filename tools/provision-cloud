@@ -23,8 +23,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 
 if [ "$(uname)" != Linux ] || [ "$(id -u)" != 0 ]; then
     echo >&2 "error: This script is meant to run as root in a Claude Code"
-    echo >&2 "  on the web environment. See docs/howto/claude-web.md, or"
-    echo >&2 "  for a local VM see tools/provision-vm and docs/howto/lima.md."
+    echo >&2 "  on the web environment. See docs/howto/claude-web.md."
     exit 1
 fi
 
@@ -47,7 +46,7 @@ echo "==> Installing system packages"
 # ShellCheck: for the `shellcheck` suite in tools/check, which CI runs.
 #   (Capitalized because a comment starting `# shellcheck` is a directive.)
 #
-# No gh, unlike tools/provision-vm: the cloud proxy blocks its
+# No gh: the cloud proxy blocks its
 # repo-scoped API paths, so it can't read issues or PRs here.
 # See docs/howto/claude-web.md.
 #

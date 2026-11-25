@@ -1,6 +1,5 @@
 // This integration driver configures output of timeline data
-// and a summary thereof from integration tests. See
-// docs/integration_tests.md for background.
+// and a summary thereof from integration tests.
 
 import 'package:flutter_driver/flutter_driver.dart' as driver;
 import 'package:integration_test/integration_test_driver.dart';

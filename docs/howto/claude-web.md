@@ -209,7 +209,7 @@ the session wrote commits you want to send in a PR.
 
 ## Trust model
 
-Unlike the [Lima setup](lima.md#trust-model), where pushing is
+Unlike a local VM, where pushing is
 reserved for the host, cloud sessions are designed to push:
 Anthropic's GitHub proxy holds your real credentials outside
 the sandbox, and hands the session a credential scoped to your
@@ -283,7 +283,7 @@ The hook:
   cached SDK has fallen behind `pubspec.yaml`.
 
 The hook is a no-op outside cloud sessions (it checks
-`CLAUDE_CODE_REMOTE`), so local and Lima-VM sessions are
+`CLAUDE_CODE_REMOTE`), so local sessions are
 unaffected.
 
 

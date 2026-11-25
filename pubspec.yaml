@@ -7,7 +7,7 @@ name: zulip
 description: A Zulip client for Android and iOS
 publish_to: 'none'
 
-# Keep the last two numbers equal; see docs/release.md.
+# Set by scripts/deploy; see docs/release.md, "Versions".
 version: 30.0.0+118
 
 environment:

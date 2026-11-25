@@ -2,7 +2,7 @@ require "fileutils"
 require "tmpdir"
 
 # Run through `scripts/deploy`, which asks what to do and calls these lanes.
-# See docs/konvo/release.md.
+# See docs/release.md.
 #
 # There is one build and no environments: every build talks to the production
 # Kloki servers. "Internal" and "production" are the same binary, and differ
