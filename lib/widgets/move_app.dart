@@ -17,36 +17,40 @@ final kNewIosAppStoreUrl = Uri.parse('https://apps.apple.com/app/id6833812526');
 bool _shownThisLaunch = false;
 
 @visibleForTesting
-void debugResetMoveToNewAppDialog() {
+void debugResetMoveToNewAppSheet() {
   _shownThisLaunch = false;
 }
 
 /// In the old iOS app, asks the user to install the new one,
-/// once per launch.
+/// in a bottom sheet, once per launch.
 ///
-/// The user can dismiss it and keep using this app.
-Future<void> maybeShowMoveToNewAppDialog(BuildContext context) async {
+/// The user can dismiss it (drag it down, tap outside, or "Later")
+/// and keep using this app.
+Future<void> maybeShowMoveToNewAppSheet(BuildContext context) async {
   if (_shownThisLaunch) return;
   if (defaultTargetPlatform != TargetPlatform.iOS) return;
   final packageInfo = await ZulipBinding.instance.packageInfo;
   if (packageInfo?.packageName != kOldIosAppBundleId) return;
   if (!context.mounted) return;
   _shownThisLaunch = true;
-  await showDialog<void>(context: context,
-    builder: (_) => const _MoveToNewAppDialog());
+  await showModalBottomSheet<void>(context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => const _MoveToNewAppSheet());
 }
 
-class _MoveToNewAppDialog extends StatelessWidget {
-  const _MoveToNewAppDialog();
+class _MoveToNewAppSheet extends StatelessWidget {
+  const _MoveToNewAppSheet();
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+    return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 26, 22, 14),
+        padding: const EdgeInsets.fromLTRB(22, 0, 22, 0),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ClipRRect(
             // The iOS app icon's corner radius, about 22% of its size.

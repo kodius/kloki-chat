@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _tab.addListener(_tabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) maybeShowMoveToNewAppDialog(context);
+      if (mounted) maybeShowMoveToNewAppSheet(context);
     });
   }
 

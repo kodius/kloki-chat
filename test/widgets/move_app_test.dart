@@ -17,7 +17,7 @@ void main() {
 
   Future<void> prepare(WidgetTester tester, {required String packageName}) async {
     addTearDown(testBinding.reset);
-    addTearDown(debugResetMoveToNewAppDialog);
+    addTearDown(debugResetMoveToNewAppSheet);
     testBinding.packageInfoResult = eg.packageInfo(packageName: packageName);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
@@ -25,9 +25,10 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400)); // sheet slides in
   }
 
-  testWidgets('old iOS app: show dialog, open App Store', (tester) async {
+  testWidgets('old iOS app: show sheet, open App Store', (tester) async {
     await prepare(tester, packageName: kOldIosAppBundleId);
     check(find.text(title)).findsOne();
 
@@ -53,12 +54,20 @@ void main() {
     check(find.text(title)).findsNothing();
   }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
-  testWidgets('no dialog in the new iOS app', (tester) async {
+  testWidgets('old iOS app: dismiss by tapping outside', (tester) async {
+    await prepare(tester, packageName: kOldIosAppBundleId);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    check(find.text(title)).findsNothing();
+  }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
+  testWidgets('no sheet in the new iOS app', (tester) async {
     await prepare(tester, packageName: 'com.kodius.klokichat');
     check(find.text(title)).findsNothing();
   }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
-  testWidgets('no dialog on Android, same package name', (tester) async {
+  testWidgets('no sheet on Android, same package name', (tester) async {
     await prepare(tester, packageName: kOldIosAppBundleId);
     check(find.text(title)).findsNothing();
   }, variant: const TargetPlatformVariant({TargetPlatform.android}));
